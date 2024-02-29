@@ -12,7 +12,7 @@ def train():
     trainer = DMCTrainer(
         env,
         cuda="", # Empty = cpu, 0 = GPU
-        xpid='skat_1',
+        xpid='skat_2',
         savedir='experiments/skat',
         save_interval=30, # save model every 30 minutes
         num_actors=5,

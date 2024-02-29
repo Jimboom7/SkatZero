@@ -1,4 +1,4 @@
-from collections import Counter, OrderedDict
+from collections import OrderedDict
 import numpy as np
 
 from rlcard.envs import Env
@@ -16,7 +16,7 @@ class SkatEnv(Env):
         self.name = 'skat'
         self.game = Game()
         super().__init__(config)
-        self.state_shape = [[462], [526], [526]]
+        self.state_shape = [[690], [754], [754]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def _extract_state(self, state):
@@ -38,8 +38,8 @@ class SkatEnv(Env):
         if state['self'] == 0: # soloplayer
             soloplayer_up_played_cards = _cards2array(state['played_cards'][2])
             soloplayer_down_played_cards = _cards2array(state['played_cards'][1])
-            points_own = _get_binary_points(state['points'][0])
-            points_opp = _get_binary_points(state['points'][1])
+            points_own = get_points_as_one_hot_vector(state['points'][0])
+            points_opp = get_points_as_one_hot_vector(state['points'][1])
             obs = np.concatenate((current_hand,
                                   others_hand,
                                   last_action,
@@ -55,8 +55,8 @@ class SkatEnv(Env):
                     last_soloplayer_action = action
                     break
             last_soloplayer_action = _cards2array(last_soloplayer_action)
-            points_own = _get_binary_points(state['points'][1])
-            points_opp = _get_binary_points(state['points'][0])
+            points_own = get_points_as_one_hot_vector(state['points'][1])
+            points_opp = get_points_as_one_hot_vector(state['points'][0])
 
             teammate_id = 3 - state['self']
             teammate_played_cards = _cards2array(state['played_cards'][teammate_id])
@@ -146,8 +146,10 @@ def _cards2array(cards):
         matrix[CardSuit2Column[next(it)], Card2Column[x]] = 1 
     return matrix.flatten('F')
 
-def _get_binary_points(points, max_len=7):
-    return np.array([int(i) for i in bin(points)[2:].zfill(max_len)])
+def get_points_as_one_hot_vector(points, max_points=120):
+    one_hot = np.zeros(max_points + 1, dtype=np.int8)
+    one_hot[points] = 1
+    return one_hot
 
 def _action_seq2array(action_seq_list):
     action_seq_array = np.zeros((len(action_seq_list), 32), np.int8)

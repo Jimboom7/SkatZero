@@ -26,7 +26,7 @@ env.set_agents([
 
 print(">> Skat pre-trained model")
 
-while (True):
+while True:
     print(">> Start a new game")
 
     trajectories, payoffs = env.run(is_training=False, verbose=True)
