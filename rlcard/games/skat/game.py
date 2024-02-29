@@ -18,6 +18,13 @@ class SkatGame:
         self.allow_step_back = allow_step_back
         self.np_random = np.random.RandomState()
         self.num_players = 3
+        self.done = False
+        self.history = []
+        self.players = []
+        self.played_cards = []
+        self.round = None
+        self.judger = None
+        self.state = None
 
     def init_game(self):
         ''' Initialize players and state.
@@ -93,7 +100,7 @@ class SkatGame:
         self.done = False
 
         #reverse round
-        player_id, card = self.round.step_back(self.players)
+        player_id, _ = self.round.step_back(self.players)
 
         #reverse player
         self.players[player_id].played_cards = self.round.find_last_played_card_in_trace(player_id)

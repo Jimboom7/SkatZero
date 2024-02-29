@@ -42,7 +42,7 @@ class SkatJudger:
         return not players[0].current_hand and not players[1].current_hand and not players[2].current_hand
 
     @staticmethod
-    def judge_payoffs(soloplayer_id, solo_score): # TODO: Berechne "mit X Spiel Y", Trumpffarbe
+    def judge_payoffs(soloplayer_id, solo_score): # TODO: Berechne "mit X Spiel Y", Trumpffarbe, Hand etc.
         payoffs = np.array([0, 0, 0])
 
         if solo_score >= 90:

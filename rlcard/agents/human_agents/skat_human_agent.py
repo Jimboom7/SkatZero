@@ -1,6 +1,3 @@
-from rlcard.games.skat.utils import print_hand
-
-
 class SkatHumanAgent(object):
     ''' A human agent for Skat. It can be used to play against trained models
     '''
@@ -24,7 +21,7 @@ class SkatHumanAgent(object):
         Returns:
             action (int): The action decided by human
         '''
-        _print_state(state['raw_obs'], state['action_record'])
+        _print_state(state['raw_obs'])
         action = int(input('>> You choose action (integer): '))
         while action < 0 or action >= len(state['legal_actions']):
             print('Action illegal...')
@@ -42,12 +39,11 @@ class SkatHumanAgent(object):
         '''
         return self.step(state), {}
 
-def _print_state(state, action_record):
+def _print_state(state):
     ''' Print out the state
 
     Args:
         state (dict): A dictionary of the raw state
-        action_record (list): A list of the historical actions
     '''
 
     print('===============   Score    ===============')

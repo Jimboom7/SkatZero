@@ -3,7 +3,7 @@
 '''
 
 from rlcard.utils import init_32_deck
-from rlcard.games.skat.utils import skat_sort_card, cards2str, evalute_hand_strength
+from rlcard.games.skat.utils import evalute_hand_strength
 
 class SkatDealer:
     ''' Dealer will shuffle, deal cards, and determine players' roles
@@ -67,10 +67,5 @@ class SkatDealer:
         players[1].role = 'opponent'
         players[2].role = 'opponent'
 
-        # TODO: Dealer muss Skat kennen!
-
-        # give the 'soloplayer' the skat
-        # self.soloplayer.current_hand.extend(self.deck[-2:])
-        # self.soloplayer.current_hand.sort(key=functools.cmp_to_key(skat_sort_card))
-        # self.soloplayer.initial_hand = cards2str(self.soloplayer.current_hand)
+        # TODO: Give the 'soloplayer' the skat
         return self.soloplayer.player_id

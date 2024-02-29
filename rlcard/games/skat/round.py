@@ -2,14 +2,9 @@
 ''' Implement Skat Round class
 '''
 
-import functools
-import numpy as np
-
 from rlcard.games.skat import Dealer
-from rlcard.games.skat.utils import CARD_SUIT_STR, cards2str, skat_sort_card, get_points
+from rlcard.games.skat.utils import CARD_SUIT_STR, cards2str, get_points
 from rlcard.games.skat.utils import CARD_RANK_STR, CARD_RANK_STR_INDEX, CARD_SUIT_STR_INDEX
-
-# TODO: Check if it works without sorting of cards
 
 class SkatRound:
     ''' Round can call other Classes' functions to keep the game running
@@ -92,7 +87,7 @@ class SkatRound:
 
         if len(self.current_trick) == 1:
             self.current_suit = action[1]
-            if(action[0] == "J"):
+            if action[0] == "J":
                 self.current_suit = self.trump
 
     def step_back(self, players):
