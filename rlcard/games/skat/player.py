@@ -39,7 +39,7 @@ class SkatPlayer:
     def set_current_hand(self, value):
         self._current_hand = value
 
-    def get_state(self, public, others_hands, points, actions):
+    def get_state(self, public, others_hands, points, actions, trick):
         state = {}
         state['seen_cards'] = public['seen_cards']
         state['soloplayer'] = public['soloplayer']
@@ -50,6 +50,7 @@ class SkatPlayer:
         state['others_hand'] = others_hands
         state['points'] = points
         state['actions'] = actions
+        state['trick'] = trick.copy()
 
         return state
 

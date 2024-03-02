@@ -35,6 +35,8 @@ from .utils import (
     log,
 )
 
+from skat_evaluate import evaluate, load_model
+
 def compute_loss(logits, targets):
     loss = ((logits - targets)**2).mean()
     return loss
@@ -122,7 +124,8 @@ class DMCTrainer:
         learning_rate=0.0001,
         alpha=0.99,
         momentum=0,
-        epsilon=0.00001
+        epsilon=0.00001,
+        eval=False
     ):
         self.env = env
 
@@ -153,6 +156,7 @@ class DMCTrainer:
         self.alpha = alpha
         self.momentum = momentum
         self.epsilon = epsilon
+        self.eval = eval
 
         self.num_players = self.env.num_players
         self.action_shape = self.env.action_shape
@@ -309,7 +313,7 @@ class DMCTrainer:
                     thread.start()
                     threads.append(thread)
 
-        def checkpoint(frames):
+        def checkpoint(frames, eval_num=2000):
             log.info('Saving checkpoint to %s', self.checkpointpath)
             _agents = learner_model.get_agents()
             torch.save({
@@ -327,10 +331,13 @@ class DMCTrainer:
                     learner_model.get_agent(position),
                     model_weights_dir
                 )
+            if self.eval:
+                evaluate(self.xpid, frames, eval_num)
+
 
         timer = timeit.default_timer
         try:
-            last_checkpoint_time = timer() - self.save_interval * 60
+            last_checkpoint_time = timer()
             while frames < self.total_frames:
                 start_frames = frames
                 start_time = timer()
@@ -339,6 +346,9 @@ class DMCTrainer:
                 if timer() - last_checkpoint_time > self.save_interval * 60:
                     checkpoint(frames)
                     last_checkpoint_time = timer()
+                    
+                if os.path.isfile("./done"):
+                        break
 
                 end_time = timer()
                 fps = (frames - start_frames) / (end_time - start_time)
@@ -355,5 +365,5 @@ class DMCTrainer:
                 thread.join()
             log.info('Learning finished after %d frames.', frames)
 
-        checkpoint(frames)
+        checkpoint(frames, 10000)
         self.plogger.close()

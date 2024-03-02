@@ -19,7 +19,7 @@ class SkatJudger:
         playable_cards = []
         if suit is not None:
             for c in current_hand:
-                if c.suit == suit or (suit == trump and c.rank == 'J'):
+                if (c.suit == suit and c.rank != 'J') or (suit == trump and c.rank == 'J'):
                     playable_cards.append(str(c))
 
         if suit is None or not playable_cards:

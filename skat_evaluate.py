@@ -1,7 +1,6 @@
 ''' An example of evluating the trained models in RLCard
 '''
 import os
-import argparse
 
 import rlcard
 
@@ -18,11 +17,27 @@ def load_model(model_path, env=None, device=None):
     elif model_path == 'random':  # Random model
         from rlcard.agents import RandomAgent
         agent = RandomAgent(num_actions=env.num_actions)
+    else:
+        print("Modell kann nicht geladen werden!!!")
     return agent
 
-def evaluate(args):
-    import time
-    start = time.time()
+def evaluate(folder, number, num_games):
+    print("Starting Evaluation")
+    base_folder =  'experiments/skat/'
+    folder = str(folder)
+    number = str(number)
+
+    model_solo = [
+            base_folder + folder + '/0_' + number + '.pth',
+            'random',
+            'random'
+        ]
+    model_opponent = [
+            'random',
+            base_folder + folder + '/1_' + number + '.pth',
+            base_folder + folder + '/2_' + number + '.pth'
+        ]
+
 
     # Check whether gpu is available
     #device = get_device()
@@ -30,57 +45,41 @@ def evaluate(args):
     device = torch.device("cpu") # hardcoded to cpu
 
     # Seed numpy, torch, random
-    set_seed(args.seed)
+    set_seed(42)
 
     # Make the environment with seed
-    env = rlcard.make("skat", config={'seed': args.seed})
+    env = rlcard.make("skat", config={'seed': 42})
 
     # Load models
     agents = []
-    for _, model_path in enumerate(args.models):
+    for _, model_path in enumerate(model_solo):
         agents.append(load_model(model_path, env, device))
     env.set_agents(agents)
 
     # Evaluate
-    rewards = tournament(env, args.num_games)
+    rewards = tournament(env, num_games)
     for position, reward in enumerate(rewards):
-        print(position, args.models[position], reward)
-    end = time.time()
-    print("Time: " + str(end - start))
+        print(position, model_solo[position], reward)
+
+    # Load models 2
+    agents = []
+    for _, model_path in enumerate(model_opponent):
+        agents.append(load_model(model_path, env, device))
+    env.set_agents(agents)
+
+    # Evaluate 2
+    rewards2 = tournament(env, num_games)
+    for position, reward in enumerate(rewards2):
+        print(position, model_opponent[position], reward)
+
+    print("Score: " + str(rewards[0] - rewards2[0]))
+    with open(base_folder + folder + "/evaluate_log.csv", "a", encoding='utf-8') as logfile:
+        logfile.write(str(number) + "," + str(num_games) + "," + str(rewards[0] - rewards2[0]) + "\n")
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("Evaluation example in RLCard")
-    parser.add_argument(
-        '--models',
-        nargs='*',
-        # default=[
-        #     'experiments/skat/skat_1/0_7036800.pth',
-        #     'random',
-        #     'random',
-        # ],
-        default=[
-            'random',
-            'experiments/skat/skat_1/1_7036800.pth',
-            'experiments/skat/skat_1/2_7036800.pth',
-        ],
-    )
-    parser.add_argument(
-        '--cuda',
-        type=str,
-        default='',
-    )
-    parser.add_argument(
-        '--seed',
-        type=int,
-        default=42,
-    )
-    parser.add_argument(
-        '--num_games',
-        type=int,
-        default=1000,
-    )
-
-    args = parser.parse_args()
-
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.cuda
-    evaluate(args)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    NUM_GAMES = 10000
+    FOLDER = "skat_0"
+    NUMBER = "30035200"
+    evaluate(FOLDER, NUMBER, NUM_GAMES)

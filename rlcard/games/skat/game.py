@@ -128,7 +128,7 @@ class SkatGame:
             actions = []
         else:
             actions = list(player.available_actions(self.round.current_suit, self.judger))
-        state = player.get_state(self.round.public, others_hands, points, actions)
+        state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick)
 
         return state
 

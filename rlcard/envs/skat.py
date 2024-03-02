@@ -16,7 +16,7 @@ class SkatEnv(Env):
         self.name = 'skat'
         self.game = Game()
         super().__init__(config)
-        self.state_shape = [[690], [754], [754]]
+        self.state_shape = [[498], [562], [562]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def _extract_state(self, state):
@@ -33,49 +33,73 @@ class SkatEnv(Env):
             last_action = state['trace'][-1][1]
         last_action = _cards2array(last_action)
 
-        last_9_actions = _action_seq2array(_process_action_seq(state['trace']))
+        last_9_actions = _action_seq2array(_process_action_seq(state['trace'])) # TODO: Can be removed? -> Change to Fehlfarben Feature
 
-        if state['self'] == 0: # soloplayer
+        trick1 = _cards2array(None)
+        trick2 = _cards2array(None)
+        if len(state['trick']) >= 1:
+            trick1 = _cards2array(state['trick'][0][1])
+        if len(state['trick']) == 2:
+            trick2 = _cards2array(state['trick'][1][1])
+
+        if state['self'] == state['soloplayer']: # soloplayer
             soloplayer_up_played_cards = _cards2array(state['played_cards'][2])
             soloplayer_down_played_cards = _cards2array(state['played_cards'][1])
+
+            missing_cards_up = _calculate_missing_cards(state['others_hand'], 2, state['trace'], self.game.round.trump)
+            missing_cards_down = _calculate_missing_cards(state['others_hand'], 1, state['trace'], self.game.round.trump)
+
             points_own = get_points_as_one_hot_vector(state['points'][0])
             points_opp = get_points_as_one_hot_vector(state['points'][1])
-            obs = np.concatenate((current_hand,
-                                  others_hand,
-                                  last_action,
-                                  last_9_actions,
-                                  soloplayer_up_played_cards,
-                                  soloplayer_down_played_cards,
-                                  points_own,
-                                  points_opp))
+            obs = np.concatenate((current_hand, # 32
+                                  others_hand, # 32
+                                  trick1, # 32
+                                  trick2, # 32
+                                  #last_action, # 32
+                                  #last_9_actions, # 32*9
+                                  missing_cards_up, # 32
+                                  soloplayer_up_played_cards, # 32
+                                  missing_cards_down, # 32
+                                  soloplayer_down_played_cards, # 32
+                                  points_own, # 121
+                                  points_opp)) # 121
         else:
-            soloplayer_played_cards = _cards2array(state['played_cards'][0])
+            soloplayer_played_cards = _cards2array(state['played_cards'][0]) 
             for i, action in reversed(state['trace']):
-                if i == 0:
+                if i == state['soloplayer']:
                     last_soloplayer_action = action
                     break
-            last_soloplayer_action = _cards2array(last_soloplayer_action)
+            last_soloplayer_action = _cards2array(last_soloplayer_action) # TODO: necessary?
+
+            teammate_id = 3 - state['self'] # TODO: Change formula when soloplayer is not always 0
+
+            missing_cards_solo = _calculate_missing_cards(state['others_hand'], 0, state['trace'], self.game.round.trump)
+            missing_cards_teammate = _calculate_missing_cards(state['others_hand'], teammate_id, state['trace'], self.game.round.trump)
+
             points_own = get_points_as_one_hot_vector(state['points'][1])
             points_opp = get_points_as_one_hot_vector(state['points'][0])
 
-            teammate_id = 3 - state['self']
             teammate_played_cards = _cards2array(state['played_cards'][teammate_id])
             last_teammate_action = None
             for i, action in reversed(state['trace']):
                 if i == teammate_id:
                     last_teammate_action = action
                     break
-            last_teammate_action = _cards2array(last_teammate_action)
-            obs = np.concatenate((current_hand,
-                                  others_hand,
-                                  last_action,
-                                  last_9_actions,
-                                  soloplayer_played_cards,
-                                  teammate_played_cards,
-                                  last_soloplayer_action,
-                                  last_teammate_action,
-                                  points_own,
-                                  points_opp))
+            last_teammate_action = _cards2array(last_teammate_action) # TODO: necessary?
+            obs = np.concatenate((current_hand, # 32
+                                  others_hand, # 32
+                                  trick1, # 32 # TODO: Irgendwie mitgeben, von wem welcher Abwurf im Stich kommt? Muss ja wissen ob man über Partner/Gegner drüber muss
+                                  trick2, # 32
+                                  #last_action, # 32
+                                  #last_9_actions, # 32*9
+                                  missing_cards_solo, # 32
+                                  soloplayer_played_cards, # 32
+                                  missing_cards_teammate, # 32
+                                  teammate_played_cards, # 32
+                                  last_soloplayer_action, # 32
+                                  last_teammate_action, # 32
+                                  points_own, # 121
+                                  points_opp)) # 121
 
         extracted_state = OrderedDict({'obs': obs, 'legal_actions': self._get_legal_actions()})
         extracted_state['raw_obs'] = state
@@ -158,10 +182,34 @@ def _action_seq2array(action_seq_list):
     action_seq_array = action_seq_array.flatten()
     return action_seq_array
 
-def _process_action_seq(sequence, length=9):
+def _process_action_seq(sequence, length=9): # TODO: Best length? Full 30 makes AI worse
     sequence = [action[1] for action in sequence[-length:]]
     if len(sequence) < length:
         empty_sequence = ['' for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)
         sequence = empty_sequence
     return sequence
+
+def _calculate_missing_cards(others_hand, player_id, trace, trump):
+    matrix = np.zeros([4, 8], dtype=np.int8)
+    it = iter(others_hand)
+    for x in it:
+        matrix[CardSuit2Column[next(it)], Card2Column[x]] = 1
+    trick_counter = 0
+    for player, card in trace:
+        trick_counter += 1
+        if player == player_id:
+            player_card = card
+        if trick_counter % 3 == 1:
+            base_card = card
+        if trick_counter % 3 == 0:
+            if (player_card[1] == base_card[1]
+                or ((player_card[0] == 'J' or player_card[1] == trump) and
+                (base_card[0] == 'J' or base_card[1] == trump))):
+                continue
+            if base_card[0] == 'J' or base_card[1] == trump:
+                matrix[CardSuit2Column[trump], :7] = 0
+                matrix[:, 7] = 0
+            else:
+                matrix[CardSuit2Column[base_card[1]], :7] = 0
+    return matrix.flatten('F')

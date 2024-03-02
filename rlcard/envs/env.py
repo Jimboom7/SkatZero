@@ -141,9 +141,9 @@ class Env(object):
         trajectories[player_id].append(state)
         while not self.is_over():
 
-            #if verbose: # Only for call from skat_play.py
-            #    print(f'\n=============== Player {player_id} ===============')
-            #    print_hand(state['raw_obs']['current_hand'])
+            if verbose: # Only for call from skat_play.py
+               print(f'\n=============== Player {player_id} ===============')
+               print_hand(state['raw_obs']['current_hand'])
 
             # Agent plays
             if not is_training:
@@ -151,8 +151,8 @@ class Env(object):
             else:
                 action = self.agents[player_id].step(state)
 
-            #if verbose:
-            #    print("Throw: " + str(id_2_action(action)))
+            if verbose:
+               print("Throw: " + str(id_2_action(action)))
 
             # Environment steps
             next_state, next_player_id = self.step(action, self.agents[player_id].use_raw)

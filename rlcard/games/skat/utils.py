@@ -10,7 +10,7 @@ CARD_SUIT_STR_INDEX = {'D': 0 , 'H': 1, 'S': 2, 'C': 3}
 
 CARD_RANK_STR = ['7', '8', '9', 'Q', 'K', 'T', 'A', 'J']
 CARD_RANK_STR_INDEX = {'7': 0, '8': 1, '9': 2, 'Q': 3, 'K': 4, 'T': 5, 'A': 6, 'J': 7}
-CARD_RANK_STR_VALUE = {'7': 0, '8': 0, '9': 0, 'T': 10, 'J': 2, 'Q': 3, 'K': 4, 'A': 11}
+CARD_RANK_STR_VALUE = {'7': 0, '8': 0, '9': 0, 'J': 2, 'Q': 3, 'K': 4, 'T': 10, 'A': 11}
 
 def skat_sort_card(card_1, card_2):
     ''' Compare the rank of two cards of Card object
@@ -67,9 +67,9 @@ def compare_cards(card1, card2, trump, current_suit):
     '''
     if card1[0] == "J" and card2[0] == "J": # Two Jacks
         return CARD_SUIT_STR_INDEX[card1[1]] > CARD_SUIT_STR_INDEX[card2[1]]
-    elif card1[0] == "J" or card2[0] == "J": # One Jack
+    if card1[0] == "J" or card2[0] == "J": # One Jack
         return card1[0] == "J"
-    elif (card1[1] != current_suit) != (card2[1] != current_suit): # Different suites
+    if (card1[1] != current_suit) != (card2[1] != current_suit): # Different suites
         return (card1[1] == current_suit and card2[1] != trump) or card1[1] == trump
     return is_card_higher(card1, card2)
 
@@ -119,15 +119,25 @@ def print_hand(cards):
     hand = ""
     for c in list_cards:
         if c[0] == "J":
+            if hand == "":
+                hand += "\033[95mJ"
             hand += c[1]
             old_suite = "J"
         else:
             if old_suite == "J":
-                hand += "J "
+                hand += " "
                 old_suite = c[1]
             if c[1] != old_suite:
                 hand += old_suite + " "
                 old_suite = c[1]
+            if c[1] == "D":
+                hand += "\033[33m"
+            if c[1] == "H":
+                hand += "\033[31m"
+            if c[1] == "S":
+                hand += "\033[30m"
+            if c[1] == "C":
+                hand += "\033[32m"
             hand += c[0]
-    hand += list_cards[-1][1]
+    hand += list_cards[-1][1] +  "\033[0m"
     print("Hand: " + hand)

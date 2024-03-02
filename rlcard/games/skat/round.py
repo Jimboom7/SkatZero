@@ -97,11 +97,14 @@ class SkatRound:
             players (list): list of SkatPlayer objects
         Returns:
             The last player id and the card played
+
+            NOT USED BY DCM ALGORITHM
         '''
         player_id, card = self.trace.pop()
         self.current_player = player_id
         self.played_cards[player_id][CARD_SUIT_STR_INDEX[card]][CARD_RANK_STR_INDEX[card]] = 0
         self.public['played_cards'] = self.cards_ndarray_to_str(self.played_cards)
+
         return player_id, card
 
     def find_last_played_card_in_trace(self, player_id):
@@ -112,6 +115,6 @@ class SkatRound:
         '''
         for i in range(len(self.trace) - 1, -1, -1):
             _id, action = self.trace[i]
-            if (_id == player_id):
+            if _id == player_id:
                 return action
         return None
