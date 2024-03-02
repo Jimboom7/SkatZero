@@ -2,8 +2,8 @@
 Reinforcement Learning Skat AI.  
 Based on [RLCard](https://github.com/datamllab/rlcard)
 
-## Installation
-Call `pip3 install -e .[torch]` in Root folder  
+## Dependencies
+All included in Pytorch
 
 ## Usage
 
