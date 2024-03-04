@@ -1,5 +1,7 @@
-import numpy as np
+import time
 
+import numpy as np
+from torch import multiprocessing as mp
 from rlcard.games.base import Card
 
 def set_seed(seed):
@@ -209,7 +211,7 @@ def remove_illegal(action_probs, legal_actions):
     return probs
 
 def tournament(env, num):
-    ''' Evaluate he performance of the agents in the environment
+    ''' Evaluate the performance of the agents in the environment
 
     Args:
         env (Env class): The environment to be evaluated.
@@ -233,6 +235,67 @@ def tournament(env, num):
             counter += 1
     for i, _ in enumerate(payoffs):
         payoffs[i] /= counter
+    return payoffs
+
+def act(i, env, result, count, num_games, lock):
+    try:
+        print('Evaluation Actor ' + str(i) + ' started.')
+        payoffs = [0 for _ in range(env.num_players)]
+        while count[0] < num_games:
+            _, _payoffs = env.run(is_training=False)
+            if isinstance(_payoffs, list):
+                for _p in _payoffs:
+                    for i, _ in enumerate(payoffs):
+                        with lock:
+                            result[i] += _p[i]
+                            count[i] += 1
+            else:
+                for i, _ in enumerate(payoffs):#
+                    with lock:
+                        result[i] += _payoffs[i]
+                        count[i] += 1
+
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print('Exception in worker process %i', i)
+        raise e
+
+def tournament_multiproc(env, num, num_actors):
+    ''' Evaluate the performance of the agents in the environment with multiprocessing
+
+    Args:
+        env (Env class): The environment to be evaluated.
+        num (int): The number of games to play.
+
+    Returns:
+        A list of avrage payoffs for each player
+    '''
+    ctx = mp.get_context('spawn')
+
+    with mp.Manager() as manager:
+        lock = manager.Lock()
+        count = manager.list([0 for _ in range(env.num_players)])
+        result = manager.list([0 for _ in range(env.num_players)])
+
+        actor_list = []
+        for i in range(num_actors):
+            actor = ctx.Process(
+                target=act,
+                args=(i, env, result, count, num, lock))
+            actor.start()
+            actor_list.append(actor)
+
+        while count[0] < num:
+            time.sleep(1)
+
+        for actor in actor_list:
+            actor.terminate()
+
+        payoffs = [0 for _ in range(env.num_players)]
+        for i in range(env.num_players):
+            payoffs[i] = result[i] / count[i]
+
     return payoffs
 
 def plot_curve(csv_path, save_path, algorithm):

@@ -16,7 +16,7 @@ class SkatEnv(Env):
         self.name = 'skat'
         self.game = Game()
         super().__init__(config)
-        self.state_shape = [[498], [562], [562]]
+        self.state_shape = [[1458], [1522], [1522]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def _extract_state(self, state):
@@ -33,7 +33,7 @@ class SkatEnv(Env):
             last_action = state['trace'][-1][1]
         last_action = _cards2array(last_action)
 
-        last_9_actions = _action_seq2array(_process_action_seq(state['trace'])) # TODO: Can be removed? -> Change to Fehlfarben Feature
+        all_actions = _action_seq2array(_process_action_seq(state['trace'])) # TODO: Can be removed? -> Change to Fehlfarben Feature
 
         trick1 = _cards2array(None)
         trick2 = _cards2array(None)
@@ -49,14 +49,14 @@ class SkatEnv(Env):
             missing_cards_up = _calculate_missing_cards(state['others_hand'], 2, state['trace'], self.game.round.trump)
             missing_cards_down = _calculate_missing_cards(state['others_hand'], 1, state['trace'], self.game.round.trump)
 
-            points_own = get_points_as_one_hot_vector(state['points'][0])
-            points_opp = get_points_as_one_hot_vector(state['points'][1])
+            points_own = _get_points_as_one_hot_vector(state['points'][0])
+            points_opp = _get_points_as_one_hot_vector(state['points'][1])
             obs = np.concatenate((current_hand, # 32
                                   others_hand, # 32
                                   trick1, # 32
                                   trick2, # 32
                                   #last_action, # 32
-                                  #last_9_actions, # 32*9
+                                  all_actions, # 32*9
                                   missing_cards_up, # 32
                                   soloplayer_up_played_cards, # 32
                                   missing_cards_down, # 32
@@ -76,8 +76,8 @@ class SkatEnv(Env):
             missing_cards_solo = _calculate_missing_cards(state['others_hand'], 0, state['trace'], self.game.round.trump)
             missing_cards_teammate = _calculate_missing_cards(state['others_hand'], teammate_id, state['trace'], self.game.round.trump)
 
-            points_own = get_points_as_one_hot_vector(state['points'][1])
-            points_opp = get_points_as_one_hot_vector(state['points'][0])
+            points_own = _get_points_as_one_hot_vector(state['points'][1])
+            points_opp = _get_points_as_one_hot_vector(state['points'][0])
 
             teammate_played_cards = _cards2array(state['played_cards'][teammate_id])
             last_teammate_action = None
@@ -91,7 +91,7 @@ class SkatEnv(Env):
                                   trick1, # 32 # TODO: Irgendwie mitgeben, von wem welcher Abwurf im Stich kommt? Muss ja wissen ob man über Partner/Gegner drüber muss
                                   trick2, # 32
                                   #last_action, # 32
-                                  #last_9_actions, # 32*9
+                                  all_actions, # 32*9
                                   missing_cards_solo, # 32
                                   soloplayer_played_cards, # 32
                                   missing_cards_teammate, # 32
@@ -170,10 +170,13 @@ def _cards2array(cards):
         matrix[CardSuit2Column[next(it)], Card2Column[x]] = 1 
     return matrix.flatten('F')
 
-def get_points_as_one_hot_vector(points, max_points=120):
+def _get_points_as_one_hot_vector(points, max_points=120):
     one_hot = np.zeros(max_points + 1, dtype=np.int8)
     one_hot[points] = 1
     return one_hot
+
+def _get_binary_points(points, max_len=7):
+    return np.array([int(i) for i in bin(points)[2:].zfill(max_len)])
 
 def _action_seq2array(action_seq_list):
     action_seq_array = np.zeros((len(action_seq_list), 32), np.int8)
@@ -182,7 +185,7 @@ def _action_seq2array(action_seq_list):
     action_seq_array = action_seq_array.flatten()
     return action_seq_array
 
-def _process_action_seq(sequence, length=9): # TODO: Best length? Full 30 makes AI worse
+def _process_action_seq(sequence, length=30): # TODO: Best length? Full 30 makes AI worse
     sequence = [action[1] for action in sequence[-length:]]
     if len(sequence) < length:
         empty_sequence = ['' for _ in range(length - len(sequence))]

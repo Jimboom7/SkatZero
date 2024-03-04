@@ -125,6 +125,7 @@ class DMCTrainer:
         alpha=0.99,
         momentum=0,
         epsilon=0.00001,
+        actor_device='cpu',
         eval=False
     ):
         self.env = env
@@ -157,6 +158,7 @@ class DMCTrainer:
         self.momentum = momentum
         self.epsilon = epsilon
         self.eval = eval
+        self.actor_device = actor_device
 
         self.num_players = self.env.num_players
         self.action_shape = self.env.action_shape
@@ -181,9 +183,14 @@ class DMCTrainer:
         else:
             self.device_iterator = range(num_actor_devices)
 
+        if self.actor_device == 'cpu':
+            self.device_iterator = ["cpu"]
+
     def start(self):
         # Initialize actor models
         models = {}
+
+
         for device in self.device_iterator:
             model = self.model_func(device)
             model.share_memory()
@@ -237,11 +244,23 @@ class DMCTrainer:
                     self.checkpointpath,
                     map_location="cuda:"+str(self.training_device) if self.training_device != "cpu" else "cpu"
             )
+            checkpoint_states_cpu = None
+            if self.actor_device == 'cpu':
+                checkpoint_states_cpu = torch.load(
+                self.checkpointpath, map_location="cpu"
+            )
             for p in range(self.num_players):
-                learner_model.get_agent(p).load_state_dict(checkpoint_states["model_state_dict"][p])
+                if self.training_device != "cpu":
+                    learner_model.get_agent(p).load_state_dict(checkpoint_states["model_state_dict"][p])
+                else:
+                    learner_model.get_agent(p).load_state_dict(checkpoint_states_cpu["model_state_dict"][p])
                 optimizers[p].load_state_dict(checkpoint_states["optimizer_state_dict"][p])
-                for device in self.device_iterator:
-                    models[device].get_agent(p).load_state_dict(learner_model.get_agent(p).state_dict())
+
+                if self.actor_device != 'cpu':
+                    for device in range(self.num_actor_devices):
+                        models[device].get_agent(p).load_state_dict(learner_model.get_agent(p).state_dict())
+                else:
+                    models[self.actor_device].get_agent(p).load_state_dict(checkpoint_states_cpu["model_state_dict"][p])
             stats = checkpoint_states["stats"]
             frames = checkpoint_states["frames"]
             log.info(f"Resuming preempted job, current stats:\n{stats}")
@@ -249,7 +268,6 @@ class DMCTrainer:
 
         # Starting actor processes
         for device in self.device_iterator:
-            num_actors = self.num_actors
             for i in range(self.num_actors):
                 actor = ctx.Process(
                     target=act,
@@ -313,7 +331,7 @@ class DMCTrainer:
                     thread.start()
                     threads.append(thread)
 
-        def checkpoint(frames, eval_num=2000):
+        def checkpoint(frames, eval_num=5000):
             log.info('Saving checkpoint to %s', self.checkpointpath)
             _agents = learner_model.get_agents()
             torch.save({
@@ -332,23 +350,23 @@ class DMCTrainer:
                     model_weights_dir
                 )
             if self.eval:
-                evaluate(self.xpid, frames, eval_num)
+                evaluate(self.xpid, frames, eval_num, 1)
 
 
         timer = timeit.default_timer
         try:
-            last_checkpoint_time = timer()
+            last_checkpoint_time = frames
             while frames < self.total_frames:
                 start_frames = frames
                 start_time = timer()
                 time.sleep(5)
 
-                if timer() - last_checkpoint_time > self.save_interval * 60:
+                if frames - last_checkpoint_time > self.save_interval * 1000000 and frames < self.total_frames:
+                    last_checkpoint_time = frames - (frames % (self.save_interval * 1000000))
                     checkpoint(frames)
-                    last_checkpoint_time = timer()
-                    
+
                 if os.path.isfile("./done"):
-                        break
+                    break
 
                 end_time = timer()
                 fps = (frames - start_frames) / (end_time - start_time)

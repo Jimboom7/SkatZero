@@ -6,7 +6,8 @@ import rlcard
 
 from rlcard.utils import (
     set_seed,
-    tournament
+    tournament,
+    tournament_multiproc
 )
 
 def load_model(model_path, env=None, device=None):
@@ -21,7 +22,12 @@ def load_model(model_path, env=None, device=None):
         print("Modell kann nicht geladen werden!!!")
     return agent
 
-def evaluate(folder, number, num_games):
+def evaluate(folder, number, num_games, num_actors=4):
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["MKL_NUM_THREADS"] = "1"
+    #os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    #os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+    #os.environ["NUMEXPR_NUM_THREADS"] = "1"
     print("Starting Evaluation")
     base_folder =  'experiments/skat/'
     folder = str(folder)
@@ -57,7 +63,10 @@ def evaluate(folder, number, num_games):
     env.set_agents(agents)
 
     # Evaluate
-    rewards = tournament(env, num_games)
+    if num_actors == 1:
+        rewards = tournament(env, num_games)
+    else:
+        rewards = tournament_multiproc(env, num_games, num_actors)
     for position, reward in enumerate(rewards):
         print(position, model_solo[position], reward)
 
@@ -68,13 +77,16 @@ def evaluate(folder, number, num_games):
     env.set_agents(agents)
 
     # Evaluate 2
-    rewards2 = tournament(env, num_games)
+    if num_actors == 1:
+        rewards2 = tournament(env, num_games)
+    else:
+        rewards2 = tournament_multiproc(env, num_games, num_actors)
     for position, reward in enumerate(rewards2):
         print(position, model_opponent[position], reward)
 
     print("Score: " + str(rewards[0] - rewards2[0]))
-    with open(base_folder + folder + "/evaluate_log.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(number) + "," + str(num_games) + "," + str(rewards[0] - rewards2[0]) + "\n")
+    with open(base_folder + "/evaluate_log.csv", "a", encoding='utf-8') as logfile:
+        logfile.write(str(folder) + "," + str(number) + "," + str(num_games) + "," + str(rewards[0] - rewards2[0]) + "\n")
 
 
 if __name__ == '__main__':

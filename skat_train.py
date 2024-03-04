@@ -19,13 +19,13 @@ def train():
         cuda="0", # Empty = everything on cpu, 0 = GPU enabled
         xpid='skat_0',
         savedir='experiments/skat',
-        save_interval=10, # save model every 10 minutes
-        num_actors=12, # when training on gpu and actors on cpu: should be equal to number of cores
+        save_interval=10, # in million frames
+        num_actors=15, # should be equal to number of physical cores, +- some
         training_device="0", # 0 for GPU, needs cuda set to 1 to work
-        load_model=True,
+        load_model=False,
         eval=True,
         actor_device='cpu',
-        total_frames=10000000 # 1 million takes around 3 minutes
+        total_frames=100000000 # 1 million takes around 3 minutes
     )
 
     # Train DMC Agents
