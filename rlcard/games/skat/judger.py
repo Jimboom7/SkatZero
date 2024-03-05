@@ -80,6 +80,7 @@ class SkatJudger:
                 playround.opponent_points += points
             playround.current_trick = []
             playround.current_suit = None
+            playround.winners.append(winner)
             # print("Trick: " + card1 + card2 + card3 + ". Won by player: " + str(winner)) # Only when not training
             return winner
         return -1

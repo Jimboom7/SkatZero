@@ -28,12 +28,8 @@ class SkatEnv(Env):
         current_hand = _cards2array(state['current_hand'])
         others_hand = _cards2array(state['others_hand'])
 
-        last_action = ''
-        if len(state['trace']) != 0:
-            last_action = state['trace'][-1][1]
-        last_action = _cards2array(last_action)
-
-        all_actions = _action_seq2array(_process_action_seq(state['trace'])) # TODO: Can be removed? -> Change to Fehlfarben Feature
+        all_actions = _action_seq2array(_process_action_seq(state['trace']))
+        #short_actions = _action_seq2array_short(_process_action_seq_short(state['trace'], self.game.round.winners))
 
         trick1 = _cards2array(None)
         trick2 = _cards2array(None)
@@ -55,8 +51,7 @@ class SkatEnv(Env):
                                   others_hand, # 32
                                   trick1, # 32
                                   trick2, # 32
-                                  #last_action, # 32
-                                  all_actions, # 32*9
+                                  all_actions, # 32*30
                                   missing_cards_up, # 32
                                   soloplayer_up_played_cards, # 32
                                   missing_cards_down, # 32
@@ -69,9 +64,9 @@ class SkatEnv(Env):
                 if i == state['soloplayer']:
                     last_soloplayer_action = action
                     break
-            last_soloplayer_action = _cards2array(last_soloplayer_action) # TODO: necessary?
+            last_soloplayer_action = _cards2array(last_soloplayer_action)
 
-            teammate_id = 3 - state['self'] # TODO: Change formula when soloplayer is not always 0
+            teammate_id = 3 - state['self']
 
             missing_cards_solo = _calculate_missing_cards(state['others_hand'], 0, state['trace'], self.game.round.trump)
             missing_cards_teammate = _calculate_missing_cards(state['others_hand'], teammate_id, state['trace'], self.game.round.trump)
@@ -85,13 +80,12 @@ class SkatEnv(Env):
                 if i == teammate_id:
                     last_teammate_action = action
                     break
-            last_teammate_action = _cards2array(last_teammate_action) # TODO: necessary?
+            last_teammate_action = _cards2array(last_teammate_action)
             obs = np.concatenate((current_hand, # 32
                                   others_hand, # 32
-                                  trick1, # 32 # TODO: Irgendwie mitgeben, von wem welcher Abwurf im Stich kommt? Muss ja wissen ob man über Partner/Gegner drüber muss
+                                  trick1, # 32
                                   trick2, # 32
-                                  #last_action, # 32
-                                  all_actions, # 32*9
+                                  all_actions, # 32*30
                                   missing_cards_solo, # 32
                                   soloplayer_played_cards, # 32
                                   missing_cards_teammate, # 32
@@ -167,8 +161,18 @@ def _cards2array(cards):
         return matrix.flatten('F')
     it = iter(cards)
     for x in it:
-        matrix[CardSuit2Column[next(it)], Card2Column[x]] = 1 
+        matrix[CardSuit2Column[next(it)], Card2Column[x]] = 1
     return matrix.flatten('F')
+
+def _card2array_short(card, owner, winner):
+    matrix = np.zeros([17], dtype=np.int8)
+    if card is None or card == '':
+        return matrix
+    matrix[CardSuit2Column[card[1]]] = 1
+    matrix[4 + Card2Column[card[0]]] = 1
+    matrix[11 + owner] = 1
+    matrix[14 + winner] = 1
+    return matrix
 
 def _get_points_as_one_hot_vector(points, max_points=120):
     one_hot = np.zeros(max_points + 1, dtype=np.int8)
@@ -185,12 +189,40 @@ def _action_seq2array(action_seq_list):
     action_seq_array = action_seq_array.flatten()
     return action_seq_array
 
-def _process_action_seq(sequence, length=30): # TODO: Best length? Full 30 makes AI worse
+def _action_seq2array_short(action_seq_list):
+    action_seq_array = np.zeros((len(action_seq_list), 17), np.int8)
+    for row, actions in enumerate(action_seq_list):
+        card = actions[0]
+        owner = actions[1]
+        winner = actions[2]
+        action_seq_array[row, :] = _card2array_short(card, owner, winner)
+    action_seq_array = action_seq_array.flatten()
+    return action_seq_array
+
+def _process_action_seq(sequence, length=30):
     sequence = [action[1] for action in sequence[-length:]]
+    if len(sequence) % 3 == 1:
+        sequence = sequence[:-1]
+    if len(sequence) % 3 == 2:
+        sequence = sequence[:-2]
     if len(sequence) < length:
         empty_sequence = ['' for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)
         sequence = empty_sequence
+    return sequence
+
+def _process_action_seq_short(sequence, winners, length=30):
+    sequence = [[action[1], action[0], -1] for action in sequence[-length:]]
+    j=0
+    for i in range(0, len(sequence)-2, 3):
+        sequence[i][2] = winners[j]
+        sequence[i+1][2] = winners[j]
+        sequence[i+2][2] = winners[j]
+        j += 1
+    sequence = sequence[:len(sequence) - (len(sequence) % 3)] # Only full tricks
+    empty_sequence = [('', -1, -1) for _ in range(length - len(sequence))]
+    empty_sequence.extend(sequence)
+    sequence = empty_sequence
     return sequence
 
 def _calculate_missing_cards(others_hand, player_id, trace, trump):

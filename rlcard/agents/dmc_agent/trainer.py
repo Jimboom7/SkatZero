@@ -331,7 +331,7 @@ class DMCTrainer:
                     thread.start()
                     threads.append(thread)
 
-        def checkpoint(frames, eval_num=5000):
+        def checkpoint(frames, eval_num=2000, num_proc=1):
             log.info('Saving checkpoint to %s', self.checkpointpath)
             _agents = learner_model.get_agents()
             torch.save({
@@ -350,12 +350,12 @@ class DMCTrainer:
                     model_weights_dir
                 )
             if self.eval:
-                evaluate(self.xpid, frames, eval_num, 1)
+                evaluate(self.xpid, frames, eval_num, num_proc)
 
 
         timer = timeit.default_timer
         try:
-            last_checkpoint_time = frames
+            last_checkpoint_time = frames - (frames % (self.save_interval * 1000000))
             while frames < self.total_frames:
                 start_frames = frames
                 start_time = timer()
@@ -383,5 +383,5 @@ class DMCTrainer:
                 thread.join()
             log.info('Learning finished after %d frames.', frames)
 
-        checkpoint(frames, 10000)
+        checkpoint(frames, 10000, num_proc=self.num_actors)
         self.plogger.close()

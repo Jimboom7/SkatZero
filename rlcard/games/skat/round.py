@@ -22,6 +22,7 @@ class SkatRound:
         self.current_trick = None
         self.solo_points = 0
         self.opponent_points = 0
+        self.winners = []
 
         self.trump = None
 
@@ -44,6 +45,7 @@ class SkatRound:
         self.current_trick = []
         self.solo_points = get_points(str(self.dealer.skat[0])) + get_points(str(self.dealer.skat[1]))
         self.opponent_points = 0
+        self.winners = []
         self.trump = "D" # TODO: Hardcoded for now -> Dynamisch ermitteln (Beste Farbe des Spielers?), und dann aber auch die Observation entsprechend codieren (und actions)
 
     @staticmethod

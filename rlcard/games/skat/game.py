@@ -168,7 +168,7 @@ class SkatGame:
     def _get_others_current_hand(self, player):
         player_up = self.players[(player.player_id+1) % len(self.players)]
         player_down = self.players[(player.player_id-1) % len(self.players)]
-        others_hand = merge(player_up.current_hand, player_down.current_hand, key=functools.cmp_to_key(skat_sort_card)) #TODO: Remove sort and merge with other method
+        others_hand = player_up.current_hand + player_down.current_hand
         if player.player_id != self.round.soloplayer_id: # Add Skat as possible unknown cards
-            others_hand = merge(others_hand, self.round.dealer.skat, key=functools.cmp_to_key(skat_sort_card))
+            others_hand = others_hand + self.round.dealer.skat
         return cards2str(others_hand)
