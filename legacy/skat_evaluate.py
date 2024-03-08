@@ -22,7 +22,7 @@ def load_model(model_path, env=None, device=None):
         print("Modell kann nicht geladen werden!!!")
     return agent
 
-def evaluate(folder, number, num_games, num_actors=4):
+def evaluate(folder, number, num_games, num_actors=10):
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["MKL_NUM_THREADS"] = "1"
     #os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -92,6 +92,6 @@ def evaluate(folder, number, num_games, num_actors=4):
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     NUM_GAMES = 10000
-    FOLDER = "skat_0"
-    NUMBER = "30035200"
+    FOLDER = "skat_12_fullhistory_mod3_lastplayedinfo"
+    NUMBER = "20044800"
     evaluate(FOLDER, NUMBER, NUM_GAMES)

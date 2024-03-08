@@ -1,6 +1,6 @@
 # SkatZero
 Reinforcement Learning Skat AI.  
-Based on [DouZero](https://github.com/kwai/DouZero)
+Based on [RLCard](https://github.com/datamllab/rlcard)
 
 ## Dependencies
 All included in Pytorch

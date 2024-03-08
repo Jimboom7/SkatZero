@@ -16,8 +16,8 @@ def load_model(model_path):
 # Make environment
 env = rlcard.make('skat')
 human_agent = SkatHumanAgent(env.num_actions)
-dcm_agent_0 = load_model('experiments/final/skat/0_181910400.pth')
-dcm_agent_2 = load_model('experiments/final/skat/2_181910400.pth')
+dcm_agent_0 = load_model('experiments/skat/skat_nolast_with_missing/0_200035200.pth')
+dcm_agent_2 = load_model('experiments/skat/skat_nolast_with_missing/2_200035200.pth')
 env.set_agents([
     dcm_agent_0,
     human_agent,

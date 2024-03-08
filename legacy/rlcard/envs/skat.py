@@ -16,7 +16,7 @@ class SkatEnv(Env):
         self.name = 'skat'
         self.game = Game()
         super().__init__(config)
-        self.state_shape = [[1458], [1522], [1522]]
+        self.state_shape = [[1490], [1522], [1522]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def _extract_state(self, state):
@@ -47,10 +47,13 @@ class SkatEnv(Env):
 
             points_own = _get_points_as_one_hot_vector(state['points'][0])
             points_opp = _get_points_as_one_hot_vector(state['points'][1])
+            
+            skat = _cards2array(str(self.game.round.dealer.skat[0]) + str(self.game.round.dealer.skat[1]))
             obs = np.concatenate((current_hand, # 32
                                   others_hand, # 32
                                   trick1, # 32
                                   trick2, # 32
+                                  skat, #32
                                   all_actions, # 32*30
                                   missing_cards_up, # 32
                                   soloplayer_up_played_cards, # 32
@@ -201,10 +204,6 @@ def _action_seq2array_short(action_seq_list):
 
 def _process_action_seq(sequence, length=30):
     sequence = [action[1] for action in sequence[-length:]]
-    if len(sequence) % 3 == 1:
-        sequence = sequence[:-1]
-    if len(sequence) % 3 == 2:
-        sequence = sequence[:-2]
     if len(sequence) < length:
         empty_sequence = ['' for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)
@@ -228,8 +227,6 @@ def _process_action_seq_short(sequence, winners, length=30):
 def _calculate_missing_cards(others_hand, player_id, trace, trump):
     matrix = np.zeros([4, 8], dtype=np.int8)
     it = iter(others_hand)
-    for x in it:
-        matrix[CardSuit2Column[next(it)], Card2Column[x]] = 1
     trick_counter = 0
     for player, card in trace:
         trick_counter += 1
@@ -243,8 +240,8 @@ def _calculate_missing_cards(others_hand, player_id, trace, trump):
                 (base_card[0] == 'J' or base_card[1] == trump))):
                 continue
             if base_card[0] == 'J' or base_card[1] == trump:
-                matrix[CardSuit2Column[trump], :7] = 0
-                matrix[:, 7] = 0
+                matrix[CardSuit2Column[trump], :7] = 1
+                matrix[:, 7] = 1
             else:
-                matrix[CardSuit2Column[base_card[1]], :7] = 0
+                matrix[CardSuit2Column[base_card[1]], :7] = 1
     return matrix.flatten('F')

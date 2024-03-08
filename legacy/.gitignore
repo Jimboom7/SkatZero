@@ -16,5 +16,3 @@ docs/sphinx
 experiments/skat
 dist/
 Notizen
-checkpoints
-eval_data.pkl
