@@ -1,7 +1,8 @@
 from collections import Counter
 import random
 
-from skatzero.env.utils import compare_cards, format_hand, get_points
+from skatzero.env.utils import compare_cards, get_points
+from skatzero.evaluation.utils import format_hand
 
 class RuleBasedAgent():
 
@@ -68,16 +69,26 @@ class RuleBasedAgent():
 
     def play_long_suit(self, infoset):
         c = Counter(card[0] if card[0] != infoset.trump and card[1] != 'J' else '' for card in infoset.player_hand_cards)
-        long_suit = c.most_common(1)[0][0]
-        for action in infoset.legal_actions:
-            if action[0] == long_suit:
-                return action
+        try:
+            long_suit = c.most_common(1)[0][0]
+            if long_suit == '':
+                long_suit = c.most_common(1)[1][0]
+            for action in infoset.legal_actions:
+                if action[0] == long_suit:
+                    return action
+        except IndexError:
+            pass
         return random.choice(infoset.legal_actions)
 
     def play_short_suit(self, infoset):
         c = Counter(card[0] if card[0] != infoset.trump and card[1] != 'J' else '' for card in infoset.player_hand_cards)
-        short_suit = c.most_common()[-1][0]
-        for action in infoset.legal_actions:
-            if action[0] == short_suit:
-                return action
+        try:
+            short_suit = c.most_common()[-1][0]
+            if short_suit == '':
+                short_suit = c.most_common(1)[-2][0]
+            for action in infoset.legal_actions:
+                if action[0] == short_suit:
+                    return action
+        except IndexError:
+            pass
         return random.choice(infoset.legal_actions)

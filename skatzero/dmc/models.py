@@ -12,7 +12,7 @@ class SoloplayerLstmModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.lstm = nn.LSTM(96, 128, batch_first=True)  # 96: 32 * 3, history folding
-        self.dense1 = nn.Linear(562 + 128, 512)         # 562: number of features, including current action
+        self.dense1 = nn.Linear(563 + 128, 512)         # 563: number of features, including current action
         self.dense2 = nn.Linear(512, 512)
         self.dense3 = nn.Linear(512, 512)
         self.dense4 = nn.Linear(512, 512)
@@ -47,7 +47,7 @@ class OpponentLstmModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.lstm = nn.LSTM(96, 128, batch_first=True)  # 96: 32 * 3, history folding
-        self.dense1 = nn.Linear(594 + 128, 512)         # 594: number of features, including current action
+        self.dense1 = nn.Linear(595 + 128, 512)         # 595: number of features, including current action
         self.dense2 = nn.Linear(512, 512)
         self.dense3 = nn.Linear(512, 512)
         self.dense4 = nn.Linear(512, 512)

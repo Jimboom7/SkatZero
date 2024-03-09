@@ -1,4 +1,5 @@
-from skatzero.env.utils import format_card, format_hand, compare_cards
+from skatzero.env.utils import compare_cards
+from skatzero.evaluation.utils import format_card, format_hand
 
 
 class HumanAgent():
@@ -36,11 +37,11 @@ class HumanAgent():
         except IndexError:
             last_player_action = -1
         if last_player_action != -1 and (last_player_action - 1) % 3 == 1:
-            self.check_trick(infoset.card_play_action_seq[(round(last_player_action/3)*3):])
+            self.check_trick(infoset.card_play_action_seq[(round(last_player_action/3)*3):], infoset.trump)
         for i, play in enumerate(infoset.card_play_action_seq[(last_player_action+1):]):
             print(play[0] + " throws " + format_card(play[1]))
             if (last_player_action + i) % 3 == 1:
-                self.check_trick(infoset.card_play_action_seq[(round(last_player_action/3)*3):])
+                self.check_trick(infoset.card_play_action_seq[(round(last_player_action/3)*3):], infoset.trump)
 
         print('===============   Current Trick   ===============')
         print(', '.join([format_card(card) for _, card in infoset.trick]))
@@ -52,7 +53,7 @@ class HumanAgent():
         print(', '.join([str(i + 1) + ': ' + format_card(action) for i, action in enumerate(infoset.legal_actions)]))
         print('')
 
-    def check_trick(self, trick, trump='D'):
+    def check_trick(self, trick, trump):
         suit = trick[0][1][0]
         trick_winner = trick[0][0]
         card1 = trick[0][1]

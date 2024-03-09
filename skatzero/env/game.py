@@ -1,5 +1,5 @@
 from copy import deepcopy
-from skatzero.env.utils import compare_cards, get_points, evalute_hand_strength
+from skatzero.env.utils import compare_cards, get_points
 
 class GameEnv():
 
@@ -22,6 +22,7 @@ class GameEnv():
                              'opponent_left': [],
                              'opponent_right': []}
 
+        self.hand = False
         self.trick = []
         self.trump = None
         self.current_suit = None
@@ -37,6 +38,9 @@ class GameEnv():
         self.sum_rewards = {'soloplayer': 0,
                            'opponent': 0}
 
+        self.black = {'soloplayer': True,
+                           'opponent': True}
+
         self.info_sets = {'soloplayer': InfoSet('soloplayer'),
                          'opponent_left': InfoSet('opponent_left'),
                          'opponent_right': InfoSet('opponent_right')}
@@ -45,23 +49,21 @@ class GameEnv():
 
 
     def init_new_game(self, card_play_data):
-        # TODO: Dynamisch das zu spielende Spiel ermitteln mit reizen etc. Momentan kriegt Spieler 1 die "beste" Hand
-        strongest = 0
-        s0 = evalute_hand_strength(card_play_data['0'])
-        s1 = evalute_hand_strength(card_play_data['1'])
-        s2 = evalute_hand_strength(card_play_data['2'])
-        if s1 > s0 and s1 > s2:
-            strongest = 1
-        if s2 > s1 and s2 > s0:
-            strongest = 2
+        self.trump = card_play_data['suit']
 
-        self.info_sets['soloplayer'].player_hand_cards = card_play_data[str(strongest)]
-        self.info_sets['opponent_left'].player_hand_cards = card_play_data[str((strongest + 1) % 3)]
-        self.info_sets['opponent_right'].player_hand_cards = card_play_data[str((strongest + 2) % 3)]
+        self.info_sets['soloplayer'].player_hand_cards = card_play_data['0']
+        self.info_sets['opponent_left'].player_hand_cards = card_play_data['1']
+        self.info_sets['opponent_right'].player_hand_cards = card_play_data['2']
 
         self.skat_cards = card_play_data['skat_cards']
+
+        if card_play_data['hand']:
+            self.hand = True
+            self.info_sets['soloplayer'].hand = True
+            self.info_sets['opponent_left'].hand = True
+            self.info_sets['opponent_right'].hand = True
+
         self.score['soloplayer'] = get_points(self.skat_cards[0]) + get_points(self.skat_cards[1])
-        self.trump = 'D'
 
         self.update_acting_player_position()
         self.game_infoset = self.update_infoset_for_current_player()
@@ -76,19 +78,26 @@ class GameEnv():
 
             self.game_over = True
 
-    def compute_reward(self): # TODO: Add Mit X Spiel Y
-        if self.score['soloplayer'] >= 90:
+    def compute_reward(self): # TODO: Add Mit X Spiel Y. Oder nicht?
+        if self.black['opponent']:
+            self.solo_reward = 100
+            self.opponent_reward = 0
+        elif self.score['soloplayer'] >= 90:
             self.solo_reward = 90
             self.opponent_reward = 0
         elif self.score['soloplayer'] > 60:
             self.solo_reward = 80
             self.opponent_reward = 0
+        elif self.black['soloplayer']:
+            self.solo_reward = -150
+            self.opponent_reward = 40
         elif self.score['soloplayer'] <= 30:
             self.solo_reward = -130
             self.opponent_reward = 40
         elif self.score['soloplayer'] <= 60:
             self.solo_reward = -110
             self.opponent_reward = 40
+
 
     def update_num_wins_scores(self):
         if self.solo_reward > 0:
@@ -145,8 +154,10 @@ class GameEnv():
             points = get_points(card1) + get_points(card2) + get_points(card3)
             if trick_winner == 'soloplayer':
                 self.score['soloplayer'] += points
+                self.black['soloplayer'] = False
             else:
                 self.score['opponent'] += points
+                self.black['opponent'] = False
             self.trick = []
             self.current_suit = None
             return trick_winner
@@ -231,6 +242,7 @@ class GameEnv():
                          'opponent_left': InfoSet('opponent_left'),
                          'opponent_right': InfoSet('opponent_right')}
 
+        self.hand = False
         self.trick = []
         self.trump = None
         self.current_suit = None
@@ -239,6 +251,8 @@ class GameEnv():
         self.opponent_reward = 0
         self.score = {'soloplayer': 0,
                          'opponent': 0}
+        self.black = {'soloplayer': True,
+                        'opponent': True}
 
 
     def update_infoset_for_current_player(self):
@@ -251,7 +265,7 @@ class GameEnv():
             if pos != self.acting_player_position:
                 self.info_sets[self.acting_player_position].other_hand_cards += self.info_sets[pos].player_hand_cards
                 self.info_sets[self.acting_player_position].other_hand_cards = self.calculate_missing_cards(pos)
-        if self.acting_player_position != 'soloplayer':
+        if self.acting_player_position != 'soloplayer' or self.hand:
             self.info_sets[self.acting_player_position].other_hand_cards += self.skat_cards
 
         self.info_sets[self.acting_player_position].played_cards = self.played_cards
@@ -260,7 +274,8 @@ class GameEnv():
         self.info_sets[self.acting_player_position].trick = self.trick
         self.info_sets[self.acting_player_position].score = {'soloplayer': self.score['soloplayer'],
                         'opponent': self.score['opponent']}
-        if self.acting_player_position != 'soloplayer':
+
+        if self.acting_player_position != 'soloplayer' or self.hand:
             self.info_sets[self.acting_player_position].score['soloplayer'] -= (get_points(self.skat_cards[0]) + get_points(self.skat_cards[1]))
 
         self.info_sets[self.acting_player_position].skat_cards = self.skat_cards
@@ -300,3 +315,5 @@ class InfoSet(object):
                         'opponent': 0}
         # Only used for calculating missing cards of a player
         self.trump = None
+        # Hand Game
+        self.hand = False

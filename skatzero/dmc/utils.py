@@ -83,7 +83,7 @@ def create_buffers(flags, device_iterator):
     for device in device_iterator:
         buffers[device] = {}
         for position in positions:
-            x_dim = 530 if position == 'soloplayer' else 562 # TODO: Use Variable
+            x_dim = 531 if position == 'soloplayer' else 563 # TODO: Use Variable
             specs = dict(
                 done=dict(size=(T,), dtype=torch.bool),
                 episode_return=dict(size=(T,), dtype=torch.float32),
@@ -135,7 +135,7 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                     agent_output = model.forward(position, obs['z_batch'], obs['x_batch'], flags=flags)
                 _action_idx = int(agent_output['action'].cpu().detach().numpy())
                 action = obs['legal_actions'][_action_idx]
-                obs_action_buf[position].append(_cards2tensor([action]))
+                obs_action_buf[position].append(_cards2tensor([action], obs['card_encoding']))
                 size[position] += 1
                 position, obs, env_output = env.step(action)
                 if env_output['done']:
@@ -180,12 +180,12 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         print()
         raise e
 
-def _cards2tensor(list_cards):
+def _cards2tensor(list_cards, card_encoding):
     """
     Convert a list of integers to the tensor
     representation
     See Figure 2 in https://arxiv.org/pdf/2106.06135.pdf
     """
-    matrix = cards2array(list_cards)
+    matrix = cards2array(list_cards, card_encoding)
     matrix = torch.from_numpy(matrix)
     return matrix

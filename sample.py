@@ -1,24 +1,25 @@
 ''' An sample of playing skat randomly. Good for checking the internal values of the game, observation data etc.
 '''
-import numpy as np
-from skatzero.env.utils import print_hand
+import sys
+import subprocess
+import random
 
+import numpy as np
+import torch
+
+from skatzero.evaluation.utils import format_hand
 from skatzero.evaluation.simulation import sample
 from skatzero.env.env import get_obs
 
 def set_seed(seed):
     if seed is not None:
-        import subprocess
-        import sys
 
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
         installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
         if 'torch' in installed_packages:
-            import torch
             torch.backends.cudnn.deterministic = True
             torch.manual_seed(seed)
         np.random.seed(seed)
-        import random
         random.seed(seed)
 
 if __name__ == '__main__':
@@ -44,7 +45,7 @@ if __name__ == '__main__':
         print('Trick')
         print(game_infoset.trick)
         print('Hand Cards')
-        print_hand(game_infoset.player_hand_cards)
+        print(format_hand(game_infoset.player_hand_cards))
         # print('Other Hand Cards')
         # print(game_infoset.other_hand_cards)
         # print('Played Cards')

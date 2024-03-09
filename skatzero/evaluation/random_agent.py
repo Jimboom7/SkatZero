@@ -1,6 +1,6 @@
 import random
 
-from skatzero.env.utils import format_hand
+from skatzero.evaluation.utils import format_hand
 
 class RandomAgent():
 

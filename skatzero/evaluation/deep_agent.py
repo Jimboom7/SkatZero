@@ -1,11 +1,11 @@
 import torch
 import numpy as np
 
+from skatzero.dmc.models import model_dict
 from skatzero.env.env import get_obs
-from skatzero.env.utils import format_hand
+from skatzero.evaluation.utils import format_hand
 
 def _load_model(position, model_path):
-    from skatzero.dmc.models import model_dict
     model = model_dict[position]()
     model_state_dict = model.state_dict()
     if torch.cuda.is_available():
@@ -36,10 +36,22 @@ class DeepAgent:
         x_batch = torch.from_numpy(obs['x_batch']).float()
         if torch.cuda.is_available():
             z_batch, x_batch = z_batch.cuda(), x_batch.cuda()
-        y_pred = self.model.forward(z_batch, x_batch, return_value=True)['values']
-        y_pred = y_pred.detach().cpu().numpy()
+        with torch.no_grad():
+            y_pred = self.model.forward(z_batch, x_batch, return_value=True)['values']
+            y_pred = y_pred.detach().cpu().numpy()
 
         best_action_index = np.argmax(y_pred, axis=0)[0]
         best_action = infoset.legal_actions[best_action_index]
 
         return best_action
+
+    def get_all_action_values(self, infoset):
+        obs = get_obs(infoset)
+        z_batch = torch.from_numpy(obs['z_batch']).float()
+        x_batch = torch.from_numpy(obs['x_batch']).float()
+        if torch.cuda.is_available():
+            z_batch, x_batch = z_batch.cuda(), x_batch.cuda()
+        with torch.no_grad():
+            y_pred = self.model.forward(z_batch, x_batch, return_value=True)['values']
+            y_pred = y_pred.detach().cpu().numpy()
+        return y_pred

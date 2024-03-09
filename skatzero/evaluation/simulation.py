@@ -4,6 +4,7 @@ from torch import multiprocessing as mp
 import numpy as np
 
 from skatzero.env.game import GameEnv
+from skatzero.env.utils import discard_skat, evaluate_hand_strength
 from skatzero.evaluation.random_agent import RandomAgent
 from skatzero.evaluation.deep_agent import DeepAgent
 from skatzero.evaluation.human_agent import HumanAgent
@@ -44,6 +45,10 @@ def mp_simulate(i, card_play_data_list, card_play_model_path_dict, q):
 
     env = GameEnv(players)
     for _, card_play_data in enumerate(card_play_data_list):
+        if not card_play_data['hand']:
+            card_play_data['0'], card_play_data['skat_cards'] = \
+                discard_skat(card_play_data['0'], card_play_data['skat_cards'], card_play_data['suit'])
+
         env.init_new_game(card_play_data)
         while not env.game_over:
             env.step()
@@ -145,8 +150,37 @@ def sample(eval_data, p1, p2, p3, random_game=False):
     env = GameEnv(players)
     cards = card_play_data_list[0]
 
+    _, suit = evaluate_hand_strength(cards['0'])
+    cards['suit'] = suit
+
     infosets = []
     infosets.append(env.init_new_game(cards))
     while not env.game_over:
         infosets.append(env.step())
     return infosets
+
+def bidding(eval_data, p1, p2, p3, random_game=False):
+    card_play_model_path_dict = {
+        'soloplayer': p1,
+        'opponent_left': p2,
+        'opponent_right': p3}
+
+    players = load_card_play_models(card_play_model_path_dict)
+    with open(eval_data, 'rb') as f:
+        card_play_data_list = pickle.load(f)
+
+    if random_game:
+        random.shuffle(card_play_data_list)
+
+    env = GameEnv(players)
+    cards = card_play_data_list[0]
+    cards['hand'] = True
+
+    _, suit = evaluate_hand_strength(cards['0'])
+    cards['suit'] = suit
+
+    infoset = env.init_new_game(cards)
+
+    values = players['soloplayer'].get_all_action_values(infoset)
+
+    return values, infoset.legal_actions
