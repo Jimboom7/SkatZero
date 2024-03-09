@@ -47,6 +47,7 @@ def generate(random_suit, hand_chance):
     cards['2'] = card_play_data[str((strongest + 2) % 3)]
     cards['skat_cards'] = card_play_data['skat_cards']
     cards['suit'] = trump
+    cards['hand'] = card_play_data['hand']
 
     return cards
 
