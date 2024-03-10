@@ -17,4 +17,4 @@ experiments/skat
 dist/
 Notizen
 checkpoints
-eval_data.pkl
+*eval_data*.pkl

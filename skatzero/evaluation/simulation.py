@@ -4,7 +4,6 @@ from torch import multiprocessing as mp
 import numpy as np
 
 from skatzero.env.game import GameEnv
-from skatzero.env.utils import discard_skat, evaluate_hand_strength
 from skatzero.evaluation.random_agent import RandomAgent
 from skatzero.evaluation.deep_agent import DeepAgent
 from skatzero.evaluation.human_agent import HumanAgent
@@ -45,9 +44,6 @@ def mp_simulate(i, card_play_data_list, card_play_model_path_dict, q):
 
     env = GameEnv(players)
     for _, card_play_data in enumerate(card_play_data_list):
-        if not card_play_data['hand']:
-            card_play_data['0'], card_play_data['skat_cards'] = \
-                discard_skat(card_play_data['0'], card_play_data['skat_cards'], card_play_data['suit'])
 
         env.init_new_game(card_play_data)
         while not env.game_over:
@@ -111,27 +107,29 @@ def evaluate(soloplayer, opponent_left, opponent_right, eval_data, num_workers, 
     print(f'SCORES: Soloplayer : Opponents | {sum_soloplayer_scores / num_total_wins} : {sum_opponent_scores / num_total_wins}')
     return sum_soloplayer_scores / num_total_wins
 
-def save_evaluation_duel(checkpoint_dir, model, frames, num_workers, num_games):
+def save_evaluation_duel(checkpoint_dir, model, frames, num_workers, num_games, hand_quality, blind_hand_chance):
     soloplayer = checkpoint_dir + model + "/soloplayer_" + frames + ".pth"
     opponent_left = checkpoint_dir + model + "/opponent_left_" + frames + ".pth"
     opponent_right = checkpoint_dir + model + "/opponent_right_" + frames + ".pth"
+    eval_data = "eval_data_" + hand_quality + "_" + blind_hand_chance + ".pkl"
     rewards1 = evaluate(soloplayer,
              "random",
              "random",
-             "eval_data.pkl",
+             eval_data,
              num_workers,
              num_games)
 
     rewards2 = evaluate("random",
              opponent_left,
              opponent_right,
-             "eval_data.pkl",
+             eval_data,
              num_workers,
              num_games)
 
+    print("Card Quality: " + str(hand_quality) + ", Blind Hand Chance: " + str(blind_hand_chance))
     print("Evaluation Score: " + str(round(rewards1 - rewards2, 2)))
     with open(checkpoint_dir + "evaluate_log.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(model) + "," + str(frames) + "," + str(num_games) + "," + str(round(rewards1 - rewards2, 2)) + "\n")
+        logfile.write(str(model) + "," + str(frames) + "," + str(num_games) + "," + str(hand_quality) + "," + str(blind_hand_chance) + "," + str(round(rewards1 - rewards2, 2)) + "\n")
 
 
 def sample(eval_data, p1, p2, p3, random_game=False):
@@ -149,9 +147,6 @@ def sample(eval_data, p1, p2, p3, random_game=False):
 
     env = GameEnv(players)
     cards = card_play_data_list[0]
-
-    _, suit = evaluate_hand_strength(cards['0'])
-    cards['suit'] = suit
 
     infosets = []
     infosets.append(env.init_new_game(cards))
@@ -175,9 +170,6 @@ def bidding(eval_data, p1, p2, p3, random_game=False):
     env = GameEnv(players)
     cards = card_play_data_list[0]
     cards['hand'] = True
-
-    _, suit = evaluate_hand_strength(cards['0'])
-    cards['suit'] = suit
 
     infoset = env.init_new_game(cards)
 

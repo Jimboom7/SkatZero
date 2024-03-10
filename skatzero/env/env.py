@@ -2,7 +2,6 @@ import numpy as np
 
 from skatzero.env.game import GameEnv
 from skatzero.env.feature_transformations import get_obs
-from skatzero.env.utils import evaluate_hand_strength
 
 suit_list = ['D', 'H', 'S', 'C']
 rank_list = ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -53,8 +52,10 @@ class Env:
                           'hand': np.random.randint(0, 9) == 0# 10% Handgame
             }
 
-        _, suit = evaluate_hand_strength(card_play_data['0'])
-        card_play_data['suit'] = suit
+        #_, suit = evaluate_hand_strength(card_play_data['0'])
+        #card_play_data['suit'] = suit
+        card_play_data['suit'] = 'D'
+        card_play_data['hand'] = False # FIXME: Hardcoded for tests
 
         # Initialize the cards
         self._env.init_new_game(card_play_data)

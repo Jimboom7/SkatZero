@@ -30,15 +30,7 @@ class DeepAgent:
         if len(infoset.legal_actions) == 1:
             return infoset.legal_actions[0]
 
-        obs = get_obs(infoset)
-
-        z_batch = torch.from_numpy(obs['z_batch']).float()
-        x_batch = torch.from_numpy(obs['x_batch']).float()
-        if torch.cuda.is_available():
-            z_batch, x_batch = z_batch.cuda(), x_batch.cuda()
-        with torch.no_grad():
-            y_pred = self.model.forward(z_batch, x_batch, return_value=True)['values']
-            y_pred = y_pred.detach().cpu().numpy()
+        y_pred = self.get_all_action_values(infoset)
 
         best_action_index = np.argmax(y_pred, axis=0)[0]
         best_action = infoset.legal_actions[best_action_index]

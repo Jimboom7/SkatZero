@@ -241,7 +241,7 @@ def train(flags):
         return
     else:
         for thread in threads:
-            thread.join()
+            thread.terminate()
         log.info('Learning finished after %d frames.', frames)
 
     checkpoint(frames)

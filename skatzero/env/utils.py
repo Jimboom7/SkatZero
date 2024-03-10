@@ -64,14 +64,14 @@ def evaluate_card(card, trump):
         strength += 0.5
     return strength
 
-def evaluate_hand_strength(cards, rand=True):
+def evaluate_hand_strength(cards, suits = ['D','H','S','C'], rand=True):
     '''
         Evaluate the strength of the hand
         Return the strength value and the best suit
     '''
     best_strength = -1
     best_suit = 'D'
-    for suit in ['D','H','S','C']:
+    for suit in suits:
         strength = 0
         for c in cards:
             strength += evaluate_card(c, suit)

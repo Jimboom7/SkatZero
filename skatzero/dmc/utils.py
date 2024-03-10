@@ -83,7 +83,7 @@ def create_buffers(flags, device_iterator):
     for device in device_iterator:
         buffers[device] = {}
         for position in positions:
-            x_dim = 531 if position == 'soloplayer' else 563 # TODO: Use Variable
+            x_dim = 530 if position == 'soloplayer' else 562 # TODO: Use Variable
             specs = dict(
                 done=dict(size=(T,), dtype=torch.bool),
                 episode_return=dict(size=(T,), dtype=torch.float32),

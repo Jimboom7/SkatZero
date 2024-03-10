@@ -182,7 +182,7 @@ def _get_obs_soloplayer(infoset):
     missing_cards_left_batch = np.repeat(missing_cards_left[np.newaxis, :], num_legal_actions, axis=0)
     missing_cards_right_batch = np.repeat(missing_cards_right[np.newaxis, :], num_legal_actions, axis=0)
 
-    x_batch = np.hstack((hand_batch,
+    x_batch = np.hstack((#hand_batch,
                          my_handcards_batch,
                          other_handcards_batch,
                          trick1_batch,
@@ -195,7 +195,7 @@ def _get_obs_soloplayer(infoset):
                          missing_cards_left_batch,
                          missing_cards_right_batch,
                          my_action_batch))
-    x_no_action = np.hstack((hand,
+    x_no_action = np.hstack((#hand,
                              my_handcards,
                              other_handcards,
                              trick1,
@@ -246,7 +246,7 @@ def _get_obs_opponent(infoset):
     missing_cards_teammate_batch = np.repeat(missing_cards_teammate[np.newaxis, :], num_legal_actions, axis=0)
 
 
-    x_batch = np.hstack((hand_batch,
+    x_batch = np.hstack((#hand_batch,
                          my_handcards_batch,
                          other_handcards_batch,
                          trick1_batch,
@@ -260,7 +260,7 @@ def _get_obs_opponent(infoset):
                          missing_cards_soloplayer_batch,
                          missing_cards_teammate_batch,
                          my_action_batch))
-    x_no_action = np.hstack((hand,
+    x_no_action = np.hstack((#hand,
                              my_handcards,
                              other_handcards,
                              trick1,
