@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # Fast access default values
     flags.num_actors = 16
     flags.load_model = True
-    flags.xpid = "skat_3_new_environment"
+    flags.xpid = "skat_6_new_baseline"
     flags.num_threads = 2
     flags.actor_device_cpu = True
 

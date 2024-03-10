@@ -2,6 +2,7 @@ import numpy as np
 
 from skatzero.env.game import GameEnv
 from skatzero.env.feature_transformations import get_obs
+from skatzero.env.utils import evaluate_hand_strength
 
 suit_list = ['D', 'H', 'S', 'C']
 rank_list = ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -45,17 +46,30 @@ class Env:
         # Randomly shuffle the deck
         _deck = deck.copy()
         np.random.shuffle(_deck)
-        card_play_data = {'0': _deck[:10],
+        basic_cards = {'0': _deck[:10],
                           '1': _deck[10:20],
                           '2': _deck[20:30],
                           'skat_cards': _deck[30:32],
-                          'hand': np.random.randint(0, 9) == 0# 10% Handgame
+                          'suit': 'D',
+                          'hand': np.random.randint(0, 9) == -1# 10% Handgame
             }
 
-        #_, suit = evaluate_hand_strength(card_play_data['0'])
-        #card_play_data['suit'] = suit
-        card_play_data['suit'] = 'D'
-        card_play_data['hand'] = False # FIXME: Hardcoded for tests
+        strongest = 0
+        s0 = evaluate_hand_strength(basic_cards['0'], 'D')
+        s1 = evaluate_hand_strength(basic_cards['1'], 'D')
+        s2 = evaluate_hand_strength(basic_cards['2'], 'D')
+        if s1 > s0 and s1 > s2:
+            strongest = 1
+        if s2 > s1 and s2 > s0:
+            strongest = 2
+
+        card_play_data = {'0': basic_cards[str(strongest)],
+                          '1': basic_cards[str((strongest + 1) % 3)],
+                          '2': basic_cards[str((strongest + 2) % 3)],
+                          'suit': basic_cards['suit'],
+                          'skat_cards': basic_cards['skat_cards'],
+                          'hand': basic_cards['hand']
+            }
 
         # Initialize the cards
         self._env.init_new_game(card_play_data)
