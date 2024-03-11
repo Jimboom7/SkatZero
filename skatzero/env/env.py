@@ -2,7 +2,7 @@ import numpy as np
 
 from skatzero.env.game import GameEnv
 from skatzero.env.feature_transformations import get_obs
-from skatzero.env.utils import evaluate_hand_strength
+from skatzero.env.utils import get_hand_distribution, evaluate_hand_strength, get_startplayer
 
 suit_list = ['D', 'H', 'S', 'C']
 rank_list = ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -51,8 +51,10 @@ class Env:
                           '2': _deck[20:30],
                           'skat_cards': _deck[30:32],
                           'suit': 'D',
+                          'bids': {'0': 0, '1': 0, '2': 0},
                           'hand': np.random.randint(0, 9) == -1# 10% Handgame
             }
+        #card_play_data = get_hand_distribution(basic_cards) # Only playing good hands leads to worse results
 
         strongest = 0
         s0 = evaluate_hand_strength(basic_cards['0'], 'D')
@@ -68,7 +70,8 @@ class Env:
                           '2': basic_cards[str((strongest + 2) % 3)],
                           'suit': basic_cards['suit'],
                           'skat_cards': basic_cards['skat_cards'],
-                          'hand': basic_cards['hand']
+                          'hand': basic_cards['hand'],
+                          'startplayer': get_startplayer(),
             }
 
         # Initialize the cards

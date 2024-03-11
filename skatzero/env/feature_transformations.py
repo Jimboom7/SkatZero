@@ -42,7 +42,7 @@ def process_action_seq(sequence, length=30):
     if len(sequence) % 3 == 1:
         sequence.append('')
         sequence.append('')
-    if(len(sequence) % 3 == 2):
+    if len(sequence) % 3 == 2:
         sequence.append('')
     if len(sequence) < length:
         empty_sequence = ['' for _ in range(length - len(sequence))]

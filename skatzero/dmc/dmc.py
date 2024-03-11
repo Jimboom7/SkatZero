@@ -202,9 +202,10 @@ def train(flags):
         }, checkpointpath)
 
         # Save the weights for evaluation purpose
+        savename = int(frames / 1000000)
         for position in ['soloplayer', 'opponent_left', 'opponent_right']:
             model_weights_dir = os.path.expandvars(os.path.expanduser(
-                '%s/%s/%s' % (flags.savedir, flags.xpid, position+'_'+str(frames)+'.pth')))
+                '%s/%s/%s' % (flags.savedir, flags.xpid, position+'_'+str(savename)+'.pth')))
             torch.save(learner_model.get_model(position).state_dict(), model_weights_dir)
 
     fps_log = []

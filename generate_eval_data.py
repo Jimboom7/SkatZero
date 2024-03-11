@@ -2,7 +2,7 @@ import argparse
 import pickle
 import numpy as np
 
-from skatzero.env.utils import discard_skat, evaluate_hand_strength
+from skatzero.env.utils import evaluate_hand_strength, get_hand_distribution
 
 suit_list = ['D', 'H', 'S', 'C']
 rank_list = ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -29,9 +29,9 @@ def generate(quality, blind_hand_chance):
         return card_play_data
     elif quality == 'medium':
         strongest = 0
-        s0 = evaluate_hand_strength(card_play_data['0'], ['D'])
-        s1 = evaluate_hand_strength(card_play_data['1'], ['D'])
-        s2 = evaluate_hand_strength(card_play_data['2'], ['D'])
+        s0 = evaluate_hand_strength(card_play_data['0'], ['D'])[1]
+        s1 = evaluate_hand_strength(card_play_data['1'], ['D'])[1]
+        s2 = evaluate_hand_strength(card_play_data['2'], ['D'])[1]
         if s1 > s0 and s1 > s2:
             strongest = 1
         if s2 > s1 and s2 > s0:
@@ -41,30 +41,11 @@ def generate(quality, blind_hand_chance):
         cards['0'] = card_play_data[str(strongest)]
         cards['1'] = card_play_data[str((strongest + 1) % 3)]
         cards['2'] = card_play_data[str((strongest + 2) % 3)]
+        cards['suit'] = card_play_data['suit']
+        cards['hand'] = card_play_data['hand']
         cards['skat_cards'] = card_play_data['skat_cards']
-        trump = 'D'
     else:
-        str0, suit0 = evaluate_hand_strength(card_play_data['0'])
-        str1, suit1 = evaluate_hand_strength(card_play_data['1'])
-        str2, suit2 = evaluate_hand_strength(card_play_data['2'])
-        strongest = 0
-        trump = suit0
-        if str1 > str0 and str1 > str2:
-            strongest = 1
-            trump = suit1
-        if str2 > str1 and str2 > str0:
-            strongest = 2
-            trump = suit2
-        cards = {}
-        cards['skat_cards'] = card_play_data['skat_cards']
-        cards['0'] = card_play_data[str(strongest)]
-        cards['1'] = card_play_data[str((strongest + 1) % 3)]
-        cards['2'] = card_play_data[str((strongest + 2) % 3)]
-        if not card_play_data['hand']:
-            cards['0'], cards['skat_cards'] = discard_skat(cards['0'], card_play_data['skat_cards'], card_play_data['suit'])
-
-    cards['suit'] = trump
-    cards['hand'] = card_play_data['hand']
+        cards = get_hand_distribution(card_play_data)
 
     return cards
 
