@@ -110,6 +110,8 @@ def get_soloplayer_features(state, game):
 def get_opponent_features(state, game):
     current_hand, others_hand, all_actions, trick1, trick2 = get_common_features(state)
     soloplayer_played_cards = cards2array(state['played_cards'][0])
+
+    last_soloplayer_action = None
     for i, action in reversed(state['trace']):
         if i == state['soloplayer']:
             last_soloplayer_action = action

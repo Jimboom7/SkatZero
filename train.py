@@ -13,16 +13,16 @@ if __name__ == '__main__':
     trainer = DMCTrainer(
         env,
         cuda="0", # Empty = everything on cpu, 0 = GPU enabled
-        xpid='skat_17_new_baseline',
+        xpid='skat_18_random_startplayer',
         savedir='checkpoints',
         save_interval=10, # in million frames
-        num_actors=16, # should be equal to number of physical cores, +- some
+        num_actors=14, # should be equal to number of physical cores, +- some
         training_device="0", # 0 for GPU, needs cuda set to 1 to work
         load_model=True,
         num_threads=2,
         eval=True,
         actor_device='cpu',
-        total_frames=200000000 # 1 million takes around 3 minutes
+        total_frames=200000000
     )
 
     trainer.start()
