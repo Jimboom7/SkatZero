@@ -18,11 +18,12 @@ class DMCAgent:
         self.action_shape = action_shape
 
     def step(self, state):
-        action_keys, values = self.predict(state)
-
         if self.exp_epsilon > 0 and np.random.rand() < self.exp_epsilon:
+            legal_actions = state['legal_actions']
+            action_keys = np.array(list(legal_actions.keys()))
             action = np.random.choice(action_keys)
         else:
+            action_keys, values = self.predict(state)
             action_idx = np.argmax(values)
             action = action_keys[action_idx]
 
@@ -49,8 +50,12 @@ class DMCAgent:
         return self.net.parameters()
 
     def predict(self, state):
-        obs = state['obs'].astype(np.float32)
         legal_actions = state['legal_actions']
+        if len(legal_actions) == 1:
+            return np.array(list(legal_actions.keys())), np.array([100])
+
+        obs = state['obs'].astype(np.float32)
+
         action_keys = np.array(list(legal_actions.keys()))
         action_values = list(legal_actions.values())
         for i in range(len(action_values)):
@@ -61,8 +66,9 @@ class DMCAgent:
 
         obs = np.repeat(obs[np.newaxis, :], len(action_keys), axis=0)
 
-        values = self.net.forward(torch.from_numpy(obs).to(self.device),
-                                  torch.from_numpy(action_values).to(self.device))
+        with torch.no_grad():
+            values = self.net.forward(torch.from_numpy(obs).to(self.device),
+                                        torch.from_numpy(action_values).to(self.device))
 
         return action_keys, values.cpu().detach().numpy()
 

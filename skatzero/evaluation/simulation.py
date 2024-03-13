@@ -134,14 +134,14 @@ def save_evaluation_duel(folder, number, num_games, num_actors=10):
 
     print("Score: " + str(rewards[0] - rewards2[0]))
     with open(base_folder + "/evaluate_log.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(folder) + "," + str(number) + "," + str(num_games) + "," + str(rewards[0] - rewards2[0]) + "\n")
+        logfile.write(str(folder) + "," + str(number) + "," + str(num_games) + "," + str(round(rewards[0] - rewards2[0], 2)) + "\n")
 
 
 def get_bidding_data(player, random_game=False):
     models = [
             player,
-            'random',
-            'random'
+            player,
+            player
         ]
 
     agents = []
@@ -154,11 +154,12 @@ def get_bidding_data(player, random_game=False):
         seed = 42
         set_seed(seed)
         env = SkatEnv(seed=seed)
+
     env.set_agents(agents)
+    # TODO: Handspiel setzen!
+    
+    state, _ = env.reset()
 
-    state, player_id = env.reset()
+    _, info = agents[0].eval_step(state)
 
-    return [], []
-    # TODO: Implement get_all_action_values
-    #values = agents[0].get_all_action_values(state)
-    #return values, infoset.legal_actions
+    return info['values']

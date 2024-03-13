@@ -2,13 +2,15 @@ from skatzero.evaluation.utils import format_card
 from skatzero.evaluation.simulation import get_bidding_data
 
 if __name__ == '__main__':
+
     CHECKPOINT_DIR = "checkpoints/skat_17_new_baseline"
-    FRAMES = "10"
-    SOLOPLAYER = CHECKPOINT_DIR + "/soloplayer_" + FRAMES + ".pth"
-    OPPONENT_LEFT = "random"
-    OPPONENT_RIGHT = "random"
+    FRAMES = "70"
 
-    values, actions = get_bidding_data(SOLOPLAYER, True)
+    MODEL = CHECKPOINT_DIR + "/0_" + FRAMES + ".pth"
 
-    for i, a in enumerate(actions):
-        print(format_card(a) + ": " + str(values[i]))
+    info = get_bidding_data(MODEL, True)
+
+    sorted_info = dict(sorted(info.items(), key=lambda item: item[1], reverse=True))
+
+    for action, value in sorted_info.items():
+        print(format_card(action) + ": " + str(value))
