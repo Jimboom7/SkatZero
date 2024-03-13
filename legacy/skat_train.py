@@ -17,7 +17,7 @@ def train():
     trainer = DMCTrainer(
         env,
         cuda="0", # Empty = everything on cpu, 0 = GPU enabled
-        xpid='skat_14_plusskat',
+        xpid='skat_16_mod3_history',
         savedir='experiments/skat',
         save_interval=10, # in million frames
         num_actors=16, # should be equal to number of physical cores, +- some
@@ -26,7 +26,7 @@ def train():
         num_threads=2,
         eval=True,
         actor_device='cpu',
-        total_frames=200000000 # 1 million takes around 3 minutes
+        total_frames=300000000 # 1 million takes around 3 minutes
     )
 
     # Train DMC Agents

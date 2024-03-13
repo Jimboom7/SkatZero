@@ -1,5 +1,3 @@
-''' An sample of playing skat randomly. Good for checking the internal values of the game, observation data etc.
-'''
 from skatzero.evaluation.utils import format_card
 from skatzero.evaluation.simulation import bidding
 

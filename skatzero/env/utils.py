@@ -75,7 +75,7 @@ def evaluate_hand_strength(cards, suits = ['D','H','S','C']):
         s = 0
         for c in cards:
             s += evaluate_card(c, suit)
-            strength.append((suit, s))
+        strength.append((suit, s))
     return strength
 
 def get_bids(basic_cards, min_value=8):

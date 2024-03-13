@@ -63,8 +63,8 @@ def init_32_deck():
     Returns:
         (list): Alist of Card object
     '''
-    suit_list = ['S', 'H', 'D', 'C']
-    rank_list = ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+    suit_list = ['D', 'H', 'S', 'C']
+    rank_list = ['7', '8', '9', 'Q', 'K', 'T', 'A', 'J']
     res = [Card(suit, rank) for suit in suit_list for rank in rank_list]
     return res
 

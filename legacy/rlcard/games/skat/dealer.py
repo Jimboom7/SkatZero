@@ -39,16 +39,19 @@ class SkatDealer:
             # player.initial_hand = cards2str(player.current_hand)
 
         # TODO: Dynamisch das zu spielende Spiel ermitteln. Momentan kriegt Spieler 1 die "beste" Hand
-            if evalute_hand_strength(players[1].current_hand) > evalute_hand_strength(players[0].current_hand):
-                tmp = players[0].current_hand
-                players[0].set_current_hand(players[1].current_hand)
-                players[1].set_current_hand(tmp)
+        if evalute_hand_strength(players[1].current_hand) > evalute_hand_strength(players[0].current_hand):
+            tmp = players[0].current_hand
+            players[0].set_current_hand(players[1].current_hand)
+            players[1].set_current_hand(tmp)
 
-            if evalute_hand_strength(players[2].current_hand) > evalute_hand_strength(players[0].current_hand):
-                tmp = players[0].current_hand
-                players[0].set_current_hand(players[2].current_hand)
-                players[2].set_current_hand(tmp)
+        if evalute_hand_strength(players[2].current_hand) > evalute_hand_strength(players[0].current_hand):
+            tmp = players[0].current_hand
+            players[0].set_current_hand(players[2].current_hand)
+            players[2].set_current_hand(tmp)
         self.skat = self.deck[-2:]
+        return
+
+        
 
     def determine_role(self, players):
         ''' Determine soloplayer and opponents according to players' hand

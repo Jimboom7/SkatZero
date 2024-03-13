@@ -57,9 +57,9 @@ class Env:
         #card_play_data = get_hand_distribution(basic_cards) # Only playing good hands leads to worse results
 
         strongest = 0
-        s0 = evaluate_hand_strength(basic_cards['0'], 'D')
-        s1 = evaluate_hand_strength(basic_cards['1'], 'D')
-        s2 = evaluate_hand_strength(basic_cards['2'], 'D')
+        s0 = evaluate_hand_strength(basic_cards['0'], 'D')[0][1]
+        s1 = evaluate_hand_strength(basic_cards['1'], 'D')[0][1]
+        s2 = evaluate_hand_strength(basic_cards['2'], 'D')[0][1]
         if s1 > s0 and s1 > s2:
             strongest = 1
         if s2 > s1 and s2 > s0:

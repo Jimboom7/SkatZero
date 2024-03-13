@@ -204,6 +204,11 @@ def _action_seq2array_short(action_seq_list):
 
 def _process_action_seq(sequence, length=30):
     sequence = [action[1] for action in sequence[-length:]]
+    if len(sequence) % 3 == 1:
+        sequence.append('')
+        sequence.append('')
+    if len(sequence) % 3 == 2:
+        sequence.append('')
     if len(sequence) < length:
         empty_sequence = ['' for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)

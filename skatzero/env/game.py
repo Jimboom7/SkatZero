@@ -60,7 +60,7 @@ class GameEnv():
 
         self.score['soloplayer'] = get_points(self.skat_cards[0]) + get_points(self.skat_cards[1])
 
-        self.update_acting_player_position()
+        self.update_acting_player_position() # TODO add card_play_data['startplayer'] for random startplayer
         self.game_infoset = self.update_infoset_for_current_player()
         return self.game_infoset
 

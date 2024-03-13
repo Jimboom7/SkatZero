@@ -5,9 +5,9 @@ from skatzero.evaluation.simulation import save_evaluation_duel
 if __name__ == '__main__':
 
     CHECKPOINT_DIR = "checkpoints/"
-    MODEL = "skat_6_new_baseline"
-    FRAMES = ["50016000"]
-    HAND_QUALITY = ["bad", "medium", "good"]
+    MODEL = "skat_12_fixed_card_distribution"
+    FRAMES = ["40"]
+    HAND_QUALITY = ["medium"]
     BLIND_HAND_CHANCE = "0"
 
     NUM_WORKERS = 6

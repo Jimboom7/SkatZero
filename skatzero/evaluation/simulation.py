@@ -44,6 +44,7 @@ def mp_simulate(i, card_play_data_list, card_play_model_path_dict, q):
 
     env = GameEnv(players)
     for _, card_play_data in enumerate(card_play_data_list):
+        card_play_data['startplayer'] = random.choice(['soloplayer', 'opponent_left', 'opponent_right'])
 
         env.init_new_game(card_play_data)
         while not env.game_over:

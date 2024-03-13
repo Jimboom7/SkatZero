@@ -29,9 +29,9 @@ def generate(quality, blind_hand_chance):
         return card_play_data
     elif quality == 'medium':
         strongest = 0
-        s0 = evaluate_hand_strength(card_play_data['0'], ['D'])[1]
-        s1 = evaluate_hand_strength(card_play_data['1'], ['D'])[1]
-        s2 = evaluate_hand_strength(card_play_data['2'], ['D'])[1]
+        s0 = evaluate_hand_strength(card_play_data['0'], ['D'])[0][1]
+        s1 = evaluate_hand_strength(card_play_data['1'], ['D'])[0][1]
+        s2 = evaluate_hand_strength(card_play_data['2'], ['D'])[0][1]
         if s1 > s0 and s1 > s2:
             strongest = 1
         if s2 > s1 and s2 > s0:

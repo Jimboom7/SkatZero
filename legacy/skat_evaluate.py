@@ -20,6 +20,7 @@ def load_model(model_path, env=None, device=None):
         agent = RandomAgent(num_actions=env.num_actions)
     else:
         print("Modell kann nicht geladen werden!!!")
+        print(model_path)
     return agent
 
 def evaluate(folder, number, num_games, num_actors=10):
@@ -92,6 +93,6 @@ def evaluate(folder, number, num_games, num_actors=10):
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     NUM_GAMES = 10000
-    FOLDER = "skat_12_fullhistory_mod3_lastplayedinfo"
-    NUMBER = "20044800"
+    FOLDER = "skat_16_mod3_history"
+    NUMBER = "200016000"
     evaluate(FOLDER, NUMBER, NUM_GAMES)
