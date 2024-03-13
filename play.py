@@ -1,16 +1,31 @@
-''' Play against the AI
-'''
-from skatzero.evaluation.simulation import sample
+from skatzero.evaluation.simulation import load_model
+from skatzero.agents.human_agent import HumanAgent
+from skatzero.env.skat import SkatEnv
 
 if __name__ == '__main__':
-    CHECKPOINT_DIR = "checkpoints/skat_2_mod3_history"
-    FRAMES = "150028800"
+    env = SkatEnv()
 
-    SOLOPLAYER = CHECKPOINT_DIR + "/soloplayer_" + FRAMES + ".pth"
-    OPPONENT_LEFT = 'rulebased' #CHECKPOINT_DIR + "/opponent_left_" + FRAMES + ".pth"
-    OPPONENT_RIGHT = "human"
+    MODEL1 = 'checkpoints/skat_16_mod3_history/0_200016000.pth'
+    MODEL2 = 'checkpoints/skat_16_mod3_history/2_200016000.pth'
 
-    game_infosets = sample('eval_data.pkl', SOLOPLAYER, OPPONENT_LEFT, OPPONENT_RIGHT, True)
+    human_agent = HumanAgent(env.num_actions)
+    dcm_agent_0 = load_model(MODEL1)
+    dcm_agent_2 = load_model(MODEL2)
+    env.set_agents([
+        dcm_agent_0,
+        human_agent,
+        dcm_agent_2,
+    ])
 
-    if game_infosets[:-1].score['soloplayer'] > 60:
-        print("Soloplayer won!")
+    print(">> Skat pre-trained model")
+
+    while True:
+        print(">> Start a new game")
+
+        trajectories, rewards = env.run(is_training=False)
+
+        print('===============     Result     ===============')
+        print("Rewards:")
+        print(rewards)
+
+        input("Press any key to continue...")

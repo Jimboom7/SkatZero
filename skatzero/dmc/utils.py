@@ -1,52 +1,27 @@
-import typing
 import logging
 import traceback
-import numpy as np
 
 import torch
-
-from skatzero.env.env import Env
-from skatzero.dmc.env_utils import Environment
-from skatzero.env.feature_transformations import cards2array
-
-Card2Column = {3: 0, 4: 1, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7,
-               11: 8, 12: 9, 13: 10, 14: 11, 17: 12}
-
-NumOnes2Array = {0: np.array([0, 0, 0, 0]),
-                 1: np.array([1, 0, 0, 0]),
-                 2: np.array([1, 1, 0, 0]),
-                 3: np.array([1, 1, 1, 0]),
-                 4: np.array([1, 1, 1, 1])}
 
 shandle = logging.StreamHandler()
 shandle.setFormatter(
     logging.Formatter(
         '[%(levelname)s:%(process)d %(module)s:%(lineno)d %(asctime)s] '
         '%(message)s'))
-log = logging.getLogger('doudzero')
+log = logging.getLogger('skat')
 log.propagate = False
 log.addHandler(shandle)
 log.setLevel(logging.INFO)
 
-# Buffers are used to transfer data between actor processes
-# and learner processes. They are shared tensors in GPU
-Buffers = typing.Dict[str, typing.List[torch.Tensor]]
-
-def create_env():
-    return Env()
-
-def get_batch(free_queue,
-              full_queue,
-              buffers,
-              flags,
-              lock):
-    """
-    This function will sample a batch from the buffers based
-    on the indices received from the full queue. It will also
-    free the indices by sending it to full_queue.
-    """
+def get_batch(
+    free_queue,
+    full_queue,
+    buffers,
+    batch_size,
+    lock
+):
     with lock:
-        indices = [full_queue.get() for _ in range(flags.batch_size)]
+        indices = [full_queue.get() for _ in range(batch_size)]
     batch = {
         key: torch.stack([buffers[key][m] for m in indices], dim=1)
         for key in buffers
@@ -55,103 +30,96 @@ def get_batch(free_queue,
         free_queue.put(m)
     return batch
 
-def create_optimizers(flags, learner_model):
-    """
-    Create three optimizers for the three positions
-    """
-    positions = ['soloplayer', 'opponent_left', 'opponent_right']
-    optimizers = {}
-    for position in positions:
-        optimizer = torch.optim.RMSprop(
-            learner_model.parameters(position),
-            lr=flags.learning_rate,
-            momentum=flags.momentum,
-            eps=flags.epsilon,
-            alpha=flags.alpha)
-        optimizers[position] = optimizer
-    return optimizers
-
-def create_buffers(flags, device_iterator):
-    """
-    We create buffers for different positions as well as
-    for different devices (i.e., GPU). That is, each device
-    will have three buffers for the three positions.
-    """
-    T = flags.unroll_length
-    positions = ['soloplayer', 'opponent_left', 'opponent_right']
+def create_buffers(
+    T,
+    num_buffers,
+    state_shape,
+    action_shape,
+    device_iterator,
+):
     buffers = {}
     for device in device_iterator:
-        buffers[device] = {}
-        for position in positions:
-            x_dim = 531 if position == 'soloplayer' else 563 # TODO: Use Variable
+        buffers[device] = []
+        for player_id in range(len(state_shape)):
             specs = dict(
                 done=dict(size=(T,), dtype=torch.bool),
                 episode_return=dict(size=(T,), dtype=torch.float32),
                 target=dict(size=(T,), dtype=torch.float32),
-                obs_x_no_action=dict(size=(T, x_dim), dtype=torch.int8),
-                obs_action=dict(size=(T, 32), dtype=torch.int8), # TODO: Use Variable
-                obs_z=dict(size=(T, 10, 96), dtype=torch.int8), # TODO: Use Variable
+                state=dict(size=(T,)+tuple(state_shape[player_id]), dtype=torch.int8),
+                action=dict(size=(T,)+tuple(action_shape[player_id]), dtype=torch.int8),
             )
-            _buffers: Buffers = {key: [] for key in specs}
-            for _ in range(flags.num_buffers):
+            _buffers = {key: [] for key in specs}
+            for _ in range(num_buffers):
                 for key in _buffers:
-                    if not device == "cpu":
-                        _buffer = torch.empty(**specs[key]).to(torch.device('cuda:'+str(device))).share_memory_()
+                    if device == "cpu":
+                        _buffer = torch.empty(**specs[key]).to('cpu').share_memory_()
                     else:
-                        _buffer = torch.empty(**specs[key]).to(torch.device('cpu')).share_memory_()
+                        _buffer = torch.empty(**specs[key]).to('cuda:'+str(device)).share_memory_()
                     _buffers[key].append(_buffer)
-            buffers[device][position] = _buffers
+            buffers[device].append(_buffers)
     return buffers
 
-def act(i, device, free_queue, full_queue, model, buffers, flags):
-    """
-    This function will run forever until we stop it. It will generate
-    data from the environment and send the data to buffer. It uses
-    a free queue and full queue to syncup with the main process.
-    """
-    positions = ['soloplayer', 'opponent_left', 'opponent_right']
+def create_optimizers(
+    num_players,
+    learning_rate,
+    momentum,
+    epsilon,
+    alpha,
+    learner_model
+):
+    optimizers = []
+    for player_id in range(num_players):
+        optimizer = torch.optim.RMSprop(
+            learner_model.parameters(player_id),
+            lr=learning_rate,
+            momentum=momentum,
+            eps=epsilon,
+            alpha=alpha)
+        optimizers.append(optimizer)
+    return optimizers
+
+def act(
+    i,
+    device,
+    T,
+    free_queue,
+    full_queue,
+    model,
+    buffers,
+    env
+):
     try:
-        T = flags.unroll_length
         log.info('Device %s Actor %i started.', str(device), i)
 
-        env = create_env()
-        env = Environment(env, device)
+        # Configure environment
+        env.seed(i)
+        env.set_agents(model.get_agents())
 
-        done_buf = {p: [] for p in positions}
-        episode_return_buf = {p: [] for p in positions}
-        target_buf = {p: [] for p in positions}
-        obs_x_no_action_buf = {p: [] for p in positions}
-        obs_action_buf = {p: [] for p in positions}
-        obs_z_buf = {p: [] for p in positions}
-        size = {p: 0 for p in positions}
-
-        position, obs, env_output = env.initial()
+        done_buf = [[] for _ in range(env.num_players)]
+        episode_return_buf = [[] for _ in range(env.num_players)]
+        target_buf = [[] for _ in range(env.num_players)]
+        state_buf = [[] for _ in range(env.num_players)]
+        action_buf = [[] for _ in range(env.num_players)]
+        size = [0 for _ in range(env.num_players)]
 
         while True:
-            while True:
-                obs_x_no_action_buf[position].append(env_output['obs_x_no_action'])
-                obs_z_buf[position].append(env_output['obs_z'])
-                with torch.no_grad():
-                    agent_output = model.forward(position, obs['z_batch'], obs['x_batch'], flags=flags)
-                _action_idx = int(agent_output['action'].cpu().detach().numpy())
-                action = obs['legal_actions'][_action_idx]
-                obs_action_buf[position].append(_cards2tensor([action], obs['card_encoding']))
-                size[position] += 1
-                position, obs, env_output = env.step(action)
-                if env_output['done']:
-                    for p in positions:
-                        diff = size[p] - len(target_buf[p])
-                        if diff > 0:
-                            done_buf[p].extend([False for _ in range(diff-1)])
-                            done_buf[p].append(True)
+            trajectories, payoffs = env.run(is_training=True)
+            for p in range(env.num_players):
+                size[p] += len(trajectories[p][:-1]) // 2
+                diff = size[p] - len(target_buf[p])
+                if diff > 0:
+                    done_buf[p].extend([False for _ in range(diff-1)])
+                    done_buf[p].append(True)
+                    episode_return_buf[p].extend([0.0 for _ in range(diff-1)])
+                    episode_return_buf[p].append(float(payoffs[p]))
+                    target_buf[p].extend([float(payoffs[p]) for _ in range(diff)])
+                    # State and action
+                    for i in range(0, len(trajectories[p])-2, 2):
+                        state = trajectories[p][i]['obs']
+                        action = env.get_action_feature(trajectories[p][i+1])
+                        state_buf[p].append(torch.from_numpy(state))
+                        action_buf[p].append(torch.from_numpy(action))
 
-                            episode_return = env_output['episode_return'] if p == 'soloplayer' else env_output['episode_return'] * -1
-                            episode_return_buf[p].extend([0.0 for _ in range(diff-1)])
-                            episode_return_buf[p].append(episode_return)
-                            target_buf[p].extend([episode_return for _ in range(diff)])
-                    break
-
-            for p in positions:
                 while size[p] > T:
                     index = free_queue[p].get()
                     if index is None:
@@ -160,16 +128,14 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                         buffers[p]['done'][index][t, ...] = done_buf[p][t]
                         buffers[p]['episode_return'][index][t, ...] = episode_return_buf[p][t]
                         buffers[p]['target'][index][t, ...] = target_buf[p][t]
-                        buffers[p]['obs_x_no_action'][index][t, ...] = obs_x_no_action_buf[p][t]
-                        buffers[p]['obs_action'][index][t, ...] = obs_action_buf[p][t]
-                        buffers[p]['obs_z'][index][t, ...] = obs_z_buf[p][t]
+                        buffers[p]['state'][index][t, ...] = state_buf[p][t]
+                        buffers[p]['action'][index][t, ...] = action_buf[p][t]
                     full_queue[p].put(index)
                     done_buf[p] = done_buf[p][T:]
                     episode_return_buf[p] = episode_return_buf[p][T:]
                     target_buf[p] = target_buf[p][T:]
-                    obs_x_no_action_buf[p] = obs_x_no_action_buf[p][T:]
-                    obs_action_buf[p] = obs_action_buf[p][T:]
-                    obs_z_buf[p] = obs_z_buf[p][T:]
+                    state_buf[p] = state_buf[p][T:]
+                    action_buf[p] = action_buf[p][T:]
                     size[p] -= T
 
     except KeyboardInterrupt:
@@ -179,13 +145,3 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         traceback.print_exc()
         print()
         raise e
-
-def _cards2tensor(list_cards, card_encoding):
-    """
-    Convert a list of integers to the tensor
-    representation
-    See Figure 2 in https://arxiv.org/pdf/2106.06135.pdf
-    """
-    matrix = cards2array(list_cards, card_encoding)
-    matrix = torch.from_numpy(matrix)
-    return matrix

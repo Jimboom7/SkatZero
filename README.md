@@ -1,17 +1,17 @@
 # SkatZero
 Reinforcement Learning Skat AI.  
-Based on [DouZero](https://github.com/kwai/DouZero)
+Based on [RLCard](https://github.com/datamllab/rlcard)
 
 ## Dependencies
-All included in Pytorch
+Only Pytorch
 
 ## Usage
 
 ### Training
-`skat_train.py`
+`python train.py`
 
 ### Evaluation
-`skat_evaluate.py`
+`python evaluate.py`
 
 ### Test Play
-`skat_play.py`
+`python play.py`

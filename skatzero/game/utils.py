@@ -1,0 +1,68 @@
+import random
+
+
+card_suits = ['D', 'H', 'S', 'C']
+card_suit_as_number = {'D': 0 , 'H': 1, 'S': 2, 'C': 3}
+
+card_ranks = ['7', '8', '9', 'Q', 'K', 'T', 'A', 'J']
+card_rank_as_number = {'7': 0, '8': 1, '9': 2, 'Q': 3, 'K': 4, 'T': 5, 'A': 6, 'J': 7}
+card_point_value = {'7': 0, '8': 0, '9': 0, 'J': 2, 'Q': 3, 'K': 4, 'T': 10, 'A': 11}
+
+def init_32_deck():
+    res = [suit + rank for suit in card_suits for rank in card_ranks]
+    return res
+
+def compare_cards(card1, card2, trump, current_suit):
+    if card1[1] == "J" and card2[1] == "J": # Two Jacks
+        return card_suit_as_number[card1[0]] > card_suit_as_number[card2[0]]
+    if card1[1] == "J" or card2[1] == "J": # One Jack
+        return card1[1] == "J"
+    if (card1[0] != current_suit) != (card2[0] != current_suit): # Different suites
+        return (card1[0] == current_suit and card2[0] != trump) or card1[0] == trump
+    return is_card_higher(card1, card2)
+
+
+def is_card_higher(card1, card2):
+    return card_rank_as_number[card1[1]] > card_rank_as_number[card2[1]]
+
+
+def get_points(card):
+    return card_point_value[card[1]]
+
+
+def action_2_id(action):
+    return (card_suit_as_number[action[0]] * 8) + card_rank_as_number[action[1]]
+
+
+def id_2_action(action_id):
+    try:
+        return card_suits[int(action_id / 8)] + card_ranks[action_id % 8]
+    except:
+        return action_id
+
+
+# Simplified von Stegen System, hand is playable at absolut minimum 7 points
+def evaluate_card(card, trump):
+    strength = 0
+    if card[1] == 'J':
+        strength += 2
+    if card[0] == trump and card[1] != 'J':
+        strength += 1
+    if card[1] == 'A':
+        strength += 1
+    if card[1] == 'T':
+        strength += 0.5
+    return strength
+
+
+def evaluate_hand_strength(cards, suits = ['D','H','S','C']):
+    strength = []
+    for suit in suits:
+        s = 0
+        for c in cards:
+            s += evaluate_card(c, suit)
+        strength.append((suit, s))
+    return strength
+
+def get_startplayer():
+    return random.choice(['soloplayer', 'opponent_left', 'opponent_right'])

@@ -1,18 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 import copy
 import datetime
 import csv
@@ -25,7 +10,7 @@ from typing import Dict
 
 def gather_metadata() -> Dict:
     date_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-    # Skip: gathering git metadata
+    # gathering git metadata
     git_data = None
     # gathering slurm metadata
     if 'SLURM_JOB_ID' in os.environ:
@@ -50,7 +35,7 @@ class FileWriter:
     def __init__(self,
                  xpid: str = None,
                  xp_args: dict = None,
-                 rootdir: str = '~/palaas'):
+                 rootdir: str = '~/skat'):
         if not xpid:
             # make unique id
             xpid = '{proc}_{unixtime}'.format(
@@ -69,7 +54,7 @@ class FileWriter:
         self.metadata['xpid'] = self.xpid
 
         formatter = logging.Formatter('%(message)s')
-        self._logger = logging.getLogger('palaas/out')
+        self._logger = logging.getLogger('skat/out')
 
         # to stdout handler
         shandle = logging.StreamHandler()
@@ -87,8 +72,8 @@ class FileWriter:
         else:
             self._logger.info('Found log directory: %s', self.basepath)
 
-        # NOTE: remove latest because it creates errors when running on slurm
-        # multiple jobs trying to write to latest but cannot find it
+        # NOTE: remove latest because it creates errors when running on slurm 
+        # multiple jobs trying to write to latest but cannot find it 
         # Add 'latest' as symlink unless it exists and is no symlink.
         # symlink = os.path.join(rootdir, 'latest')
         # if os.path.islink(symlink):

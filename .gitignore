@@ -13,8 +13,12 @@ sonar-project.properties
 .coverage*
 docs/rst
 docs/sphinx
-experiments/skat
+dist/
+.coverage*
+docs/rst
+docs/sphinx
+checkpoints
 dist/
 Notizen
-checkpoints
 *eval_data*.pkl
+not_done
