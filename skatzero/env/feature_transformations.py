@@ -2,22 +2,27 @@ from collections import OrderedDict
 
 import numpy as np
 
-card_encoding = {'D': 0, 'H': 1, 'S': 2, 'C': 3} # TODO: Make flexible
-card_rank_to_column = {'7': 0, '8': 1, '9': 2, 'Q': 3, 'K': 4, 'T': 5, 'A': 6, 'J': 7}
+from skatzero.game.utils import card_rank_as_number, card_ranks
 
-def card2array(card):
+def convert_action_id_to_card(action_id, card_encoding):
+    return list(card_encoding.keys())[list(card_encoding.values()).index(int(action_id / 8))] + card_ranks[action_id % 8]
+
+def convert_card_to_action_id(action, card_encoding):
+    return (card_encoding[action[0]] * 8) + card_rank_as_number[action[1]]
+
+def card2array(card, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
     if card is None or card == '':
         return matrix.flatten()
-    matrix[card_encoding[card[0]], card_rank_to_column[card[1]]] = 1
+    matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     return matrix.flatten()
 
-def cards2array(cards):
+def cards2array(cards, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
     if cards is None or cards == ['']:
         return matrix.flatten()
     for card in cards:
-        matrix[card_encoding[card[0]], card_rank_to_column[card[1]]] = 1
+        matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     return matrix.flatten()
 
 def get_points_as_one_hot_vector(points, max_points=120):
@@ -25,10 +30,10 @@ def get_points_as_one_hot_vector(points, max_points=120):
     one_hot[points] = 1
     return one_hot
 
-def action_seq2array(action_seq_list):
+def action_seq2array(action_seq_list, card_encoding):
     action_seq_array = np.zeros((len(action_seq_list), 32), np.int8)
     for row, card in enumerate(action_seq_list):
-        action_seq_array[row, :] = card2array(card)
+        action_seq_array[row, :] = card2array(card, card_encoding)
     action_seq_array = action_seq_array.flatten()
     return action_seq_array
 
@@ -45,7 +50,7 @@ def process_action_seq(sequence, length=30):
         sequence = empty_sequence
     return sequence
 
-def calculate_missing_cards(player_id, trace, trump):
+def calculate_missing_cards(player_id, trace, trump, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
     trick_counter = 0
     for player, card in trace:
@@ -66,42 +71,62 @@ def calculate_missing_cards(player_id, trace, trump):
                 matrix[card_encoding[base_card[0]], :7] = 1
     return matrix.flatten()
 
+def get_card_encoding(state):
+    encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
+    num_h = len([d for d in state['current_hand'] if d[0] == 'H'])
+    num_s = len([d for d in state['current_hand'] if d[0] == 'S'])
+    num_c = len([d for d in state['current_hand'] if d[0] == 'C'])
+    if max(num_h, num_s, num_c) == num_h:
+        encoding = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
+        if max(num_s, num_c) == num_c:
+            encoding = {'D': 0, 'H': 1, 'C': 2, 'S': 3}
+    elif max(num_h, num_s, num_c) == num_s:
+        encoding = {'D': 0, 'S': 1, 'H': 2, 'C': 3}
+        if max(num_h, num_c) == num_c:
+            encoding = {'D': 0, 'S': 1, 'C': 2, 'H': 3}
+    elif max(num_h, num_s, num_c) == num_c:
+        encoding = {'D': 0, 'C': 1, 'H': 2, 'S': 3}
+        if max(num_h, num_s) == num_s:
+            encoding = {'D': 0, 'C': 1, 'S': 2, 'H': 3}
+    return encoding
+
 def get_common_features(state):
-    current_hand = cards2array(state['current_hand'])
-    others_hand = cards2array(state['others_hand'])
+    card_encoding = get_card_encoding(state)
+    current_hand = cards2array(state['current_hand'], card_encoding)
+    others_hand = cards2array(state['others_hand'], card_encoding)
 
-    all_actions = action_seq2array(process_action_seq(state['trace']))
+    all_actions = action_seq2array(process_action_seq(state['trace']), card_encoding)
 
-    trick1 = card2array(None)
-    trick2 = card2array(None)
+    trick1 = card2array(None, card_encoding)
+    trick2 = card2array(None, card_encoding)
     if len(state['trick']) >= 1:
-        trick1 = card2array(state['trick'][0][1])
+        trick1 = card2array(state['trick'][0][1], card_encoding)
     if len(state['trick']) == 2:
-        trick2 = card2array(state['trick'][1][1])
+        trick2 = card2array(state['trick'][1][1], card_encoding)
 
     if state['blind_hand']:
         blind_hand = np.ones([1,], dtype=np.int8)
     else:
         blind_hand = np.zeros([1,], dtype=np.int8)
 
-    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand
+    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding
 
 def get_soloplayer_features(state, game):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
 
-    opponent_left_played_cards = cards2array(state['played_cards'][2])
-    opponent_right_played_cards = cards2array(state['played_cards'][1])
+    opponent_left_played_cards = cards2array(state['played_cards'][2], card_encoding)
+    opponent_right_played_cards = cards2array(state['played_cards'][1], card_encoding)
 
-    missing_cards_left = calculate_missing_cards(2, state['trace'], game.round.trump)
-    missing_cards_right = calculate_missing_cards(1, state['trace'], game.round.trump)
+    missing_cards_left = calculate_missing_cards(2, state['trace'], game.round.trump, card_encoding)
+    missing_cards_right = calculate_missing_cards(1, state['trace'], game.round.trump, card_encoding)
 
     points_own = get_points_as_one_hot_vector(state['points'][0])
     points_opp = get_points_as_one_hot_vector(state['points'][1])
 
     if not state['blind_hand']:
-        skat = cards2array([game.round.dealer.skat[0], game.round.dealer.skat[1]])
+        skat = cards2array([game.round.dealer.skat[0], game.round.dealer.skat[1]], card_encoding)
     else:
-        skat = cards2array(None)
+        skat = cards2array(None, card_encoding)
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
                             trick1,  # 32
@@ -118,31 +143,31 @@ def get_soloplayer_features(state, game):
     return obs
 
 def get_opponent_features(state, game):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand = get_common_features(state)
-    soloplayer_played_cards = cards2array(state['played_cards'][0])
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
+    soloplayer_played_cards = cards2array(state['played_cards'][0], card_encoding)
 
     last_soloplayer_action = None
     for i, action in reversed(state['trace']):
         if i == state['soloplayer']:
             last_soloplayer_action = action
             break
-    last_soloplayer_action = card2array(last_soloplayer_action)
+    last_soloplayer_action = card2array(last_soloplayer_action, card_encoding)
 
     teammate_id = 3 - state['self']
 
-    missing_cards_solo = calculate_missing_cards(0, state['trace'], game.round.trump)
-    missing_cards_teammate = calculate_missing_cards(teammate_id, state['trace'], game.round.trump)
+    missing_cards_solo = calculate_missing_cards(0, state['trace'], game.round.trump, card_encoding)
+    missing_cards_teammate = calculate_missing_cards(teammate_id, state['trace'], game.round.trump, card_encoding)
 
     points_own = get_points_as_one_hot_vector(state['points'][1])
     points_opp = get_points_as_one_hot_vector(state['points'][0])
 
-    teammate_played_cards = cards2array(state['played_cards'][teammate_id])
+    teammate_played_cards = cards2array(state['played_cards'][teammate_id], card_encoding)
     last_teammate_action = None
     for i, action in reversed(state['trace']):
         if i == teammate_id:
             last_teammate_action = action
             break
-    last_teammate_action = card2array(last_teammate_action)
+    last_teammate_action = card2array(last_teammate_action, card_encoding)
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
                             trick1,  # 32

@@ -1,6 +1,5 @@
 import numpy as np
-from skatzero.game.utils import action_2_id, id_2_action
-from skatzero.env.feature_transformations import extract_state, card2array
+from skatzero.env.feature_transformations import extract_state, card2array, get_card_encoding, convert_action_id_to_card, convert_card_to_action_id
 from skatzero.game.game import Game
 from skatzero.evaluation.seeding import np_random
 
@@ -95,12 +94,15 @@ class SkatEnv(object):
         return self.game.compute_rewards()
 
     def decode_action(self, action_id):
-        return id_2_action(action_id)
+        card_encoding = get_card_encoding(self.game.state)
+        return convert_action_id_to_card(action_id, card_encoding)
 
     def get_legal_actions(self):
         legal_actions = self.game.state['actions']
-        legal_actions = {action_2_id(action): card2array(action) for action in legal_actions}
+        card_encoding = get_card_encoding(self.game.state)
+        legal_actions = {convert_card_to_action_id(action, card_encoding): card2array(action, card_encoding) for action in legal_actions}
         return legal_actions
 
     def get_action_feature(self, action):
-        return card2array(self.decode_action(action))
+        card_encoding = get_card_encoding(self.game.state)
+        return card2array(self.decode_action(action), card_encoding)

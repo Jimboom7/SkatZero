@@ -30,17 +30,6 @@ def get_points(card):
     return card_point_value[card[1]]
 
 
-def action_2_id(action):
-    return (card_suit_as_number[action[0]] * 8) + card_rank_as_number[action[1]]
-
-
-def id_2_action(action_id):
-    try:
-        return card_suits[int(action_id / 8)] + card_ranks[action_id % 8]
-    except:
-        return action_id
-
-
 # Simplified von Stegen System, hand is playable at absolut minimum 7 points
 def evaluate_card(card, trump):
     strength = 0
