@@ -29,7 +29,7 @@ if __name__ == '__main__':
         dcm_agent_2,
     ])
 
-    trajectories, _ = env.run(is_training=False)
+    trajectories, _ = env.run(is_training=False, verbose=2)
 
     print('\nTrajectories:')
     print(trajectories)

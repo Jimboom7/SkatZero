@@ -1,5 +1,6 @@
 import numpy as np
 from skatzero.env.feature_transformations import extract_state, card2array, get_card_encoding, convert_action_id_to_card, convert_card_to_action_id
+from skatzero.evaluation.utils import print_turn
 from skatzero.game.game import Game
 from skatzero.evaluation.seeding import np_random
 
@@ -10,8 +11,6 @@ class SkatEnv(object):
         self.game = Game()
 
         self.blind_hand_chance = blind_hand_chance
-
-        self.action_recorder = []
 
         self.num_players = self.game.get_num_players()
         self.num_actions = self.game.get_num_actions()
@@ -28,13 +27,11 @@ class SkatEnv(object):
     def reset(self):
         is_blind_hand = np.random.rand() < self.blind_hand_chance
         state, player_id = self.game.init_game(blind_hand=is_blind_hand)
-        self.action_recorder = []
         return self.extract_state(state), player_id
 
     def step(self, action):
         action = self.decode_action(action)
         self.timestep += 1
-        self.action_recorder.append((self.get_player_id(), action))
         next_state, player_id = self.game.step(action)
 
         return self.extract_state(next_state), player_id
@@ -42,7 +39,7 @@ class SkatEnv(object):
     def set_agents(self, agents):
         self.agents = agents
 
-    def run(self, is_training=False):
+    def run(self, is_training=False, verbose=0):
         trajectories = [[] for _ in range(self.num_players)]
         state, player_id = self.reset()
 
@@ -51,6 +48,9 @@ class SkatEnv(object):
 
             if not is_training:
                 action, _ = self.agents[player_id].eval_step(state)
+                if verbose > 0:
+                    print_turn(state['raw_obs']['current_hand'], self.decode_action(action),
+                               state['raw_obs']['self'], state['raw_obs']['trick'], state['raw_obs']['trump'], verbose)
             else:
                 action = self.agents[player_id].step(state)
 
@@ -87,7 +87,7 @@ class SkatEnv(object):
         return seed
 
     def extract_state(self, state):
-        extracted_state = extract_state(state, self.game, self.get_legal_actions(), self.action_recorder)
+        extracted_state = extract_state(state, self.get_legal_actions())
         return extracted_state
 
     def get_rewards(self):

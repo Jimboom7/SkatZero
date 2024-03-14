@@ -62,7 +62,7 @@ class Game:
             actions = []
         else:
             actions = list(player.available_actions(self.round.current_suit, self.round.trump))
-        state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick, self.blind_hand)
+        state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick, self.round.trump, self.round.dealer.skat, self.blind_hand)
 
         return state
 

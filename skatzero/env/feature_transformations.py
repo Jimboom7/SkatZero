@@ -111,20 +111,20 @@ def get_common_features(state):
 
     return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding
 
-def get_soloplayer_features(state, game):
+def get_soloplayer_features(state):
     current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
 
     opponent_left_played_cards = cards2array(state['played_cards'][2], card_encoding)
     opponent_right_played_cards = cards2array(state['played_cards'][1], card_encoding)
 
-    missing_cards_left = calculate_missing_cards(2, state['trace'], game.round.trump, card_encoding)
-    missing_cards_right = calculate_missing_cards(1, state['trace'], game.round.trump, card_encoding)
+    missing_cards_left = calculate_missing_cards(2, state['trace'], state['trump'], card_encoding)
+    missing_cards_right = calculate_missing_cards(1, state['trace'], state['trump'], card_encoding)
 
     points_own = get_points_as_one_hot_vector(state['points'][0])
     points_opp = get_points_as_one_hot_vector(state['points'][1])
 
     if not state['blind_hand']:
-        skat = cards2array([game.round.dealer.skat[0], game.round.dealer.skat[1]], card_encoding)
+        skat = cards2array([state['skat'][0], state['skat'][1]], card_encoding)
     else:
         skat = cards2array(None, card_encoding)
     obs = np.concatenate((current_hand,  # 32
@@ -142,7 +142,7 @@ def get_soloplayer_features(state, game):
                             blind_hand)) # 1
     return obs
 
-def get_opponent_features(state, game):
+def get_opponent_features(state):
     current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
     soloplayer_played_cards = cards2array(state['played_cards'][0], card_encoding)
 
@@ -155,8 +155,8 @@ def get_opponent_features(state, game):
 
     teammate_id = 3 - state['self']
 
-    missing_cards_solo = calculate_missing_cards(0, state['trace'], game.round.trump, card_encoding)
-    missing_cards_teammate = calculate_missing_cards(teammate_id, state['trace'], game.round.trump, card_encoding)
+    missing_cards_solo = calculate_missing_cards(0, state['trace'], state['trump'], card_encoding)
+    missing_cards_teammate = calculate_missing_cards(teammate_id, state['trace'], state['trump'], card_encoding)
 
     points_own = get_points_as_one_hot_vector(state['points'][1])
     points_opp = get_points_as_one_hot_vector(state['points'][0])
@@ -184,13 +184,12 @@ def get_opponent_features(state, game):
                             blind_hand))  # 1
     return obs
 
-def extract_state(state, game, legal_actions, action_recorder):
+def extract_state(state, legal_actions):
     if state['self'] == state['soloplayer']:
-        obs = get_soloplayer_features(state, game)
+        obs = get_soloplayer_features(state)
     else:
-        obs = get_opponent_features(state, game)
+        obs = get_opponent_features(state)
     extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
     extracted_state['raw_obs'] = state
     extracted_state['raw_legal_actions'] = [a for a in state['actions']]
-    extracted_state['action_record'] = action_recorder
     return extracted_state

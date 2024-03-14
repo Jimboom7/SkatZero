@@ -1,6 +1,6 @@
 import functools
 
-from skatzero.game.utils import card_suit_as_number, card_rank_as_number
+from skatzero.game.utils import card_suit_as_number, card_rank_as_number, compare_cards
 
 def skat_sort_card_string(card_1, card_2):
     key = []
@@ -45,3 +45,35 @@ def format_hand(cards):
     for c in cards:
         hand += format_card(c) + " \033[0m"
     return hand
+
+def print_turn(cards, action, player_nr, trick, trump, verbose):
+    player = player_number_to_name(player_nr)
+
+    if verbose == 2:
+        print(player + " Hand: " + format_hand(cards))
+    print(player + " Throws: " + format_card(action))
+
+    if len(trick) == 2:
+        check_trick(trick, action, player_nr, trump)
+
+def check_trick(trick, action, player_nr, trump):
+    suit = trick[0][1][0]
+    trick_winner = trick[0][0].player_id
+    card1 = trick[0][1]
+    card2 = trick[1][1]
+    card3 = action
+    highest_card = card1
+    if not compare_cards(card1, card2, trump, suit):
+        highest_card = card2
+        trick_winner = trick[1][0].player_id
+    if not compare_cards(highest_card, card3, trump, suit):
+        trick_winner = player_nr
+    print(player_number_to_name(trick_winner) + " wins the Trick: " + format_card(card1) + ", " + format_card(card2) + ", " + format_card(card3))
+
+def player_number_to_name(player_nr):
+    player = 'Soloplayer'
+    if player_nr == 1:
+        player = 'Opponent Right'
+    if player_nr == 2:
+        player = 'Opponent Left'
+    return player

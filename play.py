@@ -1,3 +1,4 @@
+from skatzero.agents.rule_based_agent import RuleBasedAgent
 from skatzero.evaluation.simulation import load_model
 from skatzero.agents.human_agent import HumanAgent
 from skatzero.env.skat import SkatEnv
@@ -5,16 +6,14 @@ from skatzero.env.skat import SkatEnv
 if __name__ == '__main__':
     env = SkatEnv()
 
-    MODEL1 = 'checkpoints/skat_20_flexible_suits/0_40.pth'
-    MODEL2 = 'checkpoints/skat_20_flexible_suits/2_40.pth'
+    agent_0 = load_model('checkpoints/skat_20_flexible_suits/0_60.pth')
+    agent_1 = HumanAgent(env.num_actions)
+    agent_2 = RuleBasedAgent(env.num_actions)
 
-    human_agent = HumanAgent(env.num_actions)
-    dcm_agent_0 = load_model(MODEL1)
-    dcm_agent_2 = load_model(MODEL2)
     env.set_agents([
-        dcm_agent_0,
-        human_agent,
-        dcm_agent_2,
+        agent_0,
+        agent_1,
+        agent_2,
     ])
 
     print(">> Skat pre-trained model")
@@ -22,7 +21,7 @@ if __name__ == '__main__':
     while True:
         print(">> Start a new game")
 
-        trajectories, rewards = env.run(is_training=False)
+        trajectories, rewards = env.run(is_training=False, verbose=2)
 
         print('===============     Result     ===============')
         print("Rewards:")
