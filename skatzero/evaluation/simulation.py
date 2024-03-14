@@ -93,7 +93,7 @@ def tournament(env, num, num_actors):
     return payoffs
 
 
-def save_evaluation_duel(folder, number, num_games, num_actors=10):
+def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_actors=10):
     print("Starting Evaluation")
     base_folder = 'checkpoints/'
     folder = str(folder)
@@ -112,7 +112,7 @@ def save_evaluation_duel(folder, number, num_games, num_actors=10):
 
     seed = 42
     set_seed(seed)
-    env = SkatEnv(seed=seed)
+    env = SkatEnv(blind_hand_chance, seed=seed)
 
     # Evaluation 1: Soloplayer
     agents = []

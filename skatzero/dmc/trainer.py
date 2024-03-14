@@ -331,7 +331,7 @@ class DMCTrainer:
                     model_weights_dir
                 )
             if self.eval:
-                save_evaluation_duel(self.xpid, savename, eval_num, num_proc)
+                save_evaluation_duel(self.xpid, savename, eval_num, 0.1, num_proc)
 
         fps_log = []
         timer = timeit.default_timer

@@ -1,3 +1,4 @@
+import numpy as np
 from skatzero.game.utils import action_2_id, id_2_action
 from skatzero.env.feature_transformations import extract_state, card2array
 from skatzero.game.game import Game
@@ -5,9 +6,11 @@ from skatzero.evaluation.seeding import np_random
 
 
 class SkatEnv(object):
-    def __init__(self, seed=None):
+    def __init__(self, blind_hand_chance = 0.1, seed=None):
         self.name = 'skat'
         self.game = Game()
+
+        self.blind_hand_chance = blind_hand_chance
 
         self.action_recorder = []
 
@@ -20,11 +23,12 @@ class SkatEnv(object):
 
         self.agents = None
 
-        self.state_shape = [[1490], [1522], [1522]]
+        self.state_shape = [[1491], [1523], [1523]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def reset(self):
-        state, player_id = self.game.init_game()
+        is_blind_hand = np.random.rand() < self.blind_hand_chance
+        state, player_id = self.game.init_game(blind_hand=is_blind_hand)
         self.action_recorder = []
         return self.extract_state(state), player_id
 

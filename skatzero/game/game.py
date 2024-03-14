@@ -15,10 +15,12 @@ class Game:
         self.players = []
         self.round = None
         self.state = None
+        self.blind_hand = False
 
-    def init_game(self):
+    def init_game(self, blind_hand=False):
         self.done = False
         self.history = []
+        self.blind_hand = blind_hand
 
         self.players = [Player(num) for num in range(self.num_players)]
 
@@ -53,14 +55,14 @@ class Game:
         player = self.players[player_id]
         others_hands = self.get_others_current_hand(player)
         solo_points = self.round.solo_points
-        if player_id != self.round.soloplayer_id:
+        if player_id != self.round.soloplayer_id or self.blind_hand:
             solo_points -= (get_points(self.round.dealer.skat[0]) + get_points(self.round.dealer.skat[1]))
         points = [solo_points, self.round.opponent_points]
         if self.is_over():
             actions = []
         else:
             actions = list(player.available_actions(self.round.current_suit, self.round.trump))
-        state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick)
+        state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick, self.blind_hand)
 
         return state
 
@@ -123,6 +125,6 @@ class Game:
         player_right = self.players[(player.player_id+1) % self.num_players]
         player_left = self.players[(player.player_id-1) % self.num_players]
         others_hand = player_right.current_hand + player_left.current_hand
-        if player.player_id != self.round.soloplayer_id:
+        if player.player_id != self.round.soloplayer_id or self.blind_hand:
             others_hand = others_hand + self.round.dealer.skat
         return others_hand.copy()

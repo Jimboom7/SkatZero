@@ -8,7 +8,7 @@ class Player:
         self.role = ''
         self.played_cards = None
 
-    def get_state(self, public, others_hands, points, actions, trick):
+    def get_state(self, public, others_hands, points, actions, trick, blind_hand):
         state = {}
         state['soloplayer'] = public['soloplayer']
         state['trace'] = public['trace']
@@ -19,6 +19,7 @@ class Player:
         state['points'] = points
         state['actions'] = actions
         state['trick'] = trick
+        state['blind_hand'] = blind_hand
 
         return deepcopy(state)
 

@@ -10,6 +10,7 @@ if __name__ == '__main__':
     NUM_GAMES = 10000
     MODEL = "skat_18_random_startplayer"
     FRAMES = "100"
+    BLIND_HAND_CHANCE = 0.1
     NUM_ACTORS = 12
 
-    save_evaluation_duel(MODEL, FRAMES, NUM_GAMES, NUM_ACTORS)
+    save_evaluation_duel(MODEL, FRAMES, NUM_GAMES, BLIND_HAND_CHANCE, NUM_ACTORS)

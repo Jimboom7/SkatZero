@@ -78,10 +78,16 @@ def get_common_features(state):
         trick1 = card2array(state['trick'][0][1])
     if len(state['trick']) == 2:
         trick2 = card2array(state['trick'][1][1])
-    return current_hand, others_hand, all_actions, trick1, trick2
+
+    if state['blind_hand']:
+        blind_hand = np.ones([1,], dtype=np.int8)
+    else:
+        blind_hand = np.zeros([1,], dtype=np.int8)
+
+    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand
 
 def get_soloplayer_features(state, game):
-    current_hand, others_hand, all_actions, trick1, trick2 = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand = get_common_features(state)
 
     opponent_left_played_cards = cards2array(state['played_cards'][2])
     opponent_right_played_cards = cards2array(state['played_cards'][1])
@@ -92,7 +98,10 @@ def get_soloplayer_features(state, game):
     points_own = get_points_as_one_hot_vector(state['points'][0])
     points_opp = get_points_as_one_hot_vector(state['points'][1])
 
-    skat = cards2array([game.round.dealer.skat[0], game.round.dealer.skat[1]])
+    if not state['blind_hand']:
+        skat = cards2array([game.round.dealer.skat[0], game.round.dealer.skat[1]])
+    else:
+        skat = cards2array(None)
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
                             trick1,  # 32
@@ -104,11 +113,12 @@ def get_soloplayer_features(state, game):
                             missing_cards_right,  # 32
                             opponent_right_played_cards,  # 32
                             points_own,  # 121
-                            points_opp))  # 121
+                            points_opp, # 121
+                            blind_hand)) # 1
     return obs
 
 def get_opponent_features(state, game):
-    current_hand, others_hand, all_actions, trick1, trick2 = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand = get_common_features(state)
     soloplayer_played_cards = cards2array(state['played_cards'][0])
 
     last_soloplayer_action = None
@@ -145,7 +155,8 @@ def get_opponent_features(state, game):
                             last_soloplayer_action,  # 32
                             last_teammate_action,  # 32
                             points_own,  # 121
-                            points_opp))  # 121
+                            points_opp,  # 121
+                            blind_hand))  # 1
     return obs
 
 def extract_state(state, game, legal_actions, action_recorder):
