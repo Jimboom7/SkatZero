@@ -367,7 +367,7 @@ class DMCTrainer:
             return
         else:
             for thread in threads:
-                thread.terminate()
+                thread.join()
             log.info('Learning finished after %d frames.', frames)
 
         checkpoint(frames, 10000, num_proc=self.num_actors)

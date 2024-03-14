@@ -30,6 +30,24 @@ def get_points(card):
     return card_point_value[card[1]]
 
 
+def calculate_bidding_value(cards):
+    mult = 2
+    if 'CJ' in cards and 'SJ' in cards:
+        mult = 3
+    if 'CJ' not in cards and 'SJ' not in cards:
+        mult = 3
+    if 'CJ' in cards and 'SJ' in cards and 'HJ' in cards:
+        mult = 4
+    if 'CJ' not in cards and 'SJ' not in cards and 'HJ' not in cards:
+        mult = 4
+    if 'CJ' in cards and 'SJ' in cards and 'HJ' in cards and 'DJ' in cards:
+        mult = 5
+    if 'CJ' not in cards and 'SJ' not in cards and 'HJ' not in cards and 'DJ' not in cards:
+        mult = 5
+    # Ignore everything higher than this for now
+    return mult
+
+
 # Simplified von Stegen System, hand is playable at absolut minimum 7 points
 def evaluate_card(card, trump):
     strength = 0
@@ -44,14 +62,35 @@ def evaluate_card(card, trump):
     return strength
 
 
-def evaluate_hand_strength(cards, suits = ['D','H','S','C']):
-    strength = []
+def evaluate_hand_strength(cards, suits = ['D', 'H', 'S', 'C']):
+    strength = {'D': 0, 'H': 0, 'S': 0, 'C': 0}
     for suit in suits:
         s = 0
         for c in cards:
             s += evaluate_card(c, suit)
-        strength.append((suit, s))
+        strength[suit] = s
     return strength
+
+
+def can_play_null(cards):
+    nullcards = 0
+    for card in cards:
+        if card[1] == '7':
+            nullcards += 1
+        if card[1] == '8':
+            nullcards += 0.8
+        if card[1] == '9':
+            nullcards += 0.6
+        if card[1] == 'T':
+            nullcards += 0.4
+        if card[1] == 'J':
+            nullcards += 0.2
+        if card[1] == 'K':
+            nullcards -= 0.2
+        if card[1] == 'A':
+            nullcards -= 0.4
+    return nullcards >= 5.4
+
 
 def get_startplayer():
     return random.choice(['soloplayer', 'opponent_left', 'opponent_right'])

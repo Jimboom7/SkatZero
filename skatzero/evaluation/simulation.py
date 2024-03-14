@@ -149,15 +149,14 @@ def get_bidding_data(player, random_game=False):
         agents.append(load_model(model_path))
 
     if random_game:
-        env = SkatEnv()
+        env = SkatEnv(blind_hand_chance=1.0)
     else:
         seed = 42
         set_seed(seed)
-        env = SkatEnv(seed=seed)
+        env = SkatEnv(blind_hand_chance=1.0, seed=seed)
 
     env.set_agents(agents)
-    # TODO: Handspiel setzen!
-    
+
     state, _ = env.reset()
 
     _, info = agents[0].eval_step(state)

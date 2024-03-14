@@ -90,6 +90,20 @@ def get_card_encoding(state):
             encoding = {'D': 0, 'C': 1, 'S': 2, 'H': 3}
     return encoding
 
+def get_bid(bid_dict, card_encoding):
+    matrix = np.zeros([5,], dtype=np.int8)
+    for suit in ['D', 'H', 'S', 'C']:
+        if bid_dict[suit] == 1:
+            matrix[card_encoding[suit]] = 1
+    if bid_dict['N'] == 1:
+        matrix[4] = 1
+    return matrix
+
+def get_bid_jacks(bid_jacks):
+    matrix = np.zeros([5,], dtype=np.int8)
+    matrix[bid_jacks] = 1
+    return matrix
+
 def get_common_features(state):
     card_encoding = get_card_encoding(state)
     current_hand = cards2array(state['current_hand'], card_encoding)
@@ -123,10 +137,17 @@ def get_soloplayer_features(state):
     points_own = get_points_as_one_hot_vector(state['points'][0])
     points_opp = get_points_as_one_hot_vector(state['points'][1])
 
+    bid_left = get_bid(state['bids'][1], card_encoding)
+    bid_right = get_bid(state['bids'][2], card_encoding)
+
+    bid_jacks_left = get_bid_jacks(state['bid_jacks'][1])
+    bid_jacks_right = get_bid_jacks(state['bid_jacks'][2])
+
     if not state['blind_hand']:
         skat = cards2array([state['skat'][0], state['skat'][1]], card_encoding)
     else:
         skat = cards2array(None, card_encoding)
+
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
                             trick1,  # 32
@@ -139,6 +160,10 @@ def get_soloplayer_features(state):
                             opponent_right_played_cards,  # 32
                             points_own,  # 121
                             points_opp, # 121
+                            bid_left, # 5
+                            bid_right, # 5
+                            bid_jacks_left, # 5
+                            bid_jacks_right, # 5
                             blind_hand)) # 1
     return obs
 
@@ -168,6 +193,13 @@ def get_opponent_features(state):
             last_teammate_action = action
             break
     last_teammate_action = card2array(last_teammate_action, card_encoding)
+
+    bid_soloplayer = get_bid(state['bids'][0], card_encoding)
+    bid_teammate = get_bid(state['bids'][teammate_id], card_encoding)
+
+    bid_jacks_soloplayer = get_bid_jacks(state['bid_jacks'][0])
+    bid_jacks_teammate = get_bid_jacks(state['bid_jacks'][teammate_id])
+
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
                             trick1,  # 32
@@ -181,6 +213,10 @@ def get_opponent_features(state):
                             last_teammate_action,  # 32
                             points_own,  # 121
                             points_opp,  # 121
+                            bid_soloplayer, # 5
+                            bid_teammate, # 5
+                            bid_jacks_soloplayer, # 5
+                            bid_jacks_teammate, # 5
                             blind_hand))  # 1
     return obs
 
