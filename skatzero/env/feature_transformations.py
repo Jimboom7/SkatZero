@@ -4,17 +4,26 @@ import numpy as np
 
 from skatzero.game.utils import card_rank_as_number, card_ranks
 
+jack_encoding ={'C': 0, 'S': 1, 'H': 2, 'D': 3}
+
 def convert_action_id_to_card(action_id, card_encoding):
+    if action_id % 8 == 7: # Jack
+        return list(jack_encoding.keys())[list(jack_encoding.values()).index(int(action_id / 8))] + card_ranks[action_id % 8]
     return list(card_encoding.keys())[list(card_encoding.values()).index(int(action_id / 8))] + card_ranks[action_id % 8]
 
 def convert_card_to_action_id(action, card_encoding):
+    if action[1] == 'J':
+        return (jack_encoding[action[0]] * 8) + card_rank_as_number[action[1]]
     return (card_encoding[action[0]] * 8) + card_rank_as_number[action[1]]
 
 def card2array(card, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
     if card is None or card == '':
         return matrix.flatten()
-    matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
+    if card[1] == 'J':
+        matrix[jack_encoding[card[0]], card_rank_as_number[card[1]]] = 1
+    else:
+        matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     return matrix.flatten()
 
 def cards2array(cards, card_encoding):
@@ -22,12 +31,15 @@ def cards2array(cards, card_encoding):
     if cards is None or cards == ['']:
         return matrix.flatten()
     for card in cards:
-        matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
+        if card[1] == 'J':
+            matrix[jack_encoding[card[0]], card_rank_as_number[card[1]]] = 1
+        else:
+            matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     return matrix.flatten()
 
-def get_points_as_one_hot_vector(points, max_points=120):
+def get_number_as_one_hot_vector(number, max_points=120):
     one_hot = np.zeros(max_points + 1, dtype=np.int8)
-    one_hot[points] = 1
+    one_hot[number] = 1
     return one_hot
 
 def action_seq2array(action_seq_list, card_encoding):
@@ -104,6 +116,13 @@ def get_bid_jacks(bid_jacks):
     matrix[bid_jacks] = 1
     return matrix
 
+def get_trumps(own_hand, others_hand, trump):
+    own = len([c for c in own_hand if c[0] == trump or c[1] == 'J'])
+    own = get_number_as_one_hot_vector(own, max_points=11)
+    opp = len([c for c in others_hand if c[0] == trump or c[1] == 'J'])
+    opp = get_number_as_one_hot_vector(opp, max_points=11)
+    return own, opp
+
 def get_common_features(state):
     card_encoding = get_card_encoding(state)
     current_hand = cards2array(state['current_hand'], card_encoding)
@@ -123,10 +142,12 @@ def get_common_features(state):
     else:
         blind_hand = np.zeros([1,], dtype=np.int8)
 
-    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding
+    own_trump, opponent_trump = get_trumps(state['current_hand'], state['others_hand'], state['trump'])
+
+    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, own_trump, opponent_trump, card_encoding
 
 def get_soloplayer_features(state):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, own_trump, opponent_trump, card_encoding = get_common_features(state)
 
     opponent_left_played_cards = cards2array(state['played_cards'][2], card_encoding)
     opponent_right_played_cards = cards2array(state['played_cards'][1], card_encoding)
@@ -134,8 +155,8 @@ def get_soloplayer_features(state):
     missing_cards_left = calculate_missing_cards(2, state['trace'], state['trump'], card_encoding)
     missing_cards_right = calculate_missing_cards(1, state['trace'], state['trump'], card_encoding)
 
-    points_own = get_points_as_one_hot_vector(state['points'][0])
-    points_opp = get_points_as_one_hot_vector(state['points'][1])
+    points_own = get_number_as_one_hot_vector(state['points'][0])
+    points_opp = get_number_as_one_hot_vector(state['points'][1])
 
     bid_left = get_bid(state['bids'][1], card_encoding)
     bid_right = get_bid(state['bids'][2], card_encoding)
@@ -164,11 +185,13 @@ def get_soloplayer_features(state):
                             bid_right, # 5
                             bid_jacks_left, # 5
                             bid_jacks_right, # 5
+                            own_trump, # 12
+                            opponent_trump, # 12
                             blind_hand)) # 1
     return obs
 
 def get_opponent_features(state):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, own_trump, opponent_trump, card_encoding = get_common_features(state)
     soloplayer_played_cards = cards2array(state['played_cards'][0], card_encoding)
 
     last_soloplayer_action = None
@@ -183,8 +206,8 @@ def get_opponent_features(state):
     missing_cards_solo = calculate_missing_cards(0, state['trace'], state['trump'], card_encoding)
     missing_cards_teammate = calculate_missing_cards(teammate_id, state['trace'], state['trump'], card_encoding)
 
-    points_own = get_points_as_one_hot_vector(state['points'][1])
-    points_opp = get_points_as_one_hot_vector(state['points'][0])
+    points_own = get_number_as_one_hot_vector(state['points'][1])
+    points_opp = get_number_as_one_hot_vector(state['points'][0])
 
     teammate_played_cards = cards2array(state['played_cards'][teammate_id], card_encoding)
     last_teammate_action = None
@@ -213,6 +236,8 @@ def get_opponent_features(state):
                             points_opp,  # 121
                             bid_teammate, # 5
                             bid_jacks_teammate, # 5
+                            own_trump, # 12
+                            opponent_trump, # 12
                             blind_hand))  # 1
     return obs
 
