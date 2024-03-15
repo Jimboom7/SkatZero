@@ -116,13 +116,6 @@ def get_bid_jacks(bid_jacks):
     matrix[bid_jacks] = 1
     return matrix
 
-def get_trumps(own_hand, others_hand, trump):
-    own = len([c for c in own_hand if c[0] == trump or c[1] == 'J'])
-    own = get_number_as_one_hot_vector(own, max_points=11)
-    opp = len([c for c in others_hand if c[0] == trump or c[1] == 'J'])
-    opp = get_number_as_one_hot_vector(opp, max_points=11)
-    return own, opp
-
 def get_common_features(state):
     card_encoding = get_card_encoding(state)
     current_hand = cards2array(state['current_hand'], card_encoding)
@@ -142,12 +135,10 @@ def get_common_features(state):
     else:
         blind_hand = np.zeros([1,], dtype=np.int8)
 
-    own_trump, opponent_trump = get_trumps(state['current_hand'], state['others_hand'], state['trump'])
-
-    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, own_trump, opponent_trump, card_encoding
+    return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding
 
 def get_soloplayer_features(state):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, own_trump, opponent_trump, card_encoding = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
 
     opponent_left_played_cards = cards2array(state['played_cards'][2], card_encoding)
     opponent_right_played_cards = cards2array(state['played_cards'][1], card_encoding)
@@ -185,13 +176,11 @@ def get_soloplayer_features(state):
                             bid_right, # 5
                             bid_jacks_left, # 5
                             bid_jacks_right, # 5
-                            own_trump, # 12
-                            opponent_trump, # 12
                             blind_hand)) # 1
     return obs
 
 def get_opponent_features(state):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, own_trump, opponent_trump, card_encoding = get_common_features(state)
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
     soloplayer_played_cards = cards2array(state['played_cards'][0], card_encoding)
 
     last_soloplayer_action = None
@@ -236,8 +225,6 @@ def get_opponent_features(state):
                             points_opp,  # 121
                             bid_teammate, # 5
                             bid_jacks_teammate, # 5
-                            own_trump, # 12
-                            opponent_trump, # 12
                             blind_hand))  # 1
     return obs
 
