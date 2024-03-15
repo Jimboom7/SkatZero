@@ -194,10 +194,8 @@ def get_opponent_features(state):
             break
     last_teammate_action = card2array(last_teammate_action, card_encoding)
 
-    bid_soloplayer = get_bid(state['bids'][0], card_encoding)
     bid_teammate = get_bid(state['bids'][teammate_id], card_encoding)
 
-    bid_jacks_soloplayer = get_bid_jacks(state['bid_jacks'][0])
     bid_jacks_teammate = get_bid_jacks(state['bid_jacks'][teammate_id])
 
     obs = np.concatenate((current_hand,  # 32
@@ -213,9 +211,7 @@ def get_opponent_features(state):
                             last_teammate_action,  # 32
                             points_own,  # 121
                             points_opp,  # 121
-                            bid_soloplayer, # 5
                             bid_teammate, # 5
-                            bid_jacks_soloplayer, # 5
                             bid_jacks_teammate, # 5
                             blind_hand))  # 1
     return obs
