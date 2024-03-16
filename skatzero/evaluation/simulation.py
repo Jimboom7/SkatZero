@@ -157,8 +157,42 @@ def get_bidding_data(player, random_game=False):
 
     env.set_agents(agents)
 
-    state, _ = env.reset()
+    #state, _ = env.reset(always_solo=True)
+
+    raw_state, player_id = env.game.init_game(blind_hand=1.0)
+
+    raw_state['self'] = 0
+
+    # 4 mal in Schleife
+    raw_state['trump'] = 'D'
+
+    state = env.extract_state(raw_state)
 
     _, info = agents[0].eval_step(state)
 
     return info['values']
+
+
+def prepare_env(player, random_game=False):
+    models = [
+            player,
+            player,
+            player
+        ]
+
+    agents = []
+    for _, model_path in enumerate(models):
+        agents.append(load_model(model_path))
+
+    if random_game:
+        env = SkatEnv(blind_hand_chance=1.0)
+    else:
+        seed = 42
+        set_seed(seed)
+        env = SkatEnv(blind_hand_chance=1.0, seed=seed)
+
+    env.set_agents(agents)
+
+    raw_state, player_id = env.game.init_game(blind_hand=True)
+
+    return env, raw_state
