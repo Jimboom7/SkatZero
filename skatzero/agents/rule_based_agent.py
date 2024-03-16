@@ -27,11 +27,11 @@ class RuleBasedAgent():
             if len(state['trick']) == 0: # Trümpfe ziehen
                 return self.try_to_play_trump(state['trick'])
 
-        if state['self'] == 'opponent_right':
+        if state['self'] == 1:
             if len(state['trick']) == 0: # Dem Freunde kurz
                 return self.play_short_suit(state)
 
-        if state['self'] == 'opponent_left':
+        if state['self'] == 2:
             if len(state['trick']) == 0: # Dem Feinde lang
                 return self.play_long_suit(state)
 

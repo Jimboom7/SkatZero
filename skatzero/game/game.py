@@ -16,11 +16,15 @@ class Game:
         self.round = None
         self.state = None
         self.blind_hand = False
+        self.black_soloplayer = True
+        self.black_opponent = True
 
     def init_game(self, blind_hand=False):
         self.done = False
         self.history = []
         self.blind_hand = blind_hand
+        self.black_soloplayer = True
+        self.black_opponent = True
 
         self.players = [Player(num) for num in range(self.num_players)]
 
@@ -67,14 +71,20 @@ class Game:
 
         return state
 
-    def compute_rewards(self):
+    def compute_rewards(self, is_training):
         soloplayer_id = self.round.soloplayer_id
         payoffs = np.array([0, 0, 0])
 
-        if self.round.solo_points >= 90:
+        if self.black_opponent:
+            payoffs[soloplayer_id] = (5 * 10) + 50
+        elif self.round.solo_points >= 90:
             payoffs[soloplayer_id] = (4 * 10) + 50
         elif self.round.solo_points > 60:
             payoffs[soloplayer_id] = (3 * 10) + 50
+        elif self.black_soloplayer:
+            payoffs[soloplayer_id] = (-10 * 10) - 50
+            payoffs[(soloplayer_id + 1) % 3] = 40
+            payoffs[(soloplayer_id + 2) % 3] = 40
         elif self.round.solo_points <= 30:
             payoffs[soloplayer_id] = (-8 * 10) - 50
             payoffs[(soloplayer_id + 1) % 3] = 40
@@ -83,6 +93,11 @@ class Game:
             payoffs[soloplayer_id] = (-6 * 10) - 50
             payoffs[(soloplayer_id + 1) % 3] = 40
             payoffs[(soloplayer_id + 2) % 3] = 40
+
+        if is_training:
+            payoffs[soloplayer_id] += (self.round.solo_points - 60) / 10
+            payoffs[(soloplayer_id + 1) % 3] += (self.round.opponent_points - 60) / 10
+            payoffs[(soloplayer_id + 2) % 3] += (self.round.opponent_points - 60) / 10
         return payoffs
 
     def check_trick(self):
@@ -101,8 +116,10 @@ class Game:
             points = get_points(card1) + get_points(card2) + get_points(card3)
             if winner == self.round.soloplayer_id:
                 self.round.solo_points += points
+                self.black_soloplayer = False
             else:
                 self.round.opponent_points += points
+                self.black_opponent = False
             self.round.current_trick = []
             self.round.current_suit = None
             self.round.winners.append(winner)

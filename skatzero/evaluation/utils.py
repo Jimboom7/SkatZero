@@ -57,7 +57,7 @@ def print_turn(cards, action, player_nr, trick, trump, verbose):
 
     if verbose == 2:
         print(player + " Hand: " + format_hand(cards))
-    print(player + " Throws: " + format_card(action))
+    print(player + " Throws: " + format_card(action) + "\n")
 
     if len(trick) == 2:
         check_trick(trick, action, player_nr, trump)
@@ -74,7 +74,7 @@ def check_trick(trick, action, player_nr, trump):
         trick_winner = trick[1][0].player_id
     if not compare_cards(highest_card, card3, trump, suit):
         trick_winner = player_nr
-    print(player_number_to_name(trick_winner) + " wins the Trick: " + format_card(card1) + ", " + format_card(card2) + ", " + format_card(card3))
+    print(player_number_to_name(trick_winner) + " wins the Trick: " + format_card(card1) + ", " + format_card(card2) + ", " + format_card(card3) + "\n")
 
 def player_number_to_name(player_nr):
     player = 'Soloplayer'

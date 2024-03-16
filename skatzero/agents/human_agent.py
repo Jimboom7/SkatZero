@@ -1,6 +1,5 @@
 from skatzero.env.feature_transformations import convert_card_to_action_id, get_card_encoding
 from skatzero.evaluation.utils import format_card, format_hand
-from skatzero.game.utils import compare_cards
 
 class HumanAgent():
     def __init__(self, num_actions):

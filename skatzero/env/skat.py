@@ -21,7 +21,7 @@ class SkatEnv(object):
 
         self.agents = None
 
-        self.state_shape = [[1511], [1543], [1543]]
+        self.state_shape = [[1511], [1533], [1533]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def reset(self):
@@ -68,7 +68,7 @@ class SkatEnv(object):
             state = self.get_state(player_id)
             trajectories[player_id].append(state)
 
-        rewards = self.get_rewards()
+        rewards = self.get_rewards(is_training)
 
         return trajectories, rewards
 
@@ -90,8 +90,8 @@ class SkatEnv(object):
         extracted_state = extract_state(state, self.get_legal_actions())
         return extracted_state
 
-    def get_rewards(self):
-        return self.game.compute_rewards()
+    def get_rewards(self, is_training):
+        return self.game.compute_rewards(is_training)
 
     def decode_action(self, action_id):
         card_encoding = get_card_encoding(self.game.state)
