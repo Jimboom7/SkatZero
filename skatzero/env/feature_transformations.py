@@ -83,25 +83,6 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
                 matrix[card_encoding[base_card[0]], :7] = 1
     return matrix.flatten()
 
-def get_card_encoding(state):
-    encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
-    num_h = len([d for d in state['current_hand'] if d[0] == 'H'])
-    num_s = len([d for d in state['current_hand'] if d[0] == 'S'])
-    num_c = len([d for d in state['current_hand'] if d[0] == 'C'])
-    if max(num_h, num_s, num_c) == num_h:
-        encoding = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
-        if max(num_s, num_c) == num_c:
-            encoding = {'D': 0, 'H': 1, 'C': 2, 'S': 3}
-    elif max(num_h, num_s, num_c) == num_s:
-        encoding = {'D': 0, 'S': 1, 'H': 2, 'C': 3}
-        if max(num_h, num_c) == num_c:
-            encoding = {'D': 0, 'S': 1, 'C': 2, 'H': 3}
-    elif max(num_h, num_s, num_c) == num_c:
-        encoding = {'D': 0, 'C': 1, 'H': 2, 'S': 3}
-        if max(num_h, num_s) == num_s:
-            encoding = {'D': 0, 'C': 1, 'S': 2, 'H': 3}
-    return encoding
-
 def get_bid(bid_dict, card_encoding):
     matrix = np.zeros([5,], dtype=np.int8)
     for suit in ['D', 'H', 'S', 'C']:
@@ -115,6 +96,31 @@ def get_bid_jacks(bid_jacks):
     matrix = np.zeros([5,], dtype=np.int8)
     matrix[bid_jacks] = 1
     return matrix
+
+def get_card_encoding(state):
+    encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
+    num_h = (len([d for d in state['current_hand'] if d[0] == 'H' and d[1] != 'J']),
+             -len([d for d in state['others_hand'] if d[0] == 'H' and d[1] != 'J']),
+             'HA' in state['current_hand'])
+    num_s = (len([d for d in state['current_hand'] if d[0] == 'S' and d[1] != 'J']),
+             -len([d for d in state['others_hand'] if d[0] == 'S' and d[1] != 'J']),
+             'SA' in state['current_hand'])
+    num_c = (len([d for d in state['current_hand'] if d[0] == 'C' and d[1] != 'J']),
+             -len([d for d in state['others_hand'] if d[0] == 'C' and d[1] != 'J']),
+             'CA' in state['current_hand'])
+    if max(num_h, num_s, num_c) == num_h:
+        encoding = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
+        if max(num_s, num_c) == num_c:
+            encoding = {'D': 0, 'H': 1, 'C': 2, 'S': 3}
+    elif max(num_h, num_s, num_c) == num_s:
+        encoding = {'D': 0, 'S': 1, 'H': 2, 'C': 3}
+        if max(num_h, num_c) == num_c:
+            encoding = {'D': 0, 'S': 1, 'C': 2, 'H': 3}
+    elif max(num_h, num_s, num_c) == num_c:
+        encoding = {'D': 0, 'C': 1, 'H': 2, 'S': 3}
+        if max(num_h, num_s) == num_s:
+            encoding = {'D': 0, 'C': 1, 'S': 2, 'H': 3}
+    return encoding
 
 def get_common_features(state):
     card_encoding = get_card_encoding(state)
