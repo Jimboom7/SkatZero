@@ -43,21 +43,24 @@ def get_number_as_one_hot_vector(number, max_points=120):
     return one_hot
 
 def action_seq2array(action_seq_list, card_encoding):
-    action_seq_array = np.zeros((len(action_seq_list), 32), np.int8)
-    for row, card in enumerate(action_seq_list):
-        action_seq_array[row, :] = card2array(card, card_encoding)
+    action_seq_array = np.zeros((len(action_seq_list), 35), np.int8)
+    for row, action in enumerate(action_seq_list):
+        if action[0] != -1:
+            action_seq_array[row, 0:3] = get_number_as_one_hot_vector(action[0], 2)
+        action_seq_array[row, 3:] = card2array(action[1], card_encoding)
     action_seq_array = action_seq_array.flatten()
     return action_seq_array
 
-def process_action_seq(sequence, length=30):
-    sequence = [action[1] for action in sequence[-length:]]
+def process_action_seq(sequence, player_id, length=30):
+    #sequence = [action[1] for action in sequence[-length:]]
+    sequence = sequence.copy()
     if len(sequence) % 3 == 1:
-        sequence.append('')
-        sequence.append('')
+        sequence.append(((player_id + 1) % 3, ''))
+        sequence.append(((player_id + 2) % 3, ''))
     if len(sequence) % 3 == 2:
-        sequence.append('')
+        sequence.append(((player_id + 1) % 3, ''))
     if len(sequence) < length:
-        empty_sequence = ['' for _ in range(length - len(sequence))]
+        empty_sequence = [(-1, '') for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)
         sequence = empty_sequence
     return sequence
@@ -127,7 +130,7 @@ def get_common_features(state):
     current_hand = cards2array(state['current_hand'], card_encoding)
     others_hand = cards2array(state['others_hand'], card_encoding)
 
-    all_actions = action_seq2array(process_action_seq(state['trace']), card_encoding)
+    all_actions = action_seq2array(process_action_seq(state['trace'], state['self']), card_encoding)
 
     trick1 = card2array(None, card_encoding)
     trick2 = card2array(None, card_encoding)

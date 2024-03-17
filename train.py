@@ -13,7 +13,7 @@ if __name__ == '__main__':
     trainer = DMCTrainer(
         env,
         cuda="0", # Empty = everything on cpu, 0 = GPU enabled
-        xpid='skat_23_fixed_jack_suit',
+        xpid='skat_24_player_number_in_history',
         savedir='checkpoints',
         save_interval=10, # in million frames
         num_actors=16, # should be equal to number of physical cores, +- some

@@ -21,7 +21,7 @@ class SkatEnv(object):
 
         self.agents = None
 
-        self.state_shape = [[1511], [1533], [1533]]
+        self.state_shape = [[1601], [1623], [1623]]
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def reset(self):
