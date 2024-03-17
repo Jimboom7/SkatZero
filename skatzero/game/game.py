@@ -86,11 +86,11 @@ class Game:
             payoffs[(soloplayer_id + 1) % 3] = 40
             payoffs[(soloplayer_id + 2) % 3] = 40
         elif self.round.solo_points <= 30:
-            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50
+            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50
             payoffs[(soloplayer_id + 1) % 3] = 40
             payoffs[(soloplayer_id + 2) % 3] = 40
         elif self.round.solo_points <= 60:
-            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50
+            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50
             payoffs[(soloplayer_id + 1) % 3] = 40
             payoffs[(soloplayer_id + 2) % 3] = 40
 
