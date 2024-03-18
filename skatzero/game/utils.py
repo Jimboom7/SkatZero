@@ -89,7 +89,7 @@ def can_play_null(cards):
             nullcards -= 0.2
         if card[1] == 'A':
             nullcards -= 0.4
-    return nullcards >= 5.4
+    return nullcards > 5
 
 
 def get_startplayer():

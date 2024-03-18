@@ -174,7 +174,7 @@ def get_soloplayer_features(state):
                             trick1,  # 32
                             trick2,  # 32
                             skat,  # 32
-                            all_actions,  # 32*30
+                            all_actions,  # 32*35
                             missing_cards_left,  # 32
                             opponent_left_played_cards,  # 32
                             missing_cards_right,  # 32
@@ -223,7 +223,7 @@ def get_opponent_features(state):
                             others_hand,  # 32
                             trick1,  # 32
                             trick2,  # 32
-                            all_actions,  # 32*30
+                            all_actions,  # 32*35
                             missing_cards_solo,  # 32
                             soloplayer_played_cards,  # 32
                             missing_cards_teammate,  # 32

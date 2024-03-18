@@ -159,7 +159,7 @@ def get_bidding_data(player, random_game=False):
 
     #state, _ = env.reset(always_solo=True)
 
-    raw_state, player_id = env.game.init_game(blind_hand=1.0)
+    raw_state, _ = env.game.init_game(blind_hand=1.0)
 
     raw_state['self'] = 0
 
@@ -193,6 +193,6 @@ def prepare_env(player, random_game=False):
 
     env.set_agents(agents)
 
-    raw_state, player_id = env.game.init_game(blind_hand=True)
+    raw_state, _ = env.game.init_game(blind_hand=True)
 
     return env, raw_state
