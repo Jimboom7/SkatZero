@@ -55,10 +55,10 @@ def process_action_seq(sequence, player_id, length=30):
     #sequence = [action[1] for action in sequence[-length:]]
     sequence = sequence.copy()
     if len(sequence) % 3 == 1:
+        sequence.append((player_id, ''))
         sequence.append(((player_id + 1) % 3, ''))
-        sequence.append(((player_id + 2) % 3, ''))
     if len(sequence) % 3 == 2:
-        sequence.append(((player_id + 1) % 3, ''))
+        sequence.append((player_id % 3, ''))
     if len(sequence) < length:
         empty_sequence = [(-1, '') for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)
@@ -149,11 +149,11 @@ def get_common_features(state):
 def get_soloplayer_features(state):
     current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
 
-    opponent_left_played_cards = cards2array(state['played_cards'][2], card_encoding)
-    opponent_right_played_cards = cards2array(state['played_cards'][1], card_encoding)
+    opponent_left_played_cards = cards2array(state['played_cards'][1], card_encoding)
+    opponent_right_played_cards = cards2array(state['played_cards'][2], card_encoding)
 
-    missing_cards_left = calculate_missing_cards(2, state['trace'], state['trump'], card_encoding)
-    missing_cards_right = calculate_missing_cards(1, state['trace'], state['trump'], card_encoding)
+    missing_cards_left = calculate_missing_cards(1, state['trace'], state['trump'], card_encoding)
+    missing_cards_right = calculate_missing_cards(2, state['trace'], state['trump'], card_encoding)
 
     points_own = get_number_as_one_hot_vector(state['points'][0])
     points_opp = get_number_as_one_hot_vector(state['points'][1])
@@ -174,11 +174,11 @@ def get_soloplayer_features(state):
                             trick1,  # 32
                             trick2,  # 32
                             skat,  # 32
-                            all_actions,  # 32*35
-                            missing_cards_left,  # 32
-                            opponent_left_played_cards,  # 32
+                            all_actions,  # 30*35
                             missing_cards_right,  # 32
                             opponent_right_played_cards,  # 32
+                            missing_cards_left,  # 32
+                            opponent_left_played_cards,  # 32
                             points_own,  # 121
                             points_opp, # 121
                             bid_left, # 5
@@ -223,7 +223,7 @@ def get_opponent_features(state):
                             others_hand,  # 32
                             trick1,  # 32
                             trick2,  # 32
-                            all_actions,  # 32*35
+                            all_actions,  # 30*35
                             missing_cards_solo,  # 32
                             soloplayer_played_cards,  # 32
                             missing_cards_teammate,  # 32

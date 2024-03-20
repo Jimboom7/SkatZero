@@ -34,6 +34,8 @@ class Dealer:
 
     def set_bids(self, players):
         for player in players:
+            if player.player_id == 0:
+                continue
             values = evaluate_hand_strength(player.current_hand)
             max_value = max(values, key=values.get)
             if values[max_value] > 8.5:
