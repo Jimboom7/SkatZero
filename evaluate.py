@@ -8,8 +8,8 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     NUM_GAMES = 10000
-    MODEL = "skat_28_final_fixed"
-    FRAMES = "70"
+    MODEL = "skat_30_final"
+    FRAMES = "700"
     BLIND_HAND_CHANCE = 0.1
     NUM_ACTORS = 12
 
