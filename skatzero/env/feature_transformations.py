@@ -58,7 +58,7 @@ def process_action_seq(sequence, player_id, length=30):
         sequence.append((player_id, ''))
         sequence.append(((player_id + 1) % 3, ''))
     if len(sequence) % 3 == 2:
-        sequence.append((player_id % 3, ''))
+        sequence.append((player_id, ''))
     if len(sequence) < length:
         empty_sequence = [(-1, '') for _ in range(length - len(sequence))]
         empty_sequence.extend(sequence)
@@ -175,10 +175,10 @@ def get_soloplayer_features(state):
                             trick2,  # 32
                             skat,  # 32
                             all_actions,  # 30*35
-                            missing_cards_right,  # 32
-                            opponent_right_played_cards,  # 32
                             missing_cards_left,  # 32
                             opponent_left_played_cards,  # 32
+                            missing_cards_right,  # 32
+                            opponent_right_played_cards,  # 32
                             points_own,  # 121
                             points_opp, # 121
                             bid_left, # 5

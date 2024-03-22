@@ -76,28 +76,28 @@ class Game:
         payoffs = np.array([0, 0, 0])
 
         if self.black_opponent:
-            payoffs[soloplayer_id] = ((5 + self.blind_hand) * 10) + 50
-        elif self.round.solo_points >= 90:
             payoffs[soloplayer_id] = ((4 + self.blind_hand) * 10) + 50
-        elif self.round.solo_points > 60:
+        elif self.round.solo_points >= 90:
             payoffs[soloplayer_id] = ((3 + self.blind_hand) * 10) + 50
+        elif self.round.solo_points > 60:
+            payoffs[soloplayer_id] = ((2 + self.blind_hand) * 10) + 50
         elif self.black_soloplayer:
-            payoffs[soloplayer_id] = (((-5 - self.blind_hand) * 2) * 10) - 50
-            payoffs[(soloplayer_id + 1) % 3] = 40
-            payoffs[(soloplayer_id + 2) % 3] = 40
-        elif self.round.solo_points <= 30:
             payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50
             payoffs[(soloplayer_id + 1) % 3] = 40
             payoffs[(soloplayer_id + 2) % 3] = 40
-        elif self.round.solo_points <= 60:
+        elif self.round.solo_points <= 30:
             payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50
+            payoffs[(soloplayer_id + 1) % 3] = 40
+            payoffs[(soloplayer_id + 2) % 3] = 40
+        elif self.round.solo_points <= 60:
+            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * 10) - 50
             payoffs[(soloplayer_id + 1) % 3] = 40
             payoffs[(soloplayer_id + 2) % 3] = 40
 
         if is_training:
-            payoffs[soloplayer_id] += (self.round.solo_points - 60) / 10
-            payoffs[(soloplayer_id + 1) % 3] += (self.round.opponent_points - 60) / 10
-            payoffs[(soloplayer_id + 2) % 3] += (self.round.opponent_points - 60) / 10
+            payoffs[soloplayer_id] += (self.round.solo_points - 60) / 6
+            payoffs[(soloplayer_id + 1) % 3] += (self.round.opponent_points - 60) / 6
+            payoffs[(soloplayer_id + 2) % 3] += (self.round.opponent_points - 60) / 6
         return payoffs
 
     def check_trick(self):
