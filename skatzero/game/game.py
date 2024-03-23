@@ -82,22 +82,18 @@ class Game:
         elif self.round.solo_points > 60:
             payoffs[soloplayer_id] = ((2 + self.blind_hand) * 10) + 50
         elif self.black_soloplayer:
-            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50
-            payoffs[(soloplayer_id + 1) % 3] = 40
-            payoffs[(soloplayer_id + 2) % 3] = 40
+            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50 - 40
         elif self.round.solo_points <= 30:
-            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50
-            payoffs[(soloplayer_id + 1) % 3] = 40
-            payoffs[(soloplayer_id + 2) % 3] = 40
+            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50 - 40
         elif self.round.solo_points <= 60:
-            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * 10) - 50
-            payoffs[(soloplayer_id + 1) % 3] = 40
-            payoffs[(soloplayer_id + 2) % 3] = 40
+            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * 10) - 50 - 40
 
         if is_training:
-            payoffs[soloplayer_id] += (self.round.solo_points - 60) / 6
-            payoffs[(soloplayer_id + 1) % 3] += (self.round.opponent_points - 60) / 6
-            payoffs[(soloplayer_id + 2) % 3] += (self.round.opponent_points - 60) / 6
+            payoffs[soloplayer_id] += (self.round.solo_points - 60) / 10
+
+        payoffs[(soloplayer_id + 1) % 3] = -payoffs[soloplayer_id] / 4 # Divide by 4 so maximum is around 40 (old payoff value)
+        payoffs[(soloplayer_id + 2) % 3] = -payoffs[soloplayer_id] / 4
+
         return payoffs
 
     def check_trick(self):
