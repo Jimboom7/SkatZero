@@ -592,3 +592,104 @@ def case26(raw_state):
     raw_state['trick'] = trick
     return raw_state, ('SQ', 'S7')
 
+
+
+def case27(raw_state):
+    print("GameDuell Skat Masters: 10 (hoch) zurückbehalten")
+    # https://www.youtube.com/watch?v=TXCF53VsLdM 2:30 Minuten
+    raw_state['self'] = 0
+    raw_state['points'] = [28, 22]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'DT', 'D8', 'D7', 'ST', 'SQ', 'S7']
+    raw_state['trace'] = [(1, 'SA'), (2, 'SK'), (0, 'S8'),
+                          (1, 'C7'), (2, 'CK'), (0, 'CA'),
+                          (0, 'D9'), (1, 'DQ'), (2, 'DK'),
+                          (2, 'S9')]
+    raw_state['skat'] = ['HT', 'HQ']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('SQ') # [Mittel] Eindeutig richtiger Zug, 10 oder 7 wäre int
+
+def case28(raw_state):
+    print("GameDuell Skat Masters: Farbe weiterspielen")
+    # https://youtu.be/TXCF53VsLdM?feature=shared&t=473 
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 14]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['DA', 'DK', 'CA', 'C7', 'SK', 'S9', 'S7', 'HA', 'H7']
+    raw_state['trace'] = [(1, 'S8'), (2, 'SA'), (0, 'SQ')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('SK', 'S9', 'S7') # [Mittel] Idee: Teammate soll 10 stechen
+
+def case29(raw_state):
+    print("GameDuell Skat Masters: Abwerfen statt stechen")
+    # https://youtu.be/TXCF53VsLdM?feature=shared&t=1095
+    raw_state['self'] = 0
+    raw_state['points'] = [14, 28]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'HJ', 'DJ', 'DA', 'DK', 'D7', 'CA', 'CK']
+    raw_state['trace'] = [(2, 'HA'), (0, 'H9'), (1, 'HK'),
+                          (2, 'HT'), (0, 'HQ'), (1, 'H7'),
+                          (2, 'H8')]
+    raw_state['skat'] = ['ST', 'SK']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('CK') # [?] Laut Kommentator ist abwerfen besser als stechen
+
+def case30(raw_state):
+    print("GameDuell Skat Masters: 'Pik Ass rein, 60!'")
+    # https://youtu.be/TXCF53VsLdM?feature=shared&t=1145
+    raw_state['self'] = 1
+    raw_state['points'] = [18, 45]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CT', 'C7', 'SA']
+    raw_state['trace'] = [(2, 'HA'), (0, 'H9'), (1, 'HK'),
+                          (2, 'HT'), (0, 'HQ'), (1, 'H7'),
+                          (2, 'H8'), (0, 'D7'), (1, 'DT'),
+                          (1, 'S8'), (2, 'SQ'), (0, 'CK'),
+                          (2, 'C8'), (0, 'CA'), (1, 'C9'),
+                          (0, 'DJ'), (1, 'D9'), (2, 'D8'),
+                          (0, 'CJ'), (1, 'S7'), (2, 'DQ'),
+                          (0, 'HJ')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('SA') # [Mittel] Nur Pik Ass gewinnt das Spiel!
