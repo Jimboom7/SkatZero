@@ -459,3 +459,136 @@ def case20(raw_state):
     raw_state['actions'] = actions
     raw_state['trick'] = trick
     return raw_state, ('HJ') # Idee: Falls Trümpfe auf einer Hand sind kann man später mit dem König noch die Dame abgreifen
+
+def case21(raw_state):
+    print("Gegenspieler: Kurze Farbe starten")
+    # https://www.youtube.com/watch?v=rbF94L7M8L0
+    raw_state['self'] = 1
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['SJ', 'DJ', 'DT', 'CQ', 'CK', 'CT', 'S8', 'SK', 'H8', 'H9']
+    raw_state['trace'] = []
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('SK') # König aus der kurzen Farbe
+
+def case22(raw_state):
+    print("Gegenspieler Ausnahme: Lange Farbe starten")
+    # https://www.youtube.com/watch?v=rbF94L7M8L0
+    raw_state['self'] = 1
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['HJ', 'D8', 'S7', 'S9', 'SQ', 'SA', 'H8', 'HT', 'C7', 'C8']
+    raw_state['trace'] = []
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('S7', 'S9') # Lusche aus der langen Farbe
+
+def case23(raw_state):
+    print("Gegenspieler: Zweite Karte I")
+    # https://www.youtube.com/watch?v=rbF94L7M8L0
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'HJ', 'DK', 'S7', 'SQ', 'ST', 'H8', 'HT', 'C7', 'CA']
+    raw_state['trace'] = [(1, 'HQ')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('H8') # 8 auf Dame ist Pflicht
+
+def case24(raw_state):
+    print("Gegenspieler: Zweite Karte II")
+    # https://www.youtube.com/watch?v=rbF94L7M8L0
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'HJ', 'DK', 'S7', 'SQ', 'ST', 'H8', 'HT', 'C7', 'CA']
+    raw_state['trace'] = [(1, 'H7')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('HT') # 10 auf Lusche ist Pflicht
+
+def case25(raw_state):
+    print("Gegenspieler: Zweite Karte III")
+    # https://www.youtube.com/watch?v=rbF94L7M8L0
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'HJ', 'DK', 'S7', 'SQ', 'ST', 'H8', 'HT', 'C7', 'CA']
+    raw_state['trace'] = [(1, 'SK')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('S7')
+
+def case26(raw_state):
+    print("Gegenspieler: Zweite Karte IV")
+    # https://www.youtube.com/watch?v=rbF94L7M8L0
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'HJ', 'DK', 'S7', 'SQ', 'ST', 'H8', 'HT', 'C7', 'CA']
+    raw_state['trace'] = [(1, 'S9')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('SQ', 'S7')
+
