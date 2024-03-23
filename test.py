@@ -25,7 +25,7 @@ def run_testsuite(model, version):
     raw_state, player_id = env.game.init_game(blind_hand=False)
 
     testcases = [case1, case2, case3, case4, case5, case6, case7, case8, case9, case10,
-                 case11, case12, case13, case14, case15, case16, case17]
+                 case11, case12, case13, case14, case15, case16, case17, case18, case19, case20]
 
     w_score = 0
     c_score = 0
@@ -46,7 +46,7 @@ def run_testsuite(model, version):
 
 if __name__ == '__main__':
     MODEL = "skat_30_final"
-    FRAMES = 940
+    FRAMES = 970
 
     run_testsuite(MODEL, FRAMES)
 

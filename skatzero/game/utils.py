@@ -68,7 +68,7 @@ def evaluate_hand_strength(cards, suits = ['D', 'H', 'S', 'C']):
         s = 0
         for c in cards:
             s += evaluate_card(c, suit)
-        strength[suit] = s
+        strength[suit] = s * random.uniform(0.9, 1.1)
     return strength
 
 

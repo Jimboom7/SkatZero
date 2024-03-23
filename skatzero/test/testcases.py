@@ -392,4 +392,70 @@ def case17(raw_state):
     raw_state['trick'] = trick
     return raw_state, ('C8', 'C9') # Idee: Trumpf spielen gibt einem Gegner die Chance abzuwerfen
 
-# https://www.youtube.com/watch?v=tpHryzjFa5A -> Erster Zug: Blanke Pik 9 (kurze Farbe)
+def case18(raw_state):
+    print("Gegenspieler: Kurze Farbe abwerfen")
+    # https://www.youtube.com/watch?v=tpHryzjFa5A -> Erster Zug: Blanke Pik 9 (kurze Farbe)
+    raw_state['self'] = 1
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'SJ', 'D7', 'DT', 'HA', 'H9', 'S9', 'C8', 'C9', 'CQ']
+    raw_state['trace'] = []
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('S9') # Idee: Einzelne Farbe abwerfen
+
+def case19(raw_state):
+    print("Gegenspieler: Trumpf spielen")
+    # https://www.youtube.com/watch?v=1FSASQ9hQaY
+    raw_state['self'] = 1
+    raw_state['points'] = [0, 7]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'H7', 'H8', 'HQ', 'HK', 'S7', 'SK', 'C7', 'CK']
+    raw_state['trace'] = [(0, 'D9'), (1, 'DK'), (2, 'DQ')]
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('CJ') # Idee: Man will später nicht mehr am Stich sein, damit Partner stärker ist
+
+def case20(raw_state):
+    print("Alleinspieler: Korrekten Trumpf spielen")
+    # https://www.youtube.com/watch?v=fOu3rGDIKc4
+    raw_state['self'] = 0
+    raw_state['points'] = [22, 21]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['HJ', 'D9', 'DK', 'H8', 'HT', 'S8', 'ST']
+    raw_state['trace'] = [(0, 'SJ'), (1, 'DJ'), (2, 'D8'),
+                          (0, 'D7'), (1, 'DA'), (2, 'DT'),
+                          (1, 'CK'), (2, 'C9'), (0, 'CA')]
+    raw_state['skat'] = ['C8', 'CQ']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('HJ') # Idee: Falls Trümpfe auf einer Hand sind kann man später mit dem König noch die Dame abgreifen
