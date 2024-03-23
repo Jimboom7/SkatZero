@@ -459,3 +459,28 @@ def case20(raw_state):
     raw_state['actions'] = actions
     raw_state['trick'] = trick
     return raw_state, ('HJ') # Idee: Falls Trümpfe auf einer Hand sind kann man später mit dem König noch die Dame abgreifen
+
+def case21(raw_state):
+    print("GameDuell Skat Masters: 10 (hoch) zurückbehalten")
+    # https://www.youtube.com/watch?v=TXCF53VsLdM 2:30 Minuten
+    raw_state['self'] = 0
+    raw_state['points'] = [28, 22]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'DT', 'D8', 'D7', 'ST', 'SQ', 'S7']
+    raw_state['trace'] = [(1, 'SA'), (2, 'SK'), (0, 'S8'),
+                          (1, 'C7'), (2, 'CK'), (0, 'CA'),
+                          (0, 'D9'), (1, 'DQ'), (2, 'DK'),
+                          (2, 'S9')]
+    raw_state['skat'] = ['HT', 'HQ']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('SQ') # [Mittel] Eindeutig richtiger Zug, 10 oder 7 wäre int
