@@ -4,7 +4,7 @@ from skatzero.dmc.neural_net import DMCNet
 
 def convert_onnx(player_id, input_size):
 
-    path = "checkpoints/skat_27_final/model.tar"
+    path = "checkpoints/skat_30_final/model.tar"
     model = DMCNet(input_size, 32)
     model.load_state_dict(torch.load(path)['model_state_dict'][player_id])
 

@@ -3,14 +3,10 @@ from skatzero.evaluation.simulation import load_model
 from skatzero.test.testcases import *
 from skatzero.test.utils import run_testcase
 
-if __name__ == '__main__':
-
-    CHECKPOINT_DIR = "checkpoints/skat_30_final"
-    FRAMES = "700"
-
-    MODEL1 = CHECKPOINT_DIR + "/0_" + FRAMES + ".pth"
-    MODEL2 = CHECKPOINT_DIR + "/1_" + FRAMES + ".pth"
-    MODEL3 = CHECKPOINT_DIR + "/2_" + FRAMES + ".pth"
+def run_testsuite(model, version):
+    MODEL1 = "checkpoints/" + model + "/0_" + str(version) + ".pth"
+    MODEL2 = "checkpoints/" + model + "/1_" + str(version) + ".pth"
+    MODEL3 = "checkpoints/" + model + "/2_" + str(version) + ".pth"
 
     models = [
             MODEL1,
@@ -44,3 +40,15 @@ if __name__ == '__main__':
     print("Score for Failed: " + str(w_score / (len(testcases) - correct)))
     print("Score for Passed: " + str(c_score / correct))
     print("Correct: " + str(correct) + "/" + str(len(testcases)))
+
+    with open("test_results.csv", "a", encoding='utf-8') as logfile:
+        logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score / correct) - w_score / (len(testcases) - correct)) + "\n")
+
+if __name__ == '__main__':
+    MODEL = "skat_30_final"
+    FRAMES = 940
+
+    run_testsuite(MODEL, FRAMES)
+
+    #for i in range(10, FRAMES + 10, 10):
+    #    run_testsuite(MODEL, i)

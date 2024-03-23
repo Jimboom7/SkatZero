@@ -22,7 +22,7 @@ if __name__ == '__main__':
         num_threads=2,
         eval=False,
         actor_device='cpu',
-        total_frames=1000000000
+        total_frames=10000000000
     )
 
     trainer.start()

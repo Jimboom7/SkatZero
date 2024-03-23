@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     NUM_GAMES = 10000
     MODEL = "skat_30_final"
-    FRAMES = "700"
+    FRAMES = "940"
     BLIND_HAND_CHANCE = 0.1
     NUM_ACTORS = 12
 

@@ -391,3 +391,5 @@ def case17(raw_state):
     raw_state['actions'] = actions
     raw_state['trick'] = trick
     return raw_state, ('C8', 'C9') # Idee: Trumpf spielen gibt einem Gegner die Chance abzuwerfen
+
+# https://www.youtube.com/watch?v=tpHryzjFa5A -> Erster Zug: Blanke Pik 9 (kurze Farbe)
