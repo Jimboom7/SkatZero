@@ -25,7 +25,8 @@ def run_testsuite(model, version):
     raw_state, player_id = env.game.init_game(blind_hand=False)
 
     testcases = [case1, case2, case3, case4, case5, case6, case7, case8, case9, case10,
-                 case11, case12, case13, case14, case15, case16, case17, case18, case19, case20]
+                 case11, case12, case13, case14, case15, case16, case17, case18, case19, case20,
+                 case21, case22, case23, case24, case25, case26, case27, case28, case29, case30]
 
     w_score = 0
     c_score = 0
@@ -42,11 +43,12 @@ def run_testsuite(model, version):
     print("Correct: " + str(correct) + "/" + str(len(testcases)))
 
     with open("test_results.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score / correct) - w_score / (len(testcases) - correct)) + "\n")
+        logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score + w_score) / len(testcases)) + "\n")
+        # Plot: https://list2chart.com/csv-to-chart/
 
 if __name__ == '__main__':
     MODEL = "skat_30_final"
-    FRAMES = 970
+    FRAMES = 1500
 
     run_testsuite(MODEL, FRAMES)
 
