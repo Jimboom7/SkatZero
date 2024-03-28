@@ -1,3 +1,5 @@
+import statistics
+
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.simulation import load_model
 from skatzero.test.testcases import *
@@ -22,11 +24,13 @@ def run_testsuite(model, version):
 
     env.set_agents(agents)
 
-    raw_state, player_id = env.game.init_game(blind_hand=False)
+    raw_state, _ = env.game.init_game(blind_hand=False)
 
-    testcases = [case1, case2, case3, case4, case5, case6, case7, case8, case9, case10,
-                 case11, case12, case13, case14, case15, case16, case17, case18, case19, case20,
-                 case21, case22, case23, case24, case25, case26, case27, case28, case29, case30]
+    testcases = [case1_easy, case2_easy, case3_easy, case4_easy, case5_easy, case6_easy, case7_easy, case8_easy, case9_easy, case10_easy,
+                 case1_medium, case2_medium, case3_medium, case4_medium, case5_medium, case6_medium, case7_medium, case8_medium, case9_medium, case10_medium,
+                 case11_medium, case12_medium, case13_medium, case14_medium, case15_medium, case16_medium, case17_medium, case18_medium, case19_medium, case20_medium,
+                 case21_medium, case22_medium, case23_medium, case24_medium, case25_medium, case26_medium, case27_medium, case28_medium, case29_medium, case30_medium,
+                 case1_hard, case2_hard, case3_hard, case4_hard, case5_hard, case6_hard, case7_hard, case8_hard, case9_hard, case10_hard]
 
     w_score = 0
     c_score = 0
@@ -45,12 +49,29 @@ def run_testsuite(model, version):
     with open("test_results.csv", "a", encoding='utf-8') as logfile:
         logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score + w_score) / len(testcases)) + "\n")
         # Plot: https://list2chart.com/csv-to-chart/
+    return correct, ((c_score + w_score) / len(testcases))
+
+def get_averages(model, version):
+    moving_average_c = []
+    moving_average_d = []
+    for i in range(10, version + 10, 10):
+        if len(moving_average_c) >= 10:
+            moving_average_c = moving_average_c[1:]
+            moving_average_d = moving_average_d[1:]
+        correct, diff = run_testsuite(model, i)
+        moving_average_c.append(correct)
+        moving_average_d.append(diff)
+        with open("test_results_avg.csv", "a", encoding='utf-8') as logfile:
+            logfile.write(str(model) + "," + str(i) + "," + str(statistics.fmean(moving_average_c)) + "," + str(statistics.fmean(moving_average_d)) + "\n")
 
 if __name__ == '__main__':
     MODEL = "skat_30_final"
-    FRAMES = 1500
+    FRAMES = 3040
 
     run_testsuite(MODEL, FRAMES)
 
-    #for i in range(10, FRAMES + 10, 10):
+    #for i in range(2740, FRAMES + 10, 10):
     #    run_testsuite(MODEL, i)
+
+
+    #get_averages(MODEL, FRAMES)
