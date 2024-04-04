@@ -699,7 +699,7 @@ def case20_medium(raw_state):
     return raw_state, ('DK') # So kriegt man Trumpf Ass später
 
 def case21_medium(raw_state):
-    print("Gegenspieler: Rest korrekt mitnehmen")
+    print("Alleinspieler: Rest korrekt mitnehmen")
     # https://youtu.be/Szf4DtWNgZ8?si=hyenosTTx5Vo7kk2&t=2909
     raw_state['self'] = 0
     raw_state['points'] = [34, 43]
