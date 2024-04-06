@@ -2,18 +2,16 @@ import copy
 import itertools
 import random
 
-from skatzero.evaluation.utils import swap_colors
+from skatzero.evaluation.utils import swap_colors, swap_bids
 from skatzero.game.utils import get_points
+from skatzero.test.utils import construct_state_from_history
 
 class Bidder:
 
-    def __init__(
-        self,
-        env,
-        raw_state,
-    ):
+    def __init__(self, env, raw_state, pos = 0):
         self.env = env
         self.raw_state = raw_state
+        self.pos = pos
         self.raw_state['self'] = 0
         self.raw_state_cpy = copy.deepcopy(self.raw_state)
         self.estimates = {'C': [], 'S': [], 'H': [], 'D': []}
@@ -25,40 +23,60 @@ class Bidder:
     def get_hand_cards(self):
         return self.raw_state['current_hand']
 
+    def prepare_state(self, game_mode, raw_state):
+        raw_state['trump'] = 'D'
+        self.env.game.round.trump = 'D'
+
+        # Trumpf ist immer Karo, daher müssen die Farben getauscht werden
+        raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', game_mode)
+        raw_state['others_hand'] = swap_colors(raw_state['others_hand'], 'D', game_mode)
+
+        raw_state['bids'][1] = swap_bids(raw_state['bids'][1], 'D', game_mode)
+        raw_state['bids'][2] = swap_bids(raw_state['bids'][2], 'D', game_mode)
+
+    def simulate_player_discards(self, raw_state):
+        if self.pos == "0": # Forehand: No discards
+            state = self.env.extract_state(raw_state)
+            _, vals_cards = self.env.agents[0].predict(state)
+            return max(vals_cards)
+        if self.pos == "1":
+            values = []
+            original_actions = self.env.game.state['actions']
+            for card in raw_state['others_hand']:
+                current_raw_state = copy.deepcopy(raw_state)
+
+                current_raw_state['trace'].append((2, card))
+                played_cards, others_cards, trick, actions = construct_state_from_history(current_raw_state['current_hand'], current_raw_state['trace'], current_raw_state['skat'])
+
+                current_raw_state['played_cards'] = played_cards
+                current_raw_state['others_hand'] = others_cards
+                current_raw_state['actions'] = actions
+                self.env.game.state['actions'] = actions
+                current_raw_state['trick'] = trick
+
+                state = self.env.extract_state(current_raw_state)
+
+                _, vals_cards = self.env.agents[0].predict(state)
+                values.append(max(vals_cards))
+            self.env.game.state['actions'] = original_actions
+            return min(values)
+
     def get_blind_hand_values(self):
         values = []
         for game_mode in ['C', 'S', 'H', 'D']:
             current_raw_state = copy.deepcopy(self.raw_state_cpy)
-            current_raw_state['trump'] = 'D'
-            self.env.game.round.trump = 'D'
+            self.prepare_state(game_mode, current_raw_state)
 
-            # Trumpf ist immer Karo, daher müssen die Farben getauscht werden
-            current_raw_state['current_hand'] = swap_colors(current_raw_state['current_hand'], 'D', game_mode)
-            current_raw_state['others_hand'] = swap_colors(current_raw_state['others_hand'], 'D', game_mode)
-            current_raw_state['skat'] = swap_colors(current_raw_state['skat'], 'D', game_mode) # nicht zwingend nötig, da Hand
+            vals_cards = self.simulate_player_discards(current_raw_state)
 
-            tmp = current_raw_state['bids'][1]['D']
-            current_raw_state['bids'][1]['D'] = current_raw_state['bids'][1][game_mode]
-            current_raw_state['bids'][1][game_mode] = tmp
-            tmp = current_raw_state['bids'][2]['D']
-            current_raw_state['bids'][2]['D'] = current_raw_state['bids'][2][game_mode]
-            current_raw_state['bids'][2][game_mode] = tmp
-
-            state = self.env.extract_state(current_raw_state)
-
-            _, vals_cards = self.env.agents[0].predict(state)
-            values.append(max(vals_cards))
+            values.append(vals_cards)
         return values
 
     def find_best_game_and_discard(self, raw_state_prep):
         best_discard = {'C': [], 'S': [], 'H': [], 'D': []}
         for game_mode in ['C', 'S', 'H', 'D']:
             raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
-            raw_state_gamemode_prep['trump'] = 'D'
-            self.env.game.round.trump = 'D'
-
-            raw_state_gamemode_prep['current_hand'] = swap_colors(raw_state_gamemode_prep['current_hand'], 'D', game_mode)
-            raw_state_gamemode_prep['others_hand'] = swap_colors(raw_state_gamemode_prep['others_hand'], 'D', game_mode)
+            self.prepare_state(game_mode, raw_state_gamemode_prep)
 
             # Performance hotfix -> TODO: Make better
             if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -30 or
@@ -66,6 +84,7 @@ class Bidder:
                 continue
 
             vals_drueckungen = []
+            best_state = None
             for drueck_inds in self.drueck_comb_inds:
                 current_raw_state = copy.deepcopy(raw_state_gamemode_prep)
                 # drücken (Skat und Hand updaten)
@@ -78,11 +97,13 @@ class Bidder:
                 _, vals_cards = self.env.agents[0].predict(state)
                 if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
                     best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")
+                    best_state = current_raw_state
                 vals_drueckungen.append(max(vals_cards))
                 #print(f'Gedrückt: {swap_colors(current_raw_state["skat"], game_mode, "D")}, Value: {max(vals_cards)}')
 
             #print(f'{game_mode}: {max(vals_drueckungen)}')
-            self.estimates[game_mode].append(max(vals_drueckungen))
+            vals_cards = self.simulate_player_discards(best_state)
+            self.estimates[game_mode].append(vals_cards)
         return best_discard
 
     def update_value_estimates(self):

@@ -3,7 +3,7 @@ import os
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.bidder import Bidder
 from skatzero.evaluation.simulation import load_model
-from skatzero.evaluation.utils import swap_colors
+from skatzero.evaluation.utils import swap_bids, swap_colors
 from skatzero.game.utils import calculate_bidding_value, init_32_deck
 from skatzero.test.utils import available_actions, construct_state_from_history
 
@@ -109,12 +109,8 @@ def prepare_state_for_cardplay(raw_state, args):
     raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', args[1])
     raw_state['skat'] = swap_colors(raw_state['skat'], 'D', args[1])
     raw_state['trace'] = swap_colors(raw_state['trace'], 'D', args[1])
-    tmp = bids[1]['D']
-    bids[1]['D'] = bids[1][args[1]]
-    bids[1][args[1]] = tmp
-    tmp = bids[2]['D']
-    bids[2]['D'] = bids[2][args[1]]
-    bids[2][args[1]] = tmp
+    bids[1] = swap_bids(bids[1], 'D', args[1])
+    bids[2] = swap_bids(bids[2], 'D', args[1])
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
@@ -148,13 +144,13 @@ def bid(model, version, args):
     bid_jacks = [0, 0, 0]
 
     if args[0] == 'SKAT_OR_HAND_DECL':
-        bids, bid_jacks = parse_bid(int(args[2]), 1, bids, bid_jacks)
-        bids, bid_jacks = parse_bid(int(args[3]), 2, bids, bid_jacks)
+        bids, bid_jacks = parse_bid(int(args[3]), 1, bids, bid_jacks)
+        bids, bid_jacks = parse_bid(int(args[4]), 2, bids, bid_jacks)
 
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
-    bidder = Bidder(env, raw_state)
+    bidder = Bidder(env, raw_state, args[2])
     hand_estimates = bidder.get_blind_hand_values()
     for _ in range(50):
         mean_estimates = bidder.update_value_estimates()
@@ -172,10 +168,10 @@ def bid(model, version, args):
     if args[0] == 'SKAT_OR_HAND_DECL':
         bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, raw_bids=True)
         for i, _ in enumerate(pickup_estimates): # TODO: Kreuz etc. Value mit einrechnen?
-            if bid_list[i + 4] < int(args[4]):
+            if bid_list[i + 4] < int(args[5]):
                 pickup_estimates[i] = -100
         for i, _ in enumerate(hand_estimates):
-            if bid_list[i] < int(args[4]):
+            if bid_list[i] < int(args[5]):
                 hand_estimates[i] = -100
         if max(pickup_estimates) > max(hand_estimates):
             print('s')
@@ -212,13 +208,13 @@ def declare(model, version, args):
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     bid_jacks = [0, 0, 0]
-    bids, bid_jacks = parse_bid(int(args[2]), 1, bids, bid_jacks)
-    bids, bid_jacks = parse_bid(int(args[3]), 2, bids, bid_jacks)
+    bids, bid_jacks = parse_bid(int(args[3]), 1, bids, bid_jacks)
+    bids, bid_jacks = parse_bid(int(args[4]), 2, bids, bid_jacks)
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
     raw_state['blind_hand'] = False
 
-    bidder = Bidder(env, raw_state)
+    bidder = Bidder(env, raw_state, args[2])
 
     game_discards = bidder.find_best_game_and_discard(raw_state)
 
@@ -235,7 +231,7 @@ def declare(model, version, args):
             base_value = 10
         elif key == 'D':
             base_value = 9
-        if multiplier * base_value < int(args[4]):
+        if multiplier * base_value < int(args[5]):
             continue
         if value[0] > best:
             best = value[0]
@@ -279,7 +275,7 @@ def cardplay(model, version, args):
 
 if __name__ == '__main__':
     MODEL = "skat_30_final"
-    FRAMES = 5690
+    FRAMES = 5770
 
     args = sys.argv[1:]
 
