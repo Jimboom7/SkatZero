@@ -6,7 +6,11 @@ from skatzero.game.utils import card_suit_as_number, card_rank_as_number, compar
 def swap_colors(cards, color1, color2):
     return [color2+card[1] if card[0]==color1 and card[1]!='J' else color1+card[1] if card[0]==color2 and card[1]!='J' else card for card in cards]
 
-
+def swap_bids(bids, color1, color2):
+    tmp = bids[color1]
+    bids[color1] = bids[color2]
+    bids[color2] = tmp
+    return bids
 
 def skat_sort_card_string(card_1, card_2):
     key = []

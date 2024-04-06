@@ -23,6 +23,9 @@ def run_testcase(testcase, raw_state, env, agents, log_to_file=False):
     for c in info['values']:
         if c not in expected and max(info['values'].values()) - info['values'][c] < correct_difference:
             correct_difference = max(info['values'].values()) - info['values'][c]
+    if raw_state['self'] != 0:
+        wrong_difference *= 4
+        correct_difference *= 4
     if wrong_difference == 0:
         print("\033[32mPassed!\033[0m Difference: " + str(correct_difference) + "\n")
     if correct_difference == 0:

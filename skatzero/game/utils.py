@@ -17,7 +17,7 @@ def compare_cards(card1, card2, trump, current_suit):
         return card_suit_as_number[card1[0]] > card_suit_as_number[card2[0]]
     if card1[1] == "J" or card2[1] == "J": # One Jack
         return card1[1] == "J"
-    if (card1[0] != current_suit) != (card2[0] != current_suit): # Different suites
+    if card1[0] != card2[0]: # Different suites
         return (card1[0] == current_suit and card2[0] != trump) or card1[0] == trump
     return is_card_higher(card1, card2)
 
