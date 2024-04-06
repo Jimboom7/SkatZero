@@ -337,7 +337,7 @@ def case5_medium(raw_state):
     raw_state['others_hand'] = others_cards
     raw_state['actions'] = actions
     raw_state['trick'] = trick
-    return raw_state, ('H7')
+    return raw_state, ('H7', 'HQ')
 
 def case6_medium(raw_state):
     print("Abwerfen trotz Vollem")
@@ -699,7 +699,7 @@ def case20_medium(raw_state):
     return raw_state, ('DK') # So kriegt man Trumpf Ass später
 
 def case21_medium(raw_state):
-    print("Alleinspieler: Rest korrekt mitnehmen")
+    print("Alleinspieler: Rest korrekt mitnehmen [S9 vertretbar]")
     # https://youtu.be/Szf4DtWNgZ8?si=hyenosTTx5Vo7kk2&t=2909
     raw_state['self'] = 0
     raw_state['points'] = [34, 43]
@@ -771,7 +771,7 @@ def case23_medium(raw_state):
     return raw_state, ('D7') # Zweiten Trumpf von unten, gegen ungleiche Verteilung
 
 def case24_medium(raw_state):
-    print("Gegenspieler: Lusche auf Ass in langer Farbe")
+    print("Gegenspieler: Lusche auf Ass in langer Farbe [SK vertretbar]")
     # https://www.youtube.com/live/Y00gGYC7lxk?si=LrYn_A6CAQEpeGD2&t=955
     raw_state['self'] = 2
     raw_state['points'] = [0, 0]

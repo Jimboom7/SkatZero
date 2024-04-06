@@ -38,10 +38,13 @@ class Dealer:
                 continue
             values = evaluate_hand_strength(player.current_hand)
             max_value = max(values, key=values.get)
-            if values[max_value] > 8.5:
+            if values[max_value] > 8 and self.np_random.rand() > 0.45 + (values[max_value] / 20): # "18" just looking chance
+                self.bids[player.player_id]['D'] = 1
+                self.bid_jacks[player.player_id] = 1
+            elif values[max_value] > 8.5:
                 self.bids[player.player_id][max_value] = 1
                 with_without = calculate_bidding_value(player.current_hand) - 1
-                self.bid_jacks[player.player_id] = with_without
+                self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < 0.45 + (values[max_value] / 20) else 1 # Sometimes only bids with 1
             elif can_play_null(player.current_hand):
                 self.bids[player.player_id]['N'] = 1
 
