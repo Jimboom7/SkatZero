@@ -41,11 +41,11 @@ def parse_bid(bid, pos, bids, bid_jacks):
 def calculate_bids_for_gametypes(raw_state, estimates, raw_bids=False):
     bid_list = []
     multiplier = calculate_bidding_value(raw_state['current_hand'])
-    for i, val in enumerate(estimates): # TODO: Startposition einrechnen
+    for i, val in enumerate(estimates):
         if val <= 0 and not raw_bids:
             bid_list.append(0)
             continue
-        if val <= 10 and not raw_bids:
+        if val <= 20 and not raw_bids:
             bid_list.append(18)
             continue
         hand = 0

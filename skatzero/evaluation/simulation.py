@@ -16,6 +16,7 @@ from skatzero.env.skat import SkatEnv
 def load_model(model_path, device='cpu'):
     if os.path.isfile(model_path):  # Torch model
         agent = torch.load(model_path, map_location=device)
+        agent.eval()
         agent.set_device(device)
     elif model_path == 'random':
         agent = RandomAgent(num_actions=32)

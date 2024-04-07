@@ -2,6 +2,7 @@ import copy
 import itertools
 import random
 
+from skatzero.env.feature_transformations import extract_state
 from skatzero.evaluation.utils import swap_colors, swap_bids
 from skatzero.game.utils import get_points
 from skatzero.test.utils import construct_state_from_history
@@ -30,16 +31,17 @@ class Bidder:
         # Trumpf ist immer Karo, daher müssen die Farben getauscht werden
         raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', game_mode)
         raw_state['others_hand'] = swap_colors(raw_state['others_hand'], 'D', game_mode)
+        raw_state['actions'] = swap_colors(raw_state['actions'], 'D', game_mode)
 
         raw_state['bids'][1] = swap_bids(raw_state['bids'][1], 'D', game_mode)
         raw_state['bids'][2] = swap_bids(raw_state['bids'][2], 'D', game_mode)
 
     def simulate_player_discards(self, raw_state):
         if self.pos == "0": # Forehand: No discards
-            state = self.env.extract_state(raw_state)
+            state = extract_state(raw_state, self.env.get_legal_actions(raw_state))
             _, vals_cards = self.env.agents[0].predict(state)
             return max(vals_cards)
-        if self.pos == "1":
+        else:
             values = []
             original_actions = self.env.game.state['actions']
             for card in raw_state['others_hand']:
@@ -54,12 +56,52 @@ class Bidder:
                 self.env.game.state['actions'] = actions
                 current_raw_state['trick'] = trick
 
-                state = self.env.extract_state(current_raw_state)
+                state = extract_state(current_raw_state, self.env.get_legal_actions(current_raw_state))
 
                 _, vals_cards = self.env.agents[0].predict(state)
                 values.append(max(vals_cards))
             self.env.game.state['actions'] = original_actions
             return min(values)
+        # else: # self.pos == "2" -> Backhand. Returns the average of i card distributions, where the "worst" possible discards of both opponents is considered for each distribution
+        # Problem: Resulting value is way too low. Real opponents don't know the "best" moves because they don't know the other cards.
+        #     values = []
+        #     original_actions = self.env.game.state['actions']
+        #     for i in range(30):
+        #         values.append(999)
+        #         player1_cards =  random.sample(raw_state['others_hand'], 10)
+        #         player2_cards = [x for x in raw_state['others_hand'] if x not in player1_cards]
+
+        #         for card1 in player1_cards:
+        #             available_actions = self.available_actions(player2_cards, card1[0], game_mode)
+        #             for card2 in available_actions:
+        #                 current_raw_state = copy.deepcopy(raw_state)
+        #                 current_raw_state['trace'].append((1, card1))
+        #                 current_raw_state['trace'].append((2, card2))
+        #                 played_cards, others_cards, trick, actions = construct_state_from_history(current_raw_state['current_hand'], current_raw_state['trace'], current_raw_state['skat'])
+
+        #                 current_raw_state['played_cards'] = played_cards
+        #                 current_raw_state['others_hand'] = others_cards
+        #                 current_raw_state['actions'] = actions
+        #                 self.env.game.state['actions'] = actions
+        #                 current_raw_state['trick'] = trick
+
+        #                 state = extract_state(current_raw_state, self.env.get_legal_actions(current_raw_state))
+        #                 _, vals_cards = self.env.agents[0].predict(state)
+        #                 if max(vals_cards) < values[i]:
+        #                     values[i] = max(vals_cards)
+        #     self.env.game.state['actions'] = original_actions
+        #     return sum(values) / len(values)
+
+    def available_actions(self, hand, suit, trump):
+        playable_cards = []
+        for card in hand:
+            if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'):
+                playable_cards.append(card)
+
+        if not playable_cards:
+            return hand
+
+        return playable_cards
 
     def get_blind_hand_values(self):
         values = []
@@ -93,7 +135,7 @@ class Bidder:
                 current_raw_state['actions'] = current_raw_state['current_hand']
                 current_raw_state['points'] = [get_points(current_raw_state['skat'][0]) + get_points(current_raw_state['skat'][1]), 0]
 
-                state = self.env.extract_state(current_raw_state)
+                state = extract_state(current_raw_state, self.env.get_legal_actions(current_raw_state))
                 _, vals_cards = self.env.agents[0].predict(state)
                 if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
                     best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")
