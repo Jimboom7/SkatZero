@@ -119,7 +119,7 @@ def get_card_encoding(state):
                  (len([d for d in state['others_hand'] if d[0] == 'C' and d[1] != 'J']) * 10) +
                  int('CA' in state['current_hand']))
 
-    values = encoding ={'D': num_d, 'H': num_h, 'S': num_s, 'C': num_c}
+    values = {'D': num_d, 'H': num_h, 'S': num_s, 'C': num_c}
 
     sorted_values = {k: v for k, v in sorted(values.items(), key=lambda item: item[1], reverse=True)}
     for i, k in enumerate(sorted_values):
