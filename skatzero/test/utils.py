@@ -32,7 +32,7 @@ def run_testcase(testcase, raw_state, env, agents, log_to_file=False):
         print("\033[31mFailed!\033[0m Difference: " + str(-wrong_difference) + "\n")
     return -wrong_difference, correct_difference
 
-def construct_state_from_history(current_hand, card_history, skat):
+def construct_state_from_history(current_hand, card_history, skat, trump='D'):
     played_cards = [[],[],[]]
     others_cards = init_32_deck()
     for p, c in card_history:
@@ -55,7 +55,7 @@ def construct_state_from_history(current_hand, card_history, skat):
     else:
         suit = trick[0][1][0]
         if trick[0][1][1] == 'J':
-            suit = 'D'
+            suit = trump # TODO: Wenn Trumpf nicht Diamond ist (Grand) -> Code ändern
         actions = available_actions(current_hand, suit)
 
     return played_cards, others_cards, trick, actions

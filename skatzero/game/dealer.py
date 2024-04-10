@@ -14,19 +14,19 @@ class Dealer:
     def shuffle(self):
         self.np_random.shuffle(self.deck)
 
-    def set_player_hands(self, players):
+    def set_player_hands(self, players, gametype):
         hand_num = 10
 
         for index, player in enumerate(players):
             current_hand = self.deck[index*hand_num:(index+1)*hand_num]
             player.current_hand = current_hand
 
-        if evaluate_hand_strength(players[1].current_hand, 'D')['D'] > evaluate_hand_strength(players[0].current_hand, 'D')['D']:
+        if evaluate_hand_strength(players[1].current_hand, gametype)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype)[gametype]:
             tmp = players[0].current_hand
             players[0].current_hand = players[1].current_hand
             players[1].current_hand = tmp
 
-        if evaluate_hand_strength(players[2].current_hand, 'D')['D'] > evaluate_hand_strength(players[0].current_hand, 'D')['D']:
+        if evaluate_hand_strength(players[2].current_hand, gametype)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype)[gametype]:
             tmp = players[0].current_hand
             players[0].current_hand = players[2].current_hand
             players[2].current_hand = tmp
@@ -65,9 +65,9 @@ class Dealer:
                     self.bid_jacks[player.player_id] = 0
 
 
-    def deal_cards(self, players):
+    def deal_cards(self, players, gametype):
         self.shuffle()
-        self.set_player_hands(players)
+        self.set_player_hands(players, gametype)
         self.set_bids(players)
         players[0].role = 'soloplayer'
         players[1].role = 'opponent'

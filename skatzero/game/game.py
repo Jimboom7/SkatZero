@@ -7,7 +7,7 @@ from skatzero.game.utils import compare_cards
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, gametype):
         self.np_random = np.random.RandomState()  # pylint: disable=no-member
         self.num_players = 3
         self.done = False
@@ -18,6 +18,7 @@ class Game:
         self.blind_hand = False
         self.black_soloplayer = True
         self.black_opponent = True
+        self.gametype = gametype
 
     def init_game(self, blind_hand=False):
         self.done = False
@@ -28,7 +29,7 @@ class Game:
 
         self.players = [Player(num) for num in range(self.num_players)]
 
-        self.round = Round(self.np_random)
+        self.round = Round(self.np_random, gametype=self.gametype)
         self.round.initiate(self.players)
 
         player_id = self.round.current_player
@@ -75,18 +76,22 @@ class Game:
         soloplayer_id = self.round.soloplayer_id
         payoffs = np.array([0, 0, 0], dtype=float)
 
+        base_value = 10
+        if self.gametype == 'Grand':
+            base_value = 24
+
         if self.black_opponent:
-            payoffs[soloplayer_id] = ((4 + self.blind_hand) * 10) + 50
+            payoffs[soloplayer_id] = ((4 + self.blind_hand) * base_value) + 50
         elif self.round.solo_points >= 90:
-            payoffs[soloplayer_id] = ((3 + self.blind_hand) * 10) + 50
+            payoffs[soloplayer_id] = ((3 + self.blind_hand) * base_value) + 50
         elif self.round.solo_points > 60:
-            payoffs[soloplayer_id] = ((2 + self.blind_hand) * 10) + 50
+            payoffs[soloplayer_id] = ((2 + self.blind_hand) * base_value) + 50
         elif self.black_soloplayer:
-            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50 - 40
+            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * base_value) - 50 - 40
         elif self.round.solo_points <= 30:
-            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50 - 40
+            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * base_value) - 50 - 40
         elif self.round.solo_points <= 60:
-            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * 10) - 50 - 40
+            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * base_value) - 50 - 40
 
         if is_training:
             payoffs[soloplayer_id] += (self.round.solo_points - 60) / 30

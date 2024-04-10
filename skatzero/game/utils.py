@@ -18,6 +18,8 @@ def compare_cards(card1, card2, trump, current_suit):
     if card1[1] == "J" or card2[1] == "J": # One Jack
         return card1[1] == "J"
     if card1[0] != card2[0]: # Different suites
+        if trump is None:
+            return card1
         return (card1[0] == current_suit and card2[0] != trump) or card1[0] == trump
     return is_card_higher(card1, card2)
 
@@ -62,9 +64,24 @@ def evaluate_card(card, trump):
     return strength
 
 
-def evaluate_hand_strength(cards, suits = ['D', 'H', 'S', 'C']):
+def evaluate_grand_card(card):
+    if card[1] == 'J':
+        return 1
+    if card[1] == 'A':
+        return 1
+    if card[1] == 'T':
+        return 0.5
+    return 0
+
+
+def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C']):
+    if gametype == 'Grand':
+        strength = 0
+        for c in cards:
+            strength += evaluate_grand_card(c)
+        return {'Grand': strength * random.uniform(0.85, 1.15)}
     strength = {'D': 0, 'H': 0, 'S': 0, 'C': 0}
-    for suit in suits:
+    for suit in gametype:
         s = 0
         for c in cards:
             s += evaluate_card(c, suit)

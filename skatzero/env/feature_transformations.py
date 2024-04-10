@@ -80,7 +80,8 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
                     (base_card[1] == 'J' or base_card[0] == trump))):
                 continue
             if base_card[1] == 'J' or base_card[0] == trump:
-                matrix[card_encoding[trump], :7] = 1
+                if trump is not None:
+                    matrix[card_encoding[trump], :7] = 1
                 matrix[:, 7] = 1
             else:
                 matrix[card_encoding[base_card[0]], :7] = 1
@@ -102,27 +103,28 @@ def get_bid_jacks(bid_jacks):
 
 def get_card_encoding(state):
     encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
-    num_h = (len([d for d in state['current_hand'] if d[0] == 'H' and d[1] != 'J']),
-             -len([d for d in state['others_hand'] if d[0] == 'H' and d[1] != 'J']),
-             'HA' in state['current_hand'])
-    num_s = (len([d for d in state['current_hand'] if d[0] == 'S' and d[1] != 'J']),
-             -len([d for d in state['others_hand'] if d[0] == 'S' and d[1] != 'J']),
-             'SA' in state['current_hand'])
-    num_c = (len([d for d in state['current_hand'] if d[0] == 'C' and d[1] != 'J']),
-             -len([d for d in state['others_hand'] if d[0] == 'C' and d[1] != 'J']),
-             'CA' in state['current_hand'])
-    if max(num_h, num_s, num_c) == num_h:
-        encoding = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
-        if max(num_s, num_c) == num_c:
-            encoding = {'D': 0, 'H': 1, 'C': 2, 'S': 3}
-    elif max(num_h, num_s, num_c) == num_s:
-        encoding = {'D': 0, 'S': 1, 'H': 2, 'C': 3}
-        if max(num_h, num_c) == num_c:
-            encoding = {'D': 0, 'S': 1, 'C': 2, 'H': 3}
-    elif max(num_h, num_s, num_c) == num_c:
-        encoding = {'D': 0, 'C': 1, 'H': 2, 'S': 3}
-        if max(num_h, num_s) == num_s:
-            encoding = {'D': 0, 'C': 1, 'S': 2, 'H': 3}
+    if state['trump'] == 'D':
+        num_d = 10000
+    else: # Grand
+        num_d = ((len([d for d in state['current_hand'] if d[0] == 'D' and d[1] != 'J']) * 100) -
+                 (len([d for d in state['others_hand'] if d[0] == 'D' and d[1] != 'J']) * 10) +
+                 int('DA' in state['current_hand']))
+    num_h = ((len([d for d in state['current_hand'] if d[0] == 'H' and d[1] != 'J']) * 100) -
+                 (len([d for d in state['others_hand'] if d[0] == 'H' and d[1] != 'J']) * 10) +
+                 int('HA' in state['current_hand']))
+    num_s = ((len([d for d in state['current_hand'] if d[0] == 'S' and d[1] != 'J']) * 100) -
+                 (len([d for d in state['others_hand'] if d[0] == 'S' and d[1] != 'J']) * 10) +
+                 int('SA' in state['current_hand']))
+    num_c = ((len([d for d in state['current_hand'] if d[0] == 'C' and d[1] != 'J']) * 100) -
+                 (len([d for d in state['others_hand'] if d[0] == 'C' and d[1] != 'J']) * 10) +
+                 int('CA' in state['current_hand']))
+
+    values = encoding ={'D': num_d, 'H': num_h, 'S': num_s, 'C': num_c}
+
+    sorted_values = {k: v for k, v in sorted(values.items(), key=lambda item: item[1], reverse=True)}
+    for i, k in enumerate(sorted_values):
+        encoding[k] = i
+
     return encoding
 
 def get_common_features(state):

@@ -2,7 +2,7 @@ from skatzero.game.dealer import Dealer
 from skatzero.game.utils import get_points
 
 class Round:
-    def __init__(self, np_random):
+    def __init__(self, np_random, gametype):
         self.np_random = np_random
         self.played_cards = []
         self.trace = []
@@ -17,11 +17,12 @@ class Round:
         self.winners = []
 
         self.trump = None
+        self.gametype=gametype
 
         self.dealer = Dealer(self.np_random)
 
     def initiate(self, players, starting_player=None):
-        soloplayer_id = self.dealer.deal_cards(players)
+        soloplayer_id = self.dealer.deal_cards(players, self.gametype)
         self.soloplayer_id = soloplayer_id
         if starting_player is None:
             self.current_player = self.np_random.randint(0, 3)
@@ -35,6 +36,8 @@ class Round:
         self.opponent_points = 0
         self.winners = []
         self.trump = 'D'
+        if self.gametype == 'Grand':
+            self.trump = None
         self.played_cards = [[], [], []]
 
     def update_public(self, action):
@@ -52,6 +55,8 @@ class Round:
             self.current_suit = action[0]
             if action[1] == "J":
                 self.current_suit = self.trump
+                if self.trump is None:
+                    self.current_suit = 'J'
 
     def find_last_played_card_in_trace(self, player_id):
         for i in range(len(self.trace) - 1, -1, -1):

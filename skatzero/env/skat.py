@@ -6,9 +6,9 @@ from skatzero.evaluation.seeding import np_random
 
 
 class SkatEnv(object):
-    def __init__(self, blind_hand_chance = 0.1, seed=None):
+    def __init__(self, blind_hand_chance = 0.1, seed=None, gametype='D'):
         self.name = 'skat'
-        self.game = Game()
+        self.game = Game(gametype=gametype)
 
         self.blind_hand_chance = blind_hand_chance
 
