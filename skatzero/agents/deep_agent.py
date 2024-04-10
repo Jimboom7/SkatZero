@@ -29,8 +29,8 @@ class DMCAgent:
 
         return action
 
-    def eval_step(self, state):
-        action_keys, values = self.predict(state)
+    def eval_step(self, state, raw=False):
+        action_keys, values = self.predict(state, raw)
 
         action_idx = np.argmax(values)
         action = action_keys[action_idx]
@@ -49,9 +49,9 @@ class DMCAgent:
     def parameters(self):
         return self.net.parameters()
 
-    def predict(self, state):
+    def predict(self, state, raw=False):
         legal_actions = state['legal_actions']
-        if len(legal_actions) == 1:
+        if len(legal_actions) == 1 and not raw:
             return np.array(list(legal_actions.keys())), np.array([100])
 
         obs = state['obs'].astype(np.float32)

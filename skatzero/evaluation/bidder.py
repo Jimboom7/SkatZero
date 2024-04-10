@@ -38,12 +38,12 @@ class Bidder:
 
     def simulate_player_discards(self, raw_state):
         if self.pos == "0": # Forehand: No discards
-            state = extract_state(raw_state, self.env.get_legal_actions(raw_state))
-            _, vals_cards = self.env.agents[0].predict(state)
+            state = extract_state(raw_state, self.env.get_legal_actions())
+            _, vals_cards = self.env.agents[0].predict(state, raw=True)
             return max(vals_cards)
         else:
             values = []
-            original_actions = self.env.game.state['actions']
+            original_state = copy.deepcopy(self.env.game.state)
             for card in raw_state['others_hand']:
                 current_raw_state = copy.deepcopy(raw_state)
 
@@ -53,44 +53,16 @@ class Bidder:
                 current_raw_state['played_cards'] = played_cards
                 current_raw_state['others_hand'] = others_cards
                 current_raw_state['actions'] = actions
-                self.env.game.state['actions'] = actions
                 current_raw_state['trick'] = trick
 
-                state = extract_state(current_raw_state, self.env.get_legal_actions(current_raw_state))
+                self.env.game.state = current_raw_state
+                state = extract_state(current_raw_state, self.env.get_legal_actions())
 
-                _, vals_cards = self.env.agents[0].predict(state)
+                _, vals_cards = self.env.agents[0].predict(state, raw=True)
                 values.append(max(vals_cards))
-            self.env.game.state['actions'] = original_actions
-            return min(values)
-        # else: # self.pos == "2" -> Backhand. Returns the average of i card distributions, where the "worst" possible discards of both opponents is considered for each distribution
-        # Problem: Resulting value is way too low. Real opponents don't know the "best" moves because they don't know the other cards.
-        #     values = []
-        #     original_actions = self.env.game.state['actions']
-        #     for i in range(30):
-        #         values.append(999)
-        #         player1_cards =  random.sample(raw_state['others_hand'], 10)
-        #         player2_cards = [x for x in raw_state['others_hand'] if x not in player1_cards]
-
-        #         for card1 in player1_cards:
-        #             available_actions = self.available_actions(player2_cards, card1[0], game_mode)
-        #             for card2 in available_actions:
-        #                 current_raw_state = copy.deepcopy(raw_state)
-        #                 current_raw_state['trace'].append((1, card1))
-        #                 current_raw_state['trace'].append((2, card2))
-        #                 played_cards, others_cards, trick, actions = construct_state_from_history(current_raw_state['current_hand'], current_raw_state['trace'], current_raw_state['skat'])
-
-        #                 current_raw_state['played_cards'] = played_cards
-        #                 current_raw_state['others_hand'] = others_cards
-        #                 current_raw_state['actions'] = actions
-        #                 self.env.game.state['actions'] = actions
-        #                 current_raw_state['trick'] = trick
-
-        #                 state = extract_state(current_raw_state, self.env.get_legal_actions(current_raw_state))
-        #                 _, vals_cards = self.env.agents[0].predict(state)
-        #                 if max(vals_cards) < values[i]:
-        #                     values[i] = max(vals_cards)
-        #     self.env.game.state['actions'] = original_actions
-        #     return sum(values) / len(values)
+            self.env.game.state = original_state
+            values.sort()
+            return sum(values[:5]) / 5
 
     def available_actions(self, hand, suit, trump):
         playable_cards = []
@@ -127,6 +99,7 @@ class Bidder:
 
             vals_drueckungen = []
             best_state = None
+            original_state = copy.deepcopy(self.env.game.state)
             for drueck_inds in self.drueck_comb_inds:
                 current_raw_state = copy.deepcopy(raw_state_gamemode_prep)
                 # drücken (Skat und Hand updaten)
@@ -135,8 +108,9 @@ class Bidder:
                 current_raw_state['actions'] = current_raw_state['current_hand']
                 current_raw_state['points'] = [get_points(current_raw_state['skat'][0]) + get_points(current_raw_state['skat'][1]), 0]
 
-                state = extract_state(current_raw_state, self.env.get_legal_actions(current_raw_state))
-                _, vals_cards = self.env.agents[0].predict(state)
+                self.env.game.state = current_raw_state
+                state = extract_state(current_raw_state, self.env.get_legal_actions())
+                _, vals_cards = self.env.agents[0].predict(state, raw=True)
                 if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
                     best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")
                     best_state = current_raw_state
@@ -144,6 +118,7 @@ class Bidder:
                 #print(f'Gedrückt: {swap_colors(current_raw_state["skat"], game_mode, "D")}, Value: {max(vals_cards)}')
 
             #print(f'{game_mode}: {max(vals_drueckungen)}')
+            self.env.game.state = original_state
             vals_cards = self.simulate_player_discards(best_state)
             self.estimates[game_mode].append(vals_cards)
         return best_discard

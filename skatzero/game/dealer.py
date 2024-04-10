@@ -56,7 +56,7 @@ class Dealer:
         for player in players:
             if player.player_id == 0:
                 continue
-            if player.player_id != first_bidder: # no bid if not first and other already bid more
+            if player.player_id != first_bidder and self.np_random.rand() < 0.66: # no bid if not first and other already bid more
                 bid1 = self.bid_jacks[player.player_id] + (self.bids[player.player_id]['N'] * 1.25)
                 bid2 = self.bid_jacks[first_bidder] + (self.bids[first_bidder]['N'] * 1.25)
                 if bid1 < bid2 or bid1 + 0.5 - self.np_random.rand() < bid2:

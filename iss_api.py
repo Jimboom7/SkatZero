@@ -23,7 +23,8 @@ def parse_bid(bid, pos, bids, bid_jacks):
 
     if bid in d_bids:
         bids[pos]['D'] = 1
-        bid_jacks[pos] = int(bid / 9) - 1
+        if bid != 18:
+            bid_jacks[pos] = int(bid / 9) - 1
     elif bid in h_bids:
         bids[pos]['H'] = 1
         bid_jacks[pos] = int(bid / 10) - 1
@@ -38,14 +39,14 @@ def parse_bid(bid, pos, bids, bid_jacks):
 
     return bids, bid_jacks
 
-def calculate_bids_for_gametypes(raw_state, estimates, raw_bids=False):
+def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
     bid_list = []
     multiplier = calculate_bidding_value(raw_state['current_hand'])
     for i, val in enumerate(estimates):
-        if val <= 0 and not raw_bids:
+        if val <= bid_threshold and not raw_bids:
             bid_list.append(0)
             continue
-        if val <= 20 and not raw_bids:
+        if val <= 25 + bid_threshold and not raw_bids: # 25 is average loss of value when others bid
             bid_list.append(18)
             continue
         hand = 0
@@ -127,7 +128,7 @@ def prepare_state_for_cardplay(raw_state, args):
 
     return raw_state
 
-def bid(model, version, args):
+def bid(model, version, args, accuracy, bid_threshold):
     _, env, raw_state = prepare_env(model, version)
 
     raw_state['current_hand'] = [card for card in args[1].split(',')]
@@ -152,7 +153,7 @@ def bid(model, version, args):
 
     bidder = Bidder(env, raw_state, args[2])
     hand_estimates = bidder.get_blind_hand_values()
-    for _ in range(50):
+    for _ in range(accuracy):
         mean_estimates = bidder.update_value_estimates()
     pickup_estimates = [sum(mean_estimates['C']) / len(mean_estimates['C']),
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
@@ -166,7 +167,7 @@ def bid(model, version, args):
         print(gametype, all_estimates[i])
 
     if args[0] == 'SKAT_OR_HAND_DECL':
-        bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, raw_bids=True)
+        bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, True)
         for i, _ in enumerate(pickup_estimates): # TODO: Kreuz etc. Value mit einrechnen?
             if bid_list[i + 4] < int(args[5]):
                 pickup_estimates[i] = -100
@@ -188,7 +189,7 @@ def bid(model, version, args):
             print(str_type + 'H')
             return
     elif args[0] == 'BID':
-        bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates)
+        bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, False)
         highest_bid = max(bid_list)
         print(str(highest_bid))
         return
@@ -259,7 +260,7 @@ def cardplay(model, version, args):
 
     state = env.extract_state(raw_state)
 
-    _, info = agents[raw_state['self']].eval_step(state)
+    _, info = agents[raw_state['self']].eval_step(state, True)
 
     card_to_play = max(info['values'], key=info['values'].get)
     card_to_play = swap_colors([card_to_play], 'D', args[1])[0]
@@ -275,14 +276,16 @@ def cardplay(model, version, args):
 
 if __name__ == '__main__':
     MODEL = "skat_30_final"
-    FRAMES = 5770
+    FRAMES = 6200 #6040
+    ACCURACY = 1 # Number of Iterations for Skat simulation
+    BID_THRESHOLD = 0 # How aggressive should the AI bid? 0 is average best return, lower values mean more aggressive
 
     args = sys.argv[1:]
 
     if args[0] == 'BID':
-        bid(MODEL, FRAMES, args)
+        bid(MODEL, FRAMES, args, ACCURACY, BID_THRESHOLD)
     elif args[0] == 'SKAT_OR_HAND_DECL':
-        bid(MODEL, FRAMES, args)
+        bid(MODEL, FRAMES, args, ACCURACY, BID_THRESHOLD)
     elif args[0] == 'DISCARD_AND_DECL':
         declare(MODEL, FRAMES, args)
     elif args[0] == 'CARDPLAY':

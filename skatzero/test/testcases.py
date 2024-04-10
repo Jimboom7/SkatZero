@@ -582,7 +582,7 @@ def case16_medium(raw_state):
     raw_state['points'] = [17, 4]
     raw_state['blind_hand'] = False
     raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 1, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 1, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     raw_state['bid_jacks'] = [0, 1, 0]
 
@@ -630,7 +630,7 @@ def case18_medium(raw_state):
     raw_state['points'] = [14, 22]
     raw_state['blind_hand'] = False
     raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 1, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 1, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     raw_state['bid_jacks'] = [0, 1, 0]
 

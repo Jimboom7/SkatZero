@@ -97,11 +97,9 @@ class SkatEnv(object):
         card_encoding = get_card_encoding(self.game.state)
         return convert_action_id_to_card(action_id, card_encoding)
 
-    def get_legal_actions(self, state=None):
-        if state is None:
-            state = self.game.state
-        legal_actions = state['actions']
-        card_encoding = get_card_encoding(state)
+    def get_legal_actions(self):
+        legal_actions = self.game.state['actions']
+        card_encoding = get_card_encoding(self.game.state)
         legal_actions = {convert_card_to_action_id(action, card_encoding): card2array(action, card_encoding) for action in legal_actions}
         return legal_actions
 
