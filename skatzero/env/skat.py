@@ -17,6 +17,7 @@ class SkatEnv(object):
 
         self.timestep = 0
 
+        self.base_seed = seed
         self.seed(seed)
 
         self.agents = None
@@ -25,7 +26,10 @@ class SkatEnv(object):
         self.action_shape = [[32] for _ in range(self.num_players)]
 
     def reset(self):
-        is_blind_hand = np.random.rand() < self.blind_hand_chance
+        if self.base_seed is not None:
+            self.base_seed += 1
+            self.seed(self.base_seed)
+        is_blind_hand = self.np_random.rand() < self.blind_hand_chance
         state, player_id = self.game.init_game(blind_hand=is_blind_hand)
         return self.extract_state(state), player_id
 

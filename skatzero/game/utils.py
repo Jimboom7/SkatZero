@@ -74,18 +74,23 @@ def evaluate_grand_card(card):
     return 0
 
 
-def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C']):
+def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=None):
     if gametype == 'Grand':
         strength = 0
         for c in cards:
             strength += evaluate_grand_card(c)
-        return {'Grand': strength * random.uniform(0.85, 1.15)}
+        if np_random is None:
+            return {'Grand': strength}
+        return {'Grand': strength * np_random.uniform(0.85, 1.15)}
     strength = {'D': 0, 'H': 0, 'S': 0, 'C': 0}
     for suit in gametype:
         s = 0
         for c in cards:
             s += evaluate_card(c, suit)
-        strength[suit] = s * random.uniform(0.9, 1.1)
+        if np_random is None:
+            strength[suit] = s
+        else:
+            strength[suit] = s * np_random.uniform(0.9, 1.1)
     return strength
 
 
@@ -107,7 +112,3 @@ def can_play_null(cards):
         if card[1] == 'A':
             nullcards -= 0.4
     return nullcards > 5
-
-
-def get_startplayer():
-    return random.choice(['soloplayer', 'opponent_left', 'opponent_right'])

@@ -35,12 +35,17 @@ def run_testsuite(model, version):
     w_score = 0
     c_score = 0
     correct = 0
+    results = []
     for testcase in testcases:
         w_diff, c_diff = run_testcase(testcase, raw_state, env, agents)
         w_score += w_diff
         c_score += c_diff
         if w_diff == 0:
             correct += 1
+        if w_diff == 0:
+            results.append(c_diff)
+        else:
+            results.append(w_diff)
     print("Overall")
     print("Score for Failed: " + str(w_score / (len(testcases) - correct)))
     print("Score for Passed: " + str(c_score / correct))
@@ -49,29 +54,37 @@ def run_testsuite(model, version):
     with open("test_results.csv", "a", encoding='utf-8') as logfile:
         logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score + w_score) / len(testcases)) + "\n")
         # Plot: https://list2chart.com/csv-to-chart/
-    return correct, ((c_score + w_score) / len(testcases))
+    return correct, ((c_score + w_score) / len(testcases)), results
 
 def get_averages(model, version):
     moving_average_c = []
     moving_average_d = []
+    detailed_list = []
     for i in range(10, version + 10, 10):
         if len(moving_average_c) >= 10:
             moving_average_c = moving_average_c[1:]
             moving_average_d = moving_average_d[1:]
-        correct, diff = run_testsuite(model, i)
+        correct, diff, results = run_testsuite(model, i)
         moving_average_c.append(correct)
         moving_average_d.append(diff)
+        detailed_list.append(results)
         with open("test_results_avg.csv", "a", encoding='utf-8') as logfile:
             logfile.write(str(model) + "," + str(i) + "," + str(statistics.fmean(moving_average_c)) + "," + str(statistics.fmean(moving_average_d)) + "\n")
+    for i in range(50):
+        res = ""
+        for j, x in enumerate(detailed_list):
+            res += str(j * 10) + "," + str(x[i]) + "\n"
+        with open("testresults/test_" + str(i + 1) + ".csv", "a+", encoding='utf-8') as logfile:
+            logfile.write(res)
 
 if __name__ == '__main__':
-    MODEL = "skat_30_final"
-    FRAMES = 3040
+    MODEL = "skat_D"
+    FRAMES = 7420
 
-    run_testsuite(MODEL, FRAMES)
+    #run_testsuite(MODEL, FRAMES)
 
-    #for i in range(2740, FRAMES + 10, 10):
-    #    run_testsuite(MODEL, i)
+    for i in range(7410, FRAMES + 10, 10):
+        run_testsuite(MODEL, i)
 
 
     #get_averages(MODEL, FRAMES)

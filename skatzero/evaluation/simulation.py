@@ -1,3 +1,4 @@
+import copy
 import time
 import os
 import subprocess
@@ -41,23 +42,20 @@ def set_seed(seed):
         random.seed(seed)
 
 
-def act(i, env, result, count, num_games, lock):
+def act(act_num, env, result, count, num_games, lock):
     try:
-        print('Evaluation Actor ' + str(i) + ' started.')
+        print('Evaluation Actor ' + str(act_num) + ' started.')
         payoffs = [0 for _ in range(env.num_players)]
-        while count[0] < num_games:
+        while True:
+            with lock:
+                if count.value >= num_games:
+                    break
+                count.value += 1
+                env.base_seed = count.value
             _, _payoffs = env.run(is_training=False)
-            if isinstance(_payoffs, list):
-                for _p in _payoffs:
-                    for i, _ in enumerate(payoffs):
-                        with lock:
-                            count[i] += 1
-                            result[i] += _p[i]
-            else:
-                for i, _ in enumerate(payoffs):
-                    with lock:
-                        count[i] += 1
-                        result[i] += _payoffs[i]
+            for i, _ in enumerate(payoffs):
+                with lock:
+                    result[i] += _payoffs[i]
     except KeyboardInterrupt:
         pass
     except Exception as e:
@@ -70,7 +68,7 @@ def tournament(env, num, num_actors):
 
     with mp.Manager() as manager:
         lock = manager.Lock()
-        count = manager.list([0 for _ in range(env.num_players)])
+        count = manager.Value(int, 0)
         result = manager.list([0 for _ in range(env.num_players)])
 
         actor_list = []
@@ -81,7 +79,7 @@ def tournament(env, num, num_actors):
             actor.start()
             actor_list.append(actor)
 
-        while count[0] < num:
+        while count.value < num:
             time.sleep(1)
 
         for actor in actor_list:
@@ -89,7 +87,7 @@ def tournament(env, num, num_actors):
 
         payoffs = [0 for _ in range(env.num_players)]
         for i in range(env.num_players):
-            payoffs[i] = result[i] / count[i]
+            payoffs[i] = result[i] / count.value
 
     return payoffs
 
@@ -102,11 +100,14 @@ def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_a
 
     model_solo = [
             base_folder + folder + '/0_' + number + '.pth',
-            'random',
-            'random'
+            base_folder + folder + '/1_6000.pth',
+            base_folder + folder + '/2_6000.pth',
+            #'random',
+            #'random'
         ]
     model_opponent = [
-            'random',
+            #'random',
+            base_folder + folder + '/0_6000.pth',
             base_folder + folder + '/1_' + number + '.pth',
             base_folder + folder + '/2_' + number + '.pth'
         ]

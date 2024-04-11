@@ -21,12 +21,12 @@ class Dealer:
             current_hand = self.deck[index*hand_num:(index+1)*hand_num]
             player.current_hand = current_hand
 
-        if evaluate_hand_strength(players[1].current_hand, gametype)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype)[gametype]:
+        if evaluate_hand_strength(players[1].current_hand, gametype, self.np_random)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]:
             tmp = players[0].current_hand
             players[0].current_hand = players[1].current_hand
             players[1].current_hand = tmp
 
-        if evaluate_hand_strength(players[2].current_hand, gametype)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype)[gametype]:
+        if evaluate_hand_strength(players[2].current_hand, gametype, self.np_random)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]:
             tmp = players[0].current_hand
             players[0].current_hand = players[2].current_hand
             players[2].current_hand = tmp
@@ -38,7 +38,7 @@ class Dealer:
         for player in players:
             if player.player_id == 0:
                 continue
-            values = evaluate_hand_strength(player.current_hand)
+            values = evaluate_hand_strength(player.current_hand, np_random=self.np_random)
             max_value = max(values, key=values.get)
             with_without = calculate_bidding_value(player.current_hand) - 1
             if with_without < 4 and self.np_random.rand() > 4.4 - (values[max_value] / 3): # Handgame: Starting at 10.5 value sometimes plays hand

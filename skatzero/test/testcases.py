@@ -584,7 +584,7 @@ def case16_medium(raw_state):
     raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 1, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
-    raw_state['bid_jacks'] = [0, 1, 0]
+    raw_state['bid_jacks'] = [0, 0, 0]
 
     raw_state['current_hand'] = ['DJ', 'DA', 'DT', 'DQ', 'SA', 'ST', 'S9', 'C9']
     raw_state['trace'] = [(1, 'H7'), (2, 'HQ'), (0, 'HA'),
@@ -606,7 +606,7 @@ def case17_medium(raw_state):
     raw_state['points'] = [23, 11]
     raw_state['blind_hand'] = False
     raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 0, 'H': 0, 'S': 1, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 1, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     raw_state['bid_jacks'] = [0, 1, 0]
 
@@ -632,7 +632,7 @@ def case18_medium(raw_state):
     raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 1, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
-    raw_state['bid_jacks'] = [0, 1, 0]
+    raw_state['bid_jacks'] = [0, 0, 0]
 
     raw_state['current_hand'] = ['HJ', 'DK', 'DQ', 'ST', 'HT', 'CK', 'CQ']
     raw_state['trace'] = [(1, 'H7'), (2, 'H8'), (0, 'DT'),
@@ -916,8 +916,8 @@ def case30_medium(raw_state):
     raw_state['points'] = [7, 11]
     raw_state['blind_hand'] = False
     raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 1, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 1, 'N': 0}]
     raw_state['bid_jacks'] = [0, 0, 0]
 
     raw_state['current_hand'] = ['HJ', 'DA', 'DT', 'DK', 'DQ', 'D9', 'D8', 'D7', 'HQ']
@@ -930,7 +930,7 @@ def case30_medium(raw_state):
     raw_state['others_hand'] = others_cards
     raw_state['actions'] = actions
     raw_state['trick'] = trick
-    return raw_state, ('D7', 'D8', 'D9', 'DQ') # Herz Dame Abwurf verliert das Spiel eventuell!
+    return raw_state, ('D7', 'D8', 'D9', 'DQ', 'DK', 'DT', 'DA', 'HJ') # Herz Dame Abwurf verliert das Spiel eventuell!
 
 def case1_hard(raw_state):
     print("Schweres Youtube Rätsel")

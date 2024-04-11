@@ -7,10 +7,11 @@ if __name__ == '__main__':
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-    NUM_GAMES = 10000
-    MODEL = "skat_30_final"
-    FRAMES = "940"
+    NUM_GAMES = 5000
+    MODEL = "skat_D"
+    FRAMES = "7400"
     BLIND_HAND_CHANCE = 0.1
     NUM_ACTORS = 12
+    GAMETYPE = 'D'
 
-    save_evaluation_duel(MODEL, FRAMES, NUM_GAMES, BLIND_HAND_CHANCE, NUM_ACTORS)
+    save_evaluation_duel(MODEL,FRAMES, NUM_GAMES, BLIND_HAND_CHANCE, NUM_ACTORS, GAMETYPE)
