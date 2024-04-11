@@ -42,7 +42,7 @@ def set_seed(seed):
         random.seed(seed)
 
 
-def act(act_num, env, result, count, num_games, lock):
+def act(act_num, env, result, count, num_games, lock, seed):
     try:
         print('Evaluation Actor ' + str(act_num) + ' started.')
         payoffs = [0 for _ in range(env.num_players)]
@@ -51,7 +51,7 @@ def act(act_num, env, result, count, num_games, lock):
                 if count.value >= num_games:
                     break
                 count.value += 1
-                env.base_seed = count.value
+                env.base_seed = count.value + seed
             _, _payoffs = env.run(is_training=False)
             for i, _ in enumerate(payoffs):
                 with lock:
@@ -63,7 +63,7 @@ def act(act_num, env, result, count, num_games, lock):
         raise e
 
 
-def tournament(env, num, num_actors):
+def tournament(env, num, num_actors, seed):
     ctx = mp.get_context('spawn')
 
     with mp.Manager() as manager:
@@ -75,7 +75,7 @@ def tournament(env, num, num_actors):
         for i in range(num_actors):
             actor = ctx.Process(
                 target=act,
-                args=(i, env, result, count, num, lock))
+                args=(i, env, result, count, num, lock, seed))
             actor.start()
             actor_list.append(actor)
 
@@ -92,7 +92,7 @@ def tournament(env, num, num_actors):
     return payoffs
 
 
-def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D'):
+def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
     print("Starting Evaluation")
     base_folder = 'checkpoints/'
     folder = str(folder)
@@ -112,7 +112,6 @@ def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_a
             base_folder + folder + '/2_' + number + '.pth'
         ]
 
-    seed = 42
     set_seed(seed)
     env = SkatEnv(blind_hand_chance, seed=seed, gametype=gametype)
 
@@ -121,7 +120,7 @@ def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_a
     for _, model_path in enumerate(model_solo):
         agents.append(load_model(model_path))
     env.set_agents(agents)
-    rewards = tournament(env, num_games, num_actors)
+    rewards = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards):
         print(position, model_solo[position], reward)
 
@@ -130,7 +129,7 @@ def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_a
     for _, model_path in enumerate(model_opponent):
         agents.append(load_model(model_path))
     env.set_agents(agents)
-    rewards2 = tournament(env, num_games, num_actors)
+    rewards2 = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards2):
         print(position, model_opponent[position], reward)
 
