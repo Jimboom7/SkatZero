@@ -15,22 +15,27 @@ class Dealer:
         self.np_random.shuffle(self.deck)
 
     def set_player_hands(self, players, gametype):
-        hand_num = 10
-
         for index, player in enumerate(players):
-            current_hand = self.deck[index*hand_num:(index+1)*hand_num]
+            current_hand = self.deck[index*10:(index+1)*10]
             player.current_hand = current_hand
 
+        best_hand_value = 0
         if evaluate_hand_strength(players[1].current_hand, gametype, self.np_random)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]:
             tmp = players[0].current_hand
             players[0].current_hand = players[1].current_hand
             players[1].current_hand = tmp
 
-        if evaluate_hand_strength(players[2].current_hand, gametype, self.np_random)[gametype] > evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]:
+        value2 = evaluate_hand_strength(players[2].current_hand, gametype, self.np_random)[gametype]
+        value1 = evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]
+        best_hand_value = value1
+        if value2 > value1:
             tmp = players[0].current_hand
             players[0].current_hand = players[2].current_hand
             players[2].current_hand = tmp
+            best_hand_value = value2
         self.skat = self.deck[-2:]
+
+        return best_hand_value
 
     def set_bids(self, players):
         diamond = self.np_random.choice(['D', 'H', 'S', 'C'])
@@ -67,7 +72,19 @@ class Dealer:
 
     def deal_cards(self, players, gametype):
         self.shuffle()
-        self.set_player_hands(players, gametype)
+        if gametype == 'N': # Good Null Games are rare: Shuffle a few more times and pick a decent hand
+            best_deck = []
+            best_value = -1000
+            for _ in range(20):
+                self.shuffle()
+                value = self.set_player_hands(players, gametype)
+                if value > best_value:
+                    best_value = value
+                    best_deck = self.deck.copy()
+            self.deck = best_deck
+            self.set_player_hands(players, gametype)
+        else:
+            self.set_player_hands(players, gametype)
         self.set_bids(players)
         players[0].role = 'soloplayer'
         players[1].role = 'opponent'

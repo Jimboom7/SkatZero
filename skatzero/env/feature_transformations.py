@@ -80,7 +80,7 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
                     (base_card[1] == 'J' or base_card[0] == trump))):
                 continue
             if base_card[1] == 'J' or base_card[0] == trump:
-                if trump != 'J':
+                if trump != 'J' and trump is not None: # Grand or Null
                     matrix[card_encoding[trump], :7] = 1
                 matrix[:, 7] = 1
             else:
@@ -105,7 +105,7 @@ def get_card_encoding(state):
     encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
     if state['trump'] == 'D':
         num_d = 10000
-    else: # Grand
+    else: # Grand or Null
         num_d = ((len([d for d in state['current_hand'] if d[0] == 'D' and d[1] != 'J']) * 100) -
                  (len([d for d in state['others_hand'] if d[0] == 'D' and d[1] != 'J']) * 10) +
                  int('DA' in state['current_hand']))
@@ -188,6 +188,29 @@ def get_soloplayer_features(state):
                             bid_jacks_left, # 5
                             bid_jacks_right, # 5
                             blind_hand)) # 1
+
+    if state['trump'] is None: # Null
+        if state['open_hand']:
+            open_hand = np.ones([1,], dtype=np.int8)
+        else:
+            open_hand = np.zeros([1,], dtype=np.int8)
+        obs = np.concatenate((current_hand,  # 32
+                                others_hand,  # 32
+                                trick1,  # 32
+                                trick2,  # 32
+                                skat,  # 32
+                                all_actions,  # 30*35
+                                missing_cards_left,  # 32
+                                opponent_left_played_cards,  # 32
+                                missing_cards_right,  # 32
+                                opponent_right_played_cards,  # 32
+                                bid_left, # 5
+                                bid_right, # 5
+                                bid_jacks_left, # 5
+                                bid_jacks_right, # 5
+                                blind_hand, # 1
+                                open_hand)) # 1
+
     return obs
 
 def get_opponent_features(state):
@@ -234,9 +257,34 @@ def get_opponent_features(state):
                             last_teammate_action,  # 32
                             points_own,  # 121
                             points_opp,  # 121
-                            bid_teammate, # 5
-                            bid_jacks_teammate, # 5
+                            bid_teammate,  # 5
+                            bid_jacks_teammate,  # 5
                             blind_hand))  # 1
+
+    if state['trump'] is None: # Null
+        if state['open_hand']:
+            open_hand = np.ones([1,], dtype=np.int8)
+            soloplayer_open_cards = cards2array(state['soloplayer_open_cards'], card_encoding)
+        else:
+            open_hand = np.zeros([1,], dtype=np.int8)
+            soloplayer_open_cards = cards2array(None, card_encoding)
+        obs = np.concatenate((current_hand,  # 32
+                                others_hand,  # 32
+                                trick1,  # 32
+                                trick2,  # 32
+                                all_actions,  # 30*35
+                                missing_cards_solo,  # 32
+                                soloplayer_played_cards,  # 32
+                                missing_cards_teammate,  # 32
+                                teammate_played_cards,  # 32
+                                last_soloplayer_action,  # 32
+                                last_teammate_action,  # 32
+                                soloplayer_open_cards,  # 32
+                                bid_teammate,  # 5
+                                bid_jacks_teammate,  # 5
+                                blind_hand,  # 1
+                                open_hand))  # 1
+
     return obs
 
 def extract_state(state, legal_actions):

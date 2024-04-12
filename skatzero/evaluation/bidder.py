@@ -15,7 +15,7 @@ class Bidder:
         self.pos = pos
         self.raw_state['self'] = 0
         self.raw_state_cpy = copy.deepcopy(self.raw_state)
-        self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': []}
+        self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
         random.shuffle(self.skat_comb_inds)
@@ -25,7 +25,20 @@ class Bidder:
         return self.raw_state['current_hand']
 
     def prepare_state(self, game_mode, raw_state):
-        if game_mode == 'G':
+        self.env.set_state_shape(game_mode)
+        if game_mode == 'N' or game_mode == 'NO':
+            self.env.game.gametype = 'N'
+            self.env.game.round.gametype = 'N'
+            raw_state['trump'] = None
+            self.env.game.round.trump = None
+            if game_mode == 'NO':
+                self.env.game.open_hand = True
+                raw_state['open_hand'] = True
+            else:
+                self.env.game.open_hand = False
+                raw_state['open_hand'] = False
+            return
+        elif game_mode == 'G':
             self.env.game.gametype = 'G'
             self.env.game.round.gametype = 'G'
             raw_state['trump'] = 'J'
@@ -51,6 +64,8 @@ class Bidder:
             self.env.game.state = original_state
             if raw_state['trump'] == 'J':
                 agent_id = 3
+            elif raw_state['trump'] is None:
+                agent_id = 6
             _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
             return max(vals_cards)
         else:
@@ -74,6 +89,8 @@ class Bidder:
                 agent_id = 0
                 if current_raw_state['trump'] == 'J':
                     agent_id = 3
+                elif current_raw_state['trump'] is None:
+                    agent_id = 6
                 _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
                 values.append(max(vals_cards))
             self.env.game.state = original_state
@@ -82,7 +99,7 @@ class Bidder:
 
     def get_blind_hand_values(self):
         values = []
-        for game_mode in ['C', 'S', 'H', 'D', 'G']:
+        for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
             current_raw_state = copy.deepcopy(self.raw_state_cpy)
             self.prepare_state(game_mode, current_raw_state)
 
@@ -92,8 +109,8 @@ class Bidder:
         return values
 
     def find_best_game_and_discard(self, raw_state_prep):
-        best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': []}
-        for game_mode in ['C', 'S', 'H', 'D', 'G']:
+        best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
+        for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
             raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
             self.prepare_state(game_mode, raw_state_gamemode_prep)
 
@@ -116,8 +133,10 @@ class Bidder:
                 self.env.game.state = current_raw_state
                 state = extract_state(current_raw_state, self.env.get_legal_actions())
                 agent_id = 0
-                if game_mode == 'G':
+                if current_raw_state['trump'] == 'J':
                     agent_id = 3
+                elif current_raw_state['trump'] is None:
+                    agent_id = 6
                 _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
                 if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
                     best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")

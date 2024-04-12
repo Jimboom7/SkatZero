@@ -49,22 +49,30 @@ def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
         if val <= bid_threshold and not raw_bids:
             bid_list.append(0)
             continue
-        if val <= 25 + bid_threshold and not raw_bids: # 25 is average loss of value when others bid
+        if val <= 25 + bid_threshold and not raw_bids and not (i in [5, 6, 12, 13]): # 25 is average loss of value when others bid. Not valid for Null Games. #TODO: Check actual loss in Nullgames
             bid_list.append(18)
             continue
         hand = 0
         base_value = 24
-        if i < 5:
+        if i < 7:
             hand = 1
-        if (i % 5) == 0:
+        if (i % 7) == 0:
             base_value = 12
-        if (i % 5) == 1:
+        if (i % 7) == 1:
             base_value = 11
-        if (i % 5) == 2:
+        if (i % 7) == 2:
             base_value = 10
-        if (i % 5) == 3:
+        if (i % 7) == 3:
             base_value = 9
         bid = (multiplier + hand) * base_value
+        if i == 5: # N
+            bid = 23
+        if i == 12: # NH
+            bid = 35
+        if i == 6: # NO
+            bid = 46
+        if i == 13: # NOH
+            bid = 59
         bid_list.append(bid)
     return bid_list
 
@@ -73,15 +81,15 @@ def prepare_env():
 
     agents = []
 
-    for gametype in ['D', 'G']: #, 'Null']:
+    for gametype in ['D', 'G', 'N']:
         for i in range(0, 3):
             agents.append(load_model(basedir + "/model/" + gametype + "_" + str(i) + ".pth"))
 
-    env = SkatEnv()
+    env = SkatEnv(blind_hand_chance=0, open_hand_chance=0)
 
     env.set_agents(agents)
 
-    raw_state, _ = env.game.init_game(blind_hand=True)
+    raw_state, _ = env.game.init_game(blind_hand=True, open_hand=False)
 
     return agents, env, raw_state
 
@@ -117,7 +125,9 @@ def prepare_state_for_cardplay(raw_state, args):
     if len(args) > 11 and args[11] is not None and args[11] != "":
         raw_state['trace'] = parse_history(args[11], args[1])
 
-    if args[1] == 'G':
+    if args[1] == 'N':
+        played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = None)
+    elif args[1] == 'G':
         played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = 'J')
     else:
         played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = 'D')
@@ -160,12 +170,14 @@ def bid(args, accuracy, bid_threshold):
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
                         sum(mean_estimates['H']) / len(mean_estimates['H']),
                         sum(mean_estimates['D']) / len(mean_estimates['D']),
-                        sum(mean_estimates['G']) / len(mean_estimates['G'])]
+                        sum(mean_estimates['G']) / len(mean_estimates['G']),
+                        sum(mean_estimates['N']) / len(mean_estimates['N']),
+                        sum(mean_estimates['NO']) / len(mean_estimates['NO'])]
 
     all_estimates = pickup_estimates + hand_estimates
     for k, v in enumerate(all_estimates):
         all_estimates[k] = round(v, 2)
-    for i, gametype in enumerate(['C ', 'S ', 'H ', 'D ', 'G', 'CH', 'SH', 'HH', 'DH', 'GH']):
+    for i, gametype in enumerate(['C ', 'S ', 'H ', 'D ', 'G', 'N', 'NO', 'CH', 'SH', 'HH', 'DH', 'GH', 'NH', 'NOH']):
         print(gametype, all_estimates[i])
 
     if args[0] == 'SKAT_OR_HAND_DECL':
@@ -297,7 +309,7 @@ if __name__ == '__main__':
     elif args[0] == 'DISCARD_AND_DECL':
         declare(args)
     elif args[0] == 'CARDPLAY':
-        if args[1] in ['D', 'H', 'S', 'C', 'G']:
-            cardplay(args)
+        if args[1] in ['D', 'H', 'S', 'C', 'G', 'N']:
+            cardplay(args) # TODO: Add open_hand flag and open_solo_hand for Null Ouvert Games. Is args[1] = NO or always N?
         else:
             print("Wrong Gamemode")

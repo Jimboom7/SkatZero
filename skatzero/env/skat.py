@@ -6,11 +6,12 @@ from skatzero.evaluation.seeding import np_random
 
 
 class SkatEnv(object):
-    def __init__(self, blind_hand_chance = 0.1, seed=None, gametype='D'):
+    def __init__(self, blind_hand_chance = 0.1, seed=None, gametype='D', open_hand_chance = 0.1):
         self.name = 'skat'
         self.game = Game(gametype=gametype)
 
         self.blind_hand_chance = blind_hand_chance
+        self.open_hand_chance = open_hand_chance # Only used for Null Games!
 
         self.num_players = self.game.get_num_players()
         self.num_actions = self.game.get_num_actions()
@@ -23,14 +24,23 @@ class SkatEnv(object):
         self.agents = None
 
         self.state_shape = [[1601], [1623], [1623]]
+        self.set_state_shape(gametype)
+
         self.action_shape = [[32] for _ in range(self.num_players)]
+
+    def set_state_shape(self, gametype):
+        if gametype == 'N':
+            self.state_shape = [[1360], [1414], [1414]]
+        else:
+            self.state_shape = [[1601], [1623], [1623]]
 
     def reset(self):
         if self.base_seed is not None:
             self.base_seed += 1
             self.seed(self.base_seed)
         is_blind_hand = self.np_random.rand() < self.blind_hand_chance
-        state, player_id = self.game.init_game(blind_hand=is_blind_hand)
+        is_open_hand = self.np_random.rand() < self.open_hand_chance
+        state, player_id = self.game.init_game(blind_hand=is_blind_hand, open_hand=is_open_hand)
         return self.extract_state(state), player_id
 
     def step(self, action):
@@ -49,7 +59,6 @@ class SkatEnv(object):
 
         trajectories[player_id].append(state)
         while not self.is_over():
-
             if not is_training:
                 action, _ = self.agents[player_id].eval_step(state)
                 if verbose > 0:

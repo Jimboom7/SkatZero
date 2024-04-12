@@ -51,12 +51,12 @@ def construct_state_from_history(current_hand, card_history, skat, trump='D'):
         trick.append(card_history[-1])
 
     if len(trick) == 0:
-        actions = available_actions(current_hand)
+        actions = available_actions(current_hand, suit=None, trump=trump)
     else:
         suit = trick[0][1][0]
-        if trick[0][1][1] == 'J':
+        if trick[0][1][1] == 'J' and trump is not None:
             suit = trump
-        actions = available_actions(current_hand, suit)
+        actions = available_actions(current_hand, suit, trump)
 
     return played_cards, others_cards, trick, actions
 
@@ -64,7 +64,7 @@ def available_actions(current_hand, suit=None, trump='D'):
     playable_cards = []
     if suit is not None:
         for card in current_hand:
-            if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'): # TODO: Für Null hier linken Teil anpassen
+            if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J') or (card[0] == suit and trump is None):
                 playable_cards.append(card)
 
     if suit is None or not playable_cards:

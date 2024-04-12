@@ -29,7 +29,8 @@ class Round:
         else:
             self.current_player = starting_player
         self.public = {'deck': self.dealer.deck, 'soloplayer': self.soloplayer_id,
-                       'trace': self.trace, 'played_cards': ['' for _ in range(len(players))]}
+                       'trace': self.trace, 'played_cards': ['' for _ in range(len(players))],
+                       'soloplayer_open_cards': players[0].current_hand}
         self.current_suit = None
         self.current_trick = []
         self.solo_points = get_points(self.dealer.skat[0]) + get_points(self.dealer.skat[1])
@@ -38,16 +39,20 @@ class Round:
         self.trump = 'D'
         if self.gametype == 'G':
             self.trump = 'J'
+        elif self.gametype == 'N':
+            self.trump = None
         self.played_cards = [[], [], []]
 
-    def update_public(self, action):
+    def update_public(self, player, action):
         self.trace.append((self.current_player, action))
         self.played_cards[self.current_player].append(action)
+        if self.current_player == 0:
+            self.public['soloplayer_open_cards'] = player.current_hand
         self.public['played_cards'] = [self.played_cards[0], self.played_cards[1], self.played_cards[2]]
 
     def proceed_round(self, player, action):
-        self.update_public(action)
         player.play(action)
+        self.update_public(player, action)
 
         self.current_trick.append((player, action))
 
