@@ -73,18 +73,18 @@ def get_averages(model, version):
     for i in range(50):
         res = ""
         for j, x in enumerate(detailed_list):
-            res += str(j * 10) + "," + str(x[i]) + "\n"
-        with open("testresults/test_" + str(i + 1) + ".csv", "a+", encoding='utf-8') as logfile:
+            res += str((j + 1) * 10) + "," + str(x[i]) + "\n"
+        with open("testresults/testcases/test_" + str(i + 1) + ".csv", "a+", encoding='utf-8') as logfile:
             logfile.write(res)
 
 if __name__ == '__main__':
     MODEL = "skat_D"
-    FRAMES = 7800
+    FRAMES = 7960
 
     #run_testsuite(MODEL, FRAMES)
 
-    #for i in range(7770, FRAMES + 10, 10):
-    #    run_testsuite(MODEL, i)
+    for i in range(7890, FRAMES + 10, 10):
+        run_testsuite(MODEL, i)
 
 
-    get_averages(MODEL, FRAMES)
+    #get_averages(MODEL, FRAMES)

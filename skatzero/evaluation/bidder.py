@@ -44,8 +44,11 @@ class Bidder:
 
     def simulate_player_discards(self, raw_state):
         if self.pos == "0": # Forehand: No discards
+            original_state = copy.deepcopy(self.env.game.state)
+            self.env.game.state = raw_state
             state = extract_state(raw_state, self.env.get_legal_actions())
             agent_id = 0
+            self.env.game.state = original_state
             if raw_state['trump'] == 'J':
                 agent_id = 3
             _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
