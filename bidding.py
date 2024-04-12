@@ -6,9 +6,10 @@ from skatzero.evaluation.bidder import Bidder
 
 if __name__ == '__main__':
 
-    MODEL = "model/0.pth"
+    MODEL = "checkpoints/skat_D/0_6000.pth"
 
-    env, raw_state = prepare_env(MODEL, True)
+    env, raw_state = prepare_env(MODEL, False)
+    raw_state['skat'] = []
     bidder = Bidder(env, raw_state)
     hand_cards = bidder.get_hand_cards()
     for card in hand_cards:

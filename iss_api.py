@@ -275,9 +275,9 @@ def cardplay(model, version, args):
 
 
 if __name__ == '__main__':
-    MODEL = "skat_30_final"
-    FRAMES = 6200 #6040
-    ACCURACY = 1 # Number of Iterations for Skat simulation
+    MODEL = "skat_D"
+    FRAMES = 7400
+    ACCURACY = 50 # Number of Iterations for Skat simulation
     BID_THRESHOLD = 0 # How aggressive should the AI bid? 0 is average best return, lower values mean more aggressive
 
     args = sys.argv[1:]

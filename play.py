@@ -1,14 +1,20 @@
 from skatzero.agents.rule_based_agent import RuleBasedAgent
-from skatzero.evaluation.simulation import load_model
+from skatzero.evaluation.simulation import load_model, set_seed
 from skatzero.agents.human_agent import HumanAgent
 from skatzero.env.skat import SkatEnv
 
 if __name__ == '__main__':
-    env = SkatEnv()
 
-    agent_0 = load_model('checkpoints/skat_20_flexible_suits/0_60.pth')
-    agent_1 = HumanAgent(env.num_actions)
-    agent_2 = RuleBasedAgent(env.num_actions)
+    seed = 42
+    set_seed(seed)
+
+    env = SkatEnv(0, seed=seed, gametype='Grand')
+
+    agent_0 = load_model('checkpoints/skat_grand/0_200.pth')
+    #agent_1 = HumanAgent(env.num_actions)
+    #agent_2 = RuleBasedAgent(env.num_actions)
+    agent_1 = load_model('checkpoints/skat_grand/1_200.pth')
+    agent_2 = load_model('checkpoints/skat_grand/2_200.pth')
 
     env.set_agents([
         agent_0,
