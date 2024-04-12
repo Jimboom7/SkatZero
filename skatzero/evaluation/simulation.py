@@ -92,50 +92,53 @@ def tournament(env, num, num_actors, seed):
     return payoffs
 
 
-def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
+def save_evaluation_duel(folder, model1, model2, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
     print("Starting Evaluation")
     base_folder = 'checkpoints/'
     folder = str(folder)
-    number = str(number)
+    number1 = str(model1)
+    number2 = str(model2)
 
-    model_solo = [
-            base_folder + folder + '/0_' + number + '.pth',
-            base_folder + folder + '/1_6000.pth',
-            base_folder + folder + '/2_6000.pth',
-            #'random',
-            #'random'
+    models_solo = [
+            base_folder + folder + '/0_' + number1 + '.pth',
+            base_folder + folder + '/1_' + number2 + '.pth',
+            base_folder + folder + '/2_' + number2 + '.pth'
         ]
-    model_opponent = [
-            #'random',
-            base_folder + folder + '/0_6000.pth',
-            base_folder + folder + '/1_' + number + '.pth',
-            base_folder + folder + '/2_' + number + '.pth'
+    models_opponent = [
+            base_folder + folder + '/0_' + number2 + '.pth',
+            base_folder + folder + '/1_' + number1 + '.pth',
+            base_folder + folder + '/2_' + number1 + '.pth'
         ]
+
+    if number2 == 'random':
+        models_solo[1] = 'random'
+        models_solo[2] = 'random'
+        models_opponent[0] = 'random'
 
     set_seed(seed)
     env = SkatEnv(blind_hand_chance, seed=seed, gametype=gametype)
 
     # Evaluation 1: Soloplayer
     agents = []
-    for _, model_path in enumerate(model_solo):
+    for _, model_path in enumerate(models_solo):
         agents.append(load_model(model_path))
     env.set_agents(agents)
     rewards = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards):
-        print(position, model_solo[position], reward)
+        print(position, models_solo[position], reward)
 
     # Evaluation 2: Opponents
     agents = []
-    for _, model_path in enumerate(model_opponent):
+    for _, model_path in enumerate(models_opponent):
         agents.append(load_model(model_path))
     env.set_agents(agents)
     rewards2 = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards2):
-        print(position, model_opponent[position], reward)
+        print(position, models_opponent[position], reward)
 
     print("Score: " + str(rewards[0] - rewards2[0]))
-    with open(base_folder + "/evaluate_log.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(folder) + "," + str(number) + "," + str(num_games) + "," + str(round(rewards[0] - rewards2[0], 2)) + "\n")
+    with open("testresults/evaluate_log.csv", "a", encoding='utf-8') as logfile:
+        logfile.write(str(folder) + "," + str(number1) + "," + str(number2) + "," + str(num_games) + "," + str(round(rewards[0] - rewards2[0], 2)) + "\n")
 
 
 def get_bidding_data(player, random_game=False):

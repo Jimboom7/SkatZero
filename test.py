@@ -51,7 +51,7 @@ def run_testsuite(model, version):
     print("Score for Passed: " + str(c_score / correct))
     print("Correct: " + str(correct) + "/" + str(len(testcases)))
 
-    with open("test_results.csv", "a", encoding='utf-8') as logfile:
+    with open("testresults/test_results.csv", "a", encoding='utf-8') as logfile:
         logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score + w_score) / len(testcases)) + "\n")
         # Plot: https://list2chart.com/csv-to-chart/
     return correct, ((c_score + w_score) / len(testcases)), results
@@ -68,7 +68,7 @@ def get_averages(model, version):
         moving_average_c.append(correct)
         moving_average_d.append(diff)
         detailed_list.append(results)
-        with open("test_results_avg.csv", "a", encoding='utf-8') as logfile:
+        with open("testresults/test_results_avg.csv", "a", encoding='utf-8') as logfile:
             logfile.write(str(model) + "," + str(i) + "," + str(statistics.fmean(moving_average_c)) + "," + str(statistics.fmean(moving_average_d)) + "\n")
     for i in range(50):
         res = ""
@@ -79,11 +79,11 @@ def get_averages(model, version):
 
 if __name__ == '__main__':
     MODEL = "skat_D"
-    FRAMES = 7420
+    FRAMES = 7640
 
     #run_testsuite(MODEL, FRAMES)
 
-    for i in range(7410, FRAMES + 10, 10):
+    for i in range(7640, FRAMES + 10, 10):
         run_testsuite(MODEL, i)
 
 
