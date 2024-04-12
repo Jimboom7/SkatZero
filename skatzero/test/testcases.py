@@ -932,6 +932,35 @@ def case30_medium(raw_state):
     raw_state['trick'] = trick
     return raw_state, ('D7', 'D8', 'D9', 'DQ', 'DK', 'DT', 'DA', 'HJ') # Herz Dame Abwurf verliert das Spiel eventuell!
 
+def case31_medium(raw_state):
+    print("Beispiel von ISS")
+    raw_state['self'] = 0
+    raw_state['points'] = [64, 36]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 1},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['H8', 'HK', 'S9']
+    raw_state['trace'] = [(2, 'C8'), (0, 'CA'), (1, 'C7'),
+                          (0, 'CT'), (1, 'CK'), (2, 'C9'),
+                          (0, 'SA'), (1, 'S7'), (2, 'SQ'),
+                          (0, 'H7'), (1, 'SK'), (2, 'HQ'),
+                          (2, 'SJ'), (0, 'CJ'), (1, 'D7'),
+                          (0, 'DJ'), (1, 'HJ'), (2, 'DK'),
+                          (1, 'D9'), (2, 'DA'), (0, 'DT'),
+                          (2, 'CQ')]
+    raw_state['skat'] = ['HT', 'HA']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    return raw_state, ('H8', 'S9') # Ist eh sicher ein "normaler" Win, aber Herz König kann noch Stich machen und ein paar "nutzlose" Augen mehr
+
 def case1_hard(raw_state):
     print("Schweres Youtube Rätsel")
     # Schweres Rätsel: https://www.youtube.com/watch?v=7VCsp3BiJvQ - Nur Herz Ass führt zum Sieg

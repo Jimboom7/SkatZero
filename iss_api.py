@@ -102,7 +102,7 @@ def prepare_state_for_cardplay(raw_state, args):
         raw_state['skat'] = [args[7], args[8]]
     else:
         raw_state['skat'] = []
-    raw_state['hand'] = bool(args[9])
+    raw_state['blind_hand'] = bool(int(args[9]))
 
     if args[1] in ['H', 'S', 'C']:
         raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', args[1])
