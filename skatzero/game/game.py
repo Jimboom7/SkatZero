@@ -77,7 +77,7 @@ class Game:
         payoffs = np.array([0, 0, 0], dtype=float)
 
         base_value = 10
-        if self.gametype == 'Grand':
+        if self.gametype == 'G':
             base_value = 24
 
         if self.black_opponent:

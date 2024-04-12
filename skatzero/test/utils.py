@@ -55,7 +55,7 @@ def construct_state_from_history(current_hand, card_history, skat, trump='D'):
     else:
         suit = trick[0][1][0]
         if trick[0][1][1] == 'J':
-            suit = trump # TODO: Wenn Trumpf nicht Diamond ist (Grand) -> Code ändern
+            suit = trump
         actions = available_actions(current_hand, suit)
 
     return played_cards, others_cards, trick, actions
@@ -64,7 +64,7 @@ def available_actions(current_hand, suit=None, trump='D'):
     playable_cards = []
     if suit is not None:
         for card in current_hand:
-            if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'):
+            if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'): # TODO: Für Null hier linken Teil anpassen
                 playable_cards.append(card)
 
     if suit is None or not playable_cards:

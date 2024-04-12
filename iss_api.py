@@ -10,7 +10,10 @@ from skatzero.test.utils import available_actions, construct_state_from_history
 def parse_history(history, trump): # Parsing history in the form of "1HT,2HA,0H8,..."
     cards = []
     for triplet in history.split(','):
-        card = swap_colors([triplet[1] + triplet[2]], 'D', trump)[0]
+        if trump in ['H', 'S', 'C']:
+            card = swap_colors([triplet[1] + triplet[2]], 'D', trump)[0]
+        else:
+            card = triplet[1] + triplet[2]
         cards.append((int(triplet[0]), card))
     return cards
 
@@ -50,35 +53,29 @@ def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
             bid_list.append(18)
             continue
         hand = 0
-        base_value = 9
-        if i < 4:
+        base_value = 24
+        if i < 5:
             hand = 1
-        if (i % 4) == 0:
+        if (i % 5) == 0:
             base_value = 12
-        if (i % 4) == 1:
+        if (i % 5) == 1:
             base_value = 11
-        if (i % 4) == 2:
+        if (i % 5) == 2:
             base_value = 10
+        if (i % 5) == 3:
+            base_value = 9
         bid = (multiplier + hand) * base_value
         bid_list.append(bid)
     return bid_list
 
-def prepare_env(model, version):
-    BASEDIR = os.path.dirname(os.path.realpath(__file__))
-
-    MODEL1 = BASEDIR + "/checkpoints/" + model + "/0_" + str(version) + ".pth"
-    MODEL2 = BASEDIR + "/checkpoints/" + model + "/1_" + str(version) + ".pth"
-    MODEL3 = BASEDIR + "/checkpoints/" + model + "/2_" + str(version) + ".pth"
-
-    models = [
-            MODEL1,
-            MODEL2,
-            MODEL3
-        ]
+def prepare_env():
+    basedir = os.path.dirname(os.path.realpath(__file__))
 
     agents = []
-    for _, model_path in enumerate(models):
-        agents.append(load_model(model_path))
+
+    for gametype in ['D', 'G']: #, 'Null']:
+        for i in range(0, 3):
+            agents.append(load_model(basedir + "/model/" + gametype + "_" + str(i) + ".pth"))
 
     env = SkatEnv()
 
@@ -107,11 +104,12 @@ def prepare_state_for_cardplay(raw_state, args):
         raw_state['skat'] = []
     raw_state['hand'] = bool(args[9])
 
-    raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', args[1])
-    raw_state['skat'] = swap_colors(raw_state['skat'], 'D', args[1])
-    raw_state['trace'] = swap_colors(raw_state['trace'], 'D', args[1])
-    bids[1] = swap_bids(bids[1], 'D', args[1])
-    bids[2] = swap_bids(bids[2], 'D', args[1])
+    if args[1] in ['H', 'S', 'C']:
+        raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', args[1])
+        raw_state['skat'] = swap_colors(raw_state['skat'], 'D', args[1])
+        raw_state['trace'] = swap_colors(raw_state['trace'], 'D', args[1])
+        bids[1] = swap_bids(bids[1], 'D', args[1])
+        bids[2] = swap_bids(bids[2], 'D', args[1])
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
@@ -119,7 +117,10 @@ def prepare_state_for_cardplay(raw_state, args):
     if len(args) > 11 and args[11] is not None and args[11] != "":
         raw_state['trace'] = parse_history(args[11], args[1])
 
-    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+    if args[1] == 'G':
+        played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = 'J')
+    else:
+        played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = 'D')
 
     raw_state['played_cards'] = played_cards
     raw_state['others_hand'] = others_cards
@@ -128,8 +129,8 @@ def prepare_state_for_cardplay(raw_state, args):
 
     return raw_state
 
-def bid(model, version, args, accuracy, bid_threshold):
-    _, env, raw_state = prepare_env(model, version)
+def bid(args, accuracy, bid_threshold):
+    _, env, raw_state = prepare_env()
 
     raw_state['current_hand'] = [card for card in args[1].split(',')]
     others_cards = init_32_deck()
@@ -158,12 +159,13 @@ def bid(model, version, args, accuracy, bid_threshold):
     pickup_estimates = [sum(mean_estimates['C']) / len(mean_estimates['C']),
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
                         sum(mean_estimates['H']) / len(mean_estimates['H']),
-                        sum(mean_estimates['D']) / len(mean_estimates['D'])]
+                        sum(mean_estimates['D']) / len(mean_estimates['D']),
+                        sum(mean_estimates['G']) / len(mean_estimates['G'])]
 
     all_estimates = pickup_estimates + hand_estimates
     for k, v in enumerate(all_estimates):
         all_estimates[k] = round(v, 2)
-    for i, gametype in enumerate(['C ', 'S ', 'H ', 'D ', 'CH', 'SH', 'HH', 'DH']):
+    for i, gametype in enumerate(['C ', 'S ', 'H ', 'D ', 'G', 'CH', 'SH', 'HH', 'DH', 'GH']):
         print(gametype, all_estimates[i])
 
     if args[0] == 'SKAT_OR_HAND_DECL':
@@ -179,13 +181,15 @@ def bid(model, version, args, accuracy, bid_threshold):
             return
         else:
             gametype = hand_estimates.index(max(hand_estimates))
-            str_type = 'D'
+            str_type = 'G'
             if gametype == 0:
                 str_type = 'C'
             if gametype == 1:
                 str_type = 'S'
             if gametype == 2:
                 str_type = 'H'
+            if gametype == 3:
+                str_type = 'D'
             print(str_type + 'H')
             return
     elif args[0] == 'BID':
@@ -194,8 +198,8 @@ def bid(model, version, args, accuracy, bid_threshold):
         print(str(highest_bid))
         return
 
-def declare(model, version, args):
-    _, env, raw_state = prepare_env(model, version)
+def declare(args):
+    _, env, raw_state = prepare_env()
 
     raw_state['current_hand'] = [card for card in args[1].split(',')]
     others_cards = init_32_deck()
@@ -224,6 +228,8 @@ def declare(model, version, args):
     best = -999
     for key, value in bidder.estimates.items():
         base_value = 9
+        if key == 'G':
+            base_value = 24
         if key == 'C':
             base_value = 12
         elif key == 'S':
@@ -253,14 +259,18 @@ def declare(model, version, args):
     print(gametype + "." + skat[0] + "." + skat[1])
 
 
-def cardplay(model, version, args):
-    agents, env, raw_state = prepare_env(model, version)
+def cardplay(args):
+    agents, env, raw_state = prepare_env()
 
     raw_state = prepare_state_for_cardplay(raw_state, args)
 
     state = env.extract_state(raw_state)
 
-    _, info = agents[raw_state['self']].eval_step(state, True)
+    agent_mode = 0
+    if args[1] == 'G':
+        agent_mode = 3
+
+    _, info = agents[agent_mode + raw_state['self']].eval_step(state, True)
 
     card_to_play = max(info['values'], key=info['values'].get)
     card_to_play = swap_colors([card_to_play], 'D', args[1])[0]
@@ -275,21 +285,19 @@ def cardplay(model, version, args):
 
 
 if __name__ == '__main__':
-    MODEL = "skat_D"
-    FRAMES = 7400
     ACCURACY = 50 # Number of Iterations for Skat simulation
     BID_THRESHOLD = 0 # How aggressive should the AI bid? 0 is average best return, lower values mean more aggressive
 
     args = sys.argv[1:]
 
     if args[0] == 'BID':
-        bid(MODEL, FRAMES, args, ACCURACY, BID_THRESHOLD)
+        bid(args, ACCURACY, BID_THRESHOLD)
     elif args[0] == 'SKAT_OR_HAND_DECL':
-        bid(MODEL, FRAMES, args, ACCURACY, BID_THRESHOLD)
+        bid(args, ACCURACY, BID_THRESHOLD)
     elif args[0] == 'DISCARD_AND_DECL':
-        declare(MODEL, FRAMES, args)
+        declare(args)
     elif args[0] == 'CARDPLAY':
-        if args[1] in ['D', 'H', 'S', 'C']:
-            cardplay(MODEL, FRAMES, args)
+        if args[1] in ['D', 'H', 'S', 'C', 'G']:
+            cardplay(args)
         else:
             print("Wrong Gamemode")

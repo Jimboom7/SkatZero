@@ -80,7 +80,7 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
                     (base_card[1] == 'J' or base_card[0] == trump))):
                 continue
             if base_card[1] == 'J' or base_card[0] == trump:
-                if trump is not None:
+                if trump != 'J':
                     matrix[card_encoding[trump], :7] = 1
                 matrix[:, 7] = 1
             else:

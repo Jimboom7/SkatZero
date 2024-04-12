@@ -15,7 +15,7 @@ class Bidder:
         self.pos = pos
         self.raw_state['self'] = 0
         self.raw_state_cpy = copy.deepcopy(self.raw_state)
-        self.estimates = {'C': [], 'S': [], 'H': [], 'D': []}
+        self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': []}
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
         random.shuffle(self.skat_comb_inds)
@@ -25,6 +25,12 @@ class Bidder:
         return self.raw_state['current_hand']
 
     def prepare_state(self, game_mode, raw_state):
+        if game_mode == 'G':
+            self.env.game.gametype = 'G'
+            self.env.game.round.gametype = 'G'
+            raw_state['trump'] = 'J'
+            self.env.game.round.trump = 'J'
+            return
         raw_state['trump'] = 'D'
         self.env.game.round.trump = 'D'
 
@@ -39,7 +45,10 @@ class Bidder:
     def simulate_player_discards(self, raw_state):
         if self.pos == "0": # Forehand: No discards
             state = extract_state(raw_state, self.env.get_legal_actions())
-            _, vals_cards = self.env.agents[0].predict(state, raw=True)
+            agent_id = 0
+            if raw_state['trump'] == 'J':
+                agent_id = 3
+            _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
             return max(vals_cards)
         else:
             values = []
@@ -48,7 +57,8 @@ class Bidder:
                 current_raw_state = copy.deepcopy(raw_state)
 
                 current_raw_state['trace'].append((2, card))
-                played_cards, others_cards, trick, actions = construct_state_from_history(current_raw_state['current_hand'], current_raw_state['trace'], current_raw_state['skat'])
+                played_cards, others_cards, trick, actions = construct_state_from_history(current_raw_state['current_hand'], current_raw_state['trace'],
+                                                                                          current_raw_state['skat'], trump = raw_state['trump'])
 
                 current_raw_state['played_cards'] = played_cards
                 current_raw_state['others_hand'] = others_cards
@@ -58,26 +68,18 @@ class Bidder:
                 self.env.game.state = current_raw_state
                 state = extract_state(current_raw_state, self.env.get_legal_actions())
 
-                _, vals_cards = self.env.agents[0].predict(state, raw=True)
+                agent_id = 0
+                if current_raw_state['trump'] == 'J':
+                    agent_id = 3
+                _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
                 values.append(max(vals_cards))
             self.env.game.state = original_state
             values.sort()
             return sum(values[:5]) / 5
 
-    def available_actions(self, hand, suit, trump):
-        playable_cards = []
-        for card in hand:
-            if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'):
-                playable_cards.append(card)
-
-        if not playable_cards:
-            return hand
-
-        return playable_cards
-
     def get_blind_hand_values(self):
         values = []
-        for game_mode in ['C', 'S', 'H', 'D']:
+        for game_mode in ['C', 'S', 'H', 'D', 'G']:
             current_raw_state = copy.deepcopy(self.raw_state_cpy)
             self.prepare_state(game_mode, current_raw_state)
 
@@ -87,8 +89,8 @@ class Bidder:
         return values
 
     def find_best_game_and_discard(self, raw_state_prep):
-        best_discard = {'C': [], 'S': [], 'H': [], 'D': []}
-        for game_mode in ['C', 'S', 'H', 'D']:
+        best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': []}
+        for game_mode in ['C', 'S', 'H', 'D', 'G']:
             raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
             self.prepare_state(game_mode, raw_state_gamemode_prep)
 
@@ -110,7 +112,10 @@ class Bidder:
 
                 self.env.game.state = current_raw_state
                 state = extract_state(current_raw_state, self.env.get_legal_actions())
-                _, vals_cards = self.env.agents[0].predict(state, raw=True)
+                agent_id = 0
+                if game_mode == 'G':
+                    agent_id = 3
+                _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
                 if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
                     best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")
                     best_state = current_raw_state

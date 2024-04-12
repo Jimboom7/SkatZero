@@ -31,9 +31,7 @@ class Player:
         playable_cards = []
         if suit is not None:
             for card in self.current_hand:
-                if suit == 'J' and card[1] == 'J': # Grand
-                    playable_cards.append(card)
-                elif (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'):
+                if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'): # TODO: Für Null hier linken Teil anpassen
                     playable_cards.append(card)
 
         if suit is None or not playable_cards:

@@ -36,8 +36,8 @@ class Round:
         self.opponent_points = 0
         self.winners = []
         self.trump = 'D'
-        if self.gametype == 'Grand':
-            self.trump = None
+        if self.gametype == 'G':
+            self.trump = 'J'
         self.played_cards = [[], [], []]
 
     def update_public(self, action):
@@ -53,10 +53,8 @@ class Round:
 
         if len(self.current_trick) == 1:
             self.current_suit = action[0]
-            if action[1] == "J":
+            if action[1] == "J" and self.trump is not None:
                 self.current_suit = self.trump
-                if self.trump is None:
-                    self.current_suit = 'J'
 
     def find_last_played_card_in_trace(self, player_id):
         for i in range(len(self.trace) - 1, -1, -1):

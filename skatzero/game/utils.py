@@ -12,13 +12,13 @@ def init_32_deck():
     res = [suit + rank for suit in card_suits for rank in card_ranks]
     return res
 
-def compare_cards(card1, card2, trump, current_suit):
+def compare_cards(card1, card2, trump, current_suit): # TODO: Für Null anpassen
     if card1[1] == "J" and card2[1] == "J": # Two Jacks
         return card_suit_as_number[card1[0]] > card_suit_as_number[card2[0]]
     if card1[1] == "J" or card2[1] == "J": # One Jack
         return card1[1] == "J"
     if card1[0] != card2[0]: # Different suites
-        if trump is None:
+        if trump == 'J': # Grand
             return card1
         return (card1[0] == current_suit and card2[0] != trump) or card1[0] == trump
     return is_card_higher(card1, card2)
@@ -75,13 +75,13 @@ def evaluate_grand_card(card):
 
 
 def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=None):
-    if gametype == 'Grand':
+    if gametype == 'G':
         strength = 0
         for c in cards:
             strength += evaluate_grand_card(c)
         if np_random is None:
-            return {'Grand': strength}
-        return {'Grand': strength * np_random.uniform(0.85, 1.15)}
+            return {'G': strength}
+        return {'G': strength * np_random.uniform(0.85, 1.15)}
     strength = {'D': 0, 'H': 0, 'S': 0, 'C': 0}
     for suit in gametype:
         s = 0
