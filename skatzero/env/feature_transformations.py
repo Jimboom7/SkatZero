@@ -109,12 +109,14 @@ def get_card_encoding(state):
     encoding_values = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
 
     for x in ['D', 'H', 'S', 'C']:
-        encoding_values[x] = ((len([d for d in state['current_hand'] if d[0] == x and d[1] != 'J']) * 100) -
-                    (len([d for d in state['others_hand'] if d[0] == x and d[1] != 'J']) * 10))
         if state['trump'] is None:
-            encoding_values[x] -= int(x + '7' in state['others_hand'])
+            encoding_values[x] = ((len([d for d in state['current_hand'] if d[0] == x]) * 100) -
+                    (len([d for d in state['others_hand'] if d[0] == x]) * 10) -
+                    int(x + '7' in state['current_hand']))
         else:
-            encoding_values[x] += int(x + 'A' in state['current_hand'])
+            encoding_values[x] = ((len([d for d in state['current_hand'] if d[0] == x and d[1] != 'J']) * 100) -
+                    (len([d for d in state['others_hand'] if d[0] == x and d[1] != 'J']) * 10) +
+                    int(x + 'A' in state['current_hand']))
 
     if state['trump'] == 'D':
         encoding_values['D'] = 10000
