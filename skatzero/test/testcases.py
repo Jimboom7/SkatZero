@@ -1214,3 +1214,29 @@ def case10_hard(raw_state):
     raw_state['actions'] = actions
     raw_state['trick'] = trick
     return raw_state, ('C7') # Damit man die 2 Farben fürs Endspiel hat (Nächster Zug mit König an Stich, dann mit Karo höchste Karte haben)
+
+def case1_grand(raw_state):
+    print("Grand: Realer Fall")
+    raw_state['self'] = 0
+    raw_state['points'] = [12, 4]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CT','CA','S7','ST','SK','SA','HT','HA']
+    raw_state['trace'] = [(1, 'DT'), (2, 'D7'), (0, 'DJ'),
+                          (0, 'HJ'), (1, 'S8'), (2, 'SJ'),
+                          (2, 'DK')]
+
+    raw_state['skat'] = ['H7', 'H9']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('S7') # Nicht Pik 10 schmeißen...
