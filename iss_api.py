@@ -93,7 +93,7 @@ def prepare_env():
 
     return agents, env, raw_state
 
-def prepare_state_for_cardplay(raw_state, args):
+def prepare_state_for_cardplay(raw_state, env, args):
     raw_state['current_hand'] = [card for card in args[2].split(',')]
     raw_state['self'] = int(args[10])
     raw_state['points'] = [int(args[3]), int(args[4])]
@@ -118,12 +118,26 @@ def prepare_state_for_cardplay(raw_state, args):
         raw_state['trace'] = swap_colors(raw_state['trace'], 'D', args[1])
         bids[1] = swap_bids(bids[1], 'D', args[1])
         bids[2] = swap_bids(bids[2], 'D', args[1])
+    if args[1] == 'N':
+        raw_state['trump'] = None
+        env.game.round.trump = None
+        env.game.gametype = 'N'
+        env.game.round.gametype = 'N'
+    if args[1] == 'G':
+        raw_state['trump'] = 'J'
+        env.game.round.trump = 'J'
+        env.game.gametype = 'G'
+        env.game.round.gametype = 'G'
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
+    raw_state['soloplayer_open_hand'] = []
+    if args[11] != '??':
+        raw_state['soloplayer_open_hand'] = args[11].split(',')
+
     raw_state['trace'] = []
-    if len(args) > 11 and args[11] is not None and args[11] != "":
-        raw_state['trace'] = parse_history(args[11], args[1])
+    if len(args) > 12 and args[12] is not None and args[12] != "":
+        raw_state['trace'] = parse_history(args[12], args[1])
 
     if args[1] == 'N':
         played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = None)
@@ -183,17 +197,17 @@ def bid(args, accuracy, bid_threshold):
     if args[0] == 'SKAT_OR_HAND_DECL':
         bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, True)
         for i, _ in enumerate(pickup_estimates): # TODO: Kreuz etc. Value mit einrechnen?
-            if bid_list[i + 4] < int(args[5]):
+            if bid_list[i] < int(args[5]):
                 pickup_estimates[i] = -100
         for i, _ in enumerate(hand_estimates):
-            if bid_list[i] < int(args[5]):
+            if bid_list[i + 7] < int(args[5]):
                 hand_estimates[i] = -100
         if max(pickup_estimates) > max(hand_estimates):
             print('s')
             return
         else:
             gametype = hand_estimates.index(max(hand_estimates))
-            str_type = 'G'
+            str_type = 'NO'
             if gametype == 0:
                 str_type = 'C'
             if gametype == 1:
@@ -202,6 +216,10 @@ def bid(args, accuracy, bid_threshold):
                 str_type = 'H'
             if gametype == 3:
                 str_type = 'D'
+            if gametype == 4:
+                str_type = 'G'
+            if gametype == 5:
+                str_type = 'N'
             print(str_type + 'H')
             return
     elif args[0] == 'BID':
@@ -250,7 +268,16 @@ def declare(args):
             base_value = 10
         elif key == 'D':
             base_value = 9
-        if multiplier * base_value < int(args[5]):
+        bid = multiplier * base_value
+        if key == 'N':
+            bid = 23
+        if key == 'NH':
+            bid = 35
+        if key == 'NO':
+            bid = 46
+        if key == 'NOH':
+            bid = 59
+        if bid < int(args[5]):
             continue
         if value[0] > best:
             best = value[0]
@@ -274,24 +301,30 @@ def declare(args):
 def cardplay(args):
     agents, env, raw_state = prepare_env()
 
-    raw_state = prepare_state_for_cardplay(raw_state, args)
+    raw_state = prepare_state_for_cardplay(raw_state, env, args)
 
     state = env.extract_state(raw_state)
 
     agent_mode = 0
     if args[1] == 'G':
         agent_mode = 3
+    if args[1] == 'N':
+        agent_mode = 6
 
     _, info = agents[agent_mode + raw_state['self']].eval_step(state, True)
 
     card_to_play = max(info['values'], key=info['values'].get)
-    card_to_play = swap_colors([card_to_play], 'D', args[1])[0]
+    if args[1] in ['H', 'S', 'C']:
+        card_to_play = swap_colors([card_to_play], 'D', args[1])[0]
 
     for k, v in info['values'].items():
         info['values'][k] = round(v, 2)
     sorted_dict = sorted(info['values'].items(), key=lambda x: -x[1])
     for tpl in sorted_dict:
-        print(swap_colors([tpl[0]], 'D', args[1])[0], tpl[1])
+        if args[1] in ['H', 'S', 'C']:
+            print(swap_colors([tpl[0]], 'D', args[1])[0], tpl[1])
+        else:
+            print(tpl[0], tpl[1])
 
     print(card_to_play)
 
@@ -310,6 +343,6 @@ if __name__ == '__main__':
         declare(args)
     elif args[0] == 'CARDPLAY':
         if args[1] in ['D', 'H', 'S', 'C', 'G', 'N']:
-            cardplay(args) # TODO: Add open_hand flag and open_solo_hand for Null Ouvert Games. Is args[1] = NO or always N?
+            cardplay(args)
         else:
             print("Wrong Gamemode")

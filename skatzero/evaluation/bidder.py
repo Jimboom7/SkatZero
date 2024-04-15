@@ -139,7 +139,10 @@ class Bidder:
                     agent_id = 6
                 _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
                 if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
-                    best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")
+                    if game_mode in ['C', 'S', 'H']:
+                        best_discard[game_mode] = swap_colors(current_raw_state["skat"], game_mode, "D")
+                    else:
+                        best_discard[game_mode] = current_raw_state["skat"]
                     best_state = current_raw_state
                 vals_drueckungen.append(max(vals_cards))
                 #print(f'Gedrückt: {swap_colors(current_raw_state["skat"], game_mode, "D")}, Value: {max(vals_cards)}')
