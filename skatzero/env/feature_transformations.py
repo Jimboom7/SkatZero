@@ -4,7 +4,7 @@ import numpy as np
 
 from skatzero.game.utils import card_rank_as_number, card_ranks
 
-jack_encoding ={'C': 0, 'S': 1, 'H': 2, 'D': 3}
+jack_encoding = {'C': 0, 'S': 1, 'H': 2, 'D': 3}
 
 def convert_action_id_to_card(action_id, card_encoding):
     if action_id % 8 == 7: # Jack
@@ -76,15 +76,18 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
             base_card = card
         if trick_counter % 3 == 0:
             if (player_card[0] == base_card[0]
-                or ((player_card[1] == 'J' or player_card[0] == trump) and
-                    (base_card[1] == 'J' or base_card[0] == trump))):
+                or ((((player_card[1] == 'J' or player_card[0] == trump) and
+                    (base_card[1] == 'J' or base_card[0] == trump))) and trump is not None)):
                 continue
-            if base_card[1] == 'J' or base_card[0] == trump:
-                if trump != 'J' and trump is not None: # Grand or Null
+            if (base_card[1] == 'J' and trump is not None) or base_card[0] == trump:
+                if trump != 'J' and trump is not None: # Grand
                     matrix[card_encoding[trump], :7] = 1
                 matrix[:, 7] = 1
             else:
                 matrix[card_encoding[base_card[0]], :7] = 1
+                if trump is None: # Null
+                    matrix[jack_encoding[base_card[0]], 7] = 1
+
     return matrix.flatten()
 
 def get_bid(bid_dict, card_encoding):
@@ -103,27 +106,28 @@ def get_bid_jacks(bid_jacks):
 
 def get_card_encoding(state):
     encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
-    if state['trump'] == 'D':
-        num_d = 10000
-    else: # Grand or Null
-        num_d = ((len([d for d in state['current_hand'] if d[0] == 'D' and d[1] != 'J']) * 100) -
-                 (len([d for d in state['others_hand'] if d[0] == 'D' and d[1] != 'J']) * 10) +
-                 int('DA' in state['current_hand']))
-    num_h = ((len([d for d in state['current_hand'] if d[0] == 'H' and d[1] != 'J']) * 100) -
-                 (len([d for d in state['others_hand'] if d[0] == 'H' and d[1] != 'J']) * 10) +
-                 int('HA' in state['current_hand']))
-    num_s = ((len([d for d in state['current_hand'] if d[0] == 'S' and d[1] != 'J']) * 100) -
-                 (len([d for d in state['others_hand'] if d[0] == 'S' and d[1] != 'J']) * 10) +
-                 int('SA' in state['current_hand']))
-    num_c = ((len([d for d in state['current_hand'] if d[0] == 'C' and d[1] != 'J']) * 100) -
-                 (len([d for d in state['others_hand'] if d[0] == 'C' and d[1] != 'J']) * 10) +
-                 int('CA' in state['current_hand']))
+    encoding_values = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
 
-    values = {'D': num_d, 'H': num_h, 'S': num_s, 'C': num_c}
+    for x in ['D', 'H', 'S', 'C']:
+        encoding_values[x] = ((len([d for d in state['current_hand'] if d[0] == x and d[1] != 'J']) * 100) -
+                    (len([d for d in state['others_hand'] if d[0] == x and d[1] != 'J']) * 10))
+        if state['trump'] is None:
+            encoding_values[x] -= int(x + '7' in state['others_hand'])
+        else:
+            encoding_values[x] += int(x + 'A' in state['current_hand'])
+
+    if state['trump'] == 'D':
+        encoding_values['D'] = 10000
+
+    values = {'D': encoding_values['D'], 'H': encoding_values['H'], 'S': encoding_values['S'], 'C': encoding_values['C']}
 
     sorted_values = {k: v for k, v in sorted(values.items(), key=lambda item: item[1], reverse=True)}
     for i, k in enumerate(sorted_values):
         encoding[k] = i
+
+    if state['trump'] is None:
+        global jack_encoding
+        jack_encoding = encoding
 
     return encoding
 

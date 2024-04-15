@@ -75,7 +75,7 @@ class Dealer:
         if gametype == 'N': # Good Null Games are rare: Shuffle a few more times and pick a decent hand
             best_deck = []
             best_value = -1000
-            for _ in range(20):
+            for _ in range(15):
                 self.shuffle()
                 value = self.set_player_hands(players, gametype)
                 if value > best_value:
