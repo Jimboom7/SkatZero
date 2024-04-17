@@ -1215,7 +1215,35 @@ def case10_hard(raw_state):
     raw_state['trick'] = trick
     return raw_state, ('C7') # Damit man die 2 Farben fürs Endspiel hat (Nächster Zug mit König an Stich, dann mit Karo höchste Karte haben)
 
-def case1_grand(raw_state):
+def case1_null(raw_state):
+    print("Null Ouvert: Mit 7 starten, Partner schlägt später mit 9")
+    # https://www.youtube.com/watch?v=RUBQLOfBrVI&list=PLoG_4JUJAvDAMipoDHmnBuQEAyLjw95HE
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 12]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['C8', 'C9', 'CQ', 'CA', 'S7', 'SQ', 'SA', 'DK', 'DA']
+    raw_state['trace'] = [(1, 'HT'), (2, 'HJ'), (0, 'H9')]
+
+    raw_state['soloplayer_open_cards'] = ['S8', 'ST', 'D7', 'D8', 'DT', 'DQ', 'C7', 'H7', 'H8']
+    raw_state['open_hand'] = True
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], None)
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = None
+    return raw_state, ('S7') # SA/SQ offensichtliche Moves, aber nicht optimal
+
+def case1_easy_grand(raw_state):
     print("Grand: Realer Fall")
     raw_state['self'] = 0
     raw_state['points'] = [12, 4]
@@ -1231,7 +1259,7 @@ def case1_grand(raw_state):
                           (2, 'DK')]
 
     raw_state['skat'] = ['H7', 'H9']
-    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
 
     raw_state['played_cards'] = played_cards
     raw_state['others_hand'] = others_cards
@@ -1240,3 +1268,184 @@ def case1_grand(raw_state):
 
     raw_state['trump'] = 'J'
     return raw_state, ('S7') # Nicht Pik 10 schmeißen...
+
+def case2_easy_grand(raw_state):
+    print("Grand Hand II: Stechen")
+    # https://www.youtube.com/watch?v=bQWETXzely4&list=PLoG_4JUJAvDCEVUie0LNL2m5Hk2eEcWMS
+    raw_state['self'] = 0
+    raw_state['points'] = [0, 23]
+    raw_state['blind_hand'] = True
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['HJ', 'DJ', 'CT', 'CK', 'CQ', 'C9', 'HA', 'HT', 'H8']
+    raw_state['trace'] = [(0, 'CA'), (1, 'SJ'), (2, 'DA'),
+                          (1, 'DK'), (2, 'DT')]
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('HJ', 'DJ') # Stechen
+
+def case3_easy_grand(raw_state):
+    print("Grand Gegenspieler: Richtigen Buben nehmen")
+    raw_state['self'] = 2
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 1, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['D7', 'H9', 'DA', 'SJ', 'C8', 'S8', 'DJ', 'ST', 'DQ', 'D9']
+    raw_state['trace'] = [(0, 'CJ'), (1, 'S9')]
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('DJ') # Niedriger Bube
+
+def case1_medium_grand(raw_state):
+    print("Grand: Nicht stechen")
+    # https://www.youtube.com/watch?v=f3jFNA-WHRo&list=PLoG_4JUJAvDAudxsBfhltD4-24CfLkfvN
+    raw_state['self'] = 0
+    raw_state['points'] = [43, 20]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['SJ', 'CA', 'C7', 'C8', 'HQ', 'H7']
+    raw_state['trace'] = [(1, 'SA'), (2, 'DA'), (0, 'DJ'),
+                          (0, 'CJ'), (1, 'S8'), (2, 'HJ'),
+                          (0, 'HA'), (1, 'S9'), (2, 'H8'),
+                          (0, 'H9'), (1, 'CT'), (2, 'HT'),
+                          (2, 'DQ')]
+
+    raw_state['skat'] = ['S7', 'DK']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('H7', 'HQ', 'C8', 'C7') # Nicht stechen, sonst ist verloren
+
+def case2_medium_grand(raw_state):
+    print("Grand Hand I: Nicht mit Buben starten")
+    # https://www.youtube.com/watch?v=bQWETXzely4&list=PLoG_4JUJAvDCEVUie0LNL2m5Hk2eEcWMS
+    raw_state['self'] = 0
+    raw_state['points'] = [0, 0]
+    raw_state['blind_hand'] = True
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['HJ', 'DJ', 'CA', 'CT', 'CK', 'CQ', 'C9', 'HA', 'HT', 'H8']
+    raw_state['trace'] = []
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('CA', 'CT', 'HA', 'HT') # Nicht mit Buben starten, da nur die beiden unteren
+
+def case3_medium_grand(raw_state):
+    print("Grand: Lusche spielen")
+    # https://www.youtube.com/watch?v=fP20Lesl_XE&list=PLoG_4JUJAvDAcwphvg_Uc1sQ81sKOQLn5
+    raw_state['self'] = 0
+    raw_state['points'] = [31, 15]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 1, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 1}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['SJ', 'DJ', 'HA', 'H8', 'ST', 'SK', 'SQ', 'S9']
+    raw_state['trace'] = [(0, 'HJ'), (1, 'CJ'), (2, 'CA'),
+                          (1, 'S8'), (2, 'S7'), (0, 'SA')]
+
+    raw_state['skat'] = ['CT', 'DT']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('H8') # Lusche, damit die Gegner nicht viel rauflegen können
+
+def case1_hard_grand(raw_state):
+    print("Grand Gegenspieler: Trumpf ziehen")
+    # https://www.youtube.com/watch?v=1EzKypIyuko&list=PLoG_4JUJAvDAMipoDHmnBuQEAyLjw95HE
+    raw_state['self'] = 1
+    raw_state['points'] = [42, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'C7', 'CQ', 'DQ', 'D8', 'S7', 'SQ', 'ST']
+    raw_state['trace'] = [(1, 'DA'), (2, 'CA'), (0, 'D7'),
+                          (1, 'DT'), (2, 'CT'), (0, 'D9')]
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('CJ') # Trumpf Einschub
+
+def case2_hard_grand(raw_state):
+    print("Grand: Schneider machen")
+    # https://www.youtube.com/watch?v=fP20Lesl_XE&list=PLoG_4JUJAvDAcwphvg_Uc1sQ81sKOQLn5
+    raw_state['self'] = 0
+    raw_state['points'] = [20, 0]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 1, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 1}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['SJ', 'HJ', 'DJ', 'HA', 'H8', 'SA', 'ST', 'SK', 'SQ', 'S9']
+    raw_state['trace'] = []
+
+    raw_state['skat'] = ['CT', 'DT']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('SK', 'SQ', 'S9') # Einspiel verhindern

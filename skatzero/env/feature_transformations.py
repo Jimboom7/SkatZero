@@ -80,7 +80,7 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
                     (base_card[1] == 'J' or base_card[0] == trump))) and trump is not None)):
                 continue
             if (base_card[1] == 'J' and trump is not None) or base_card[0] == trump:
-                if trump != 'J' and trump is not None: # Grand
+                if trump != 'J': # Grand
                     matrix[card_encoding[trump], :7] = 1
                 matrix[:, 7] = 1
             else:
@@ -105,7 +105,7 @@ def get_bid_jacks(bid_jacks):
     return matrix
 
 def get_card_encoding(state):
-    encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
+    encoding = {}
     encoding_values = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
 
     for x in ['D', 'H', 'S', 'C']:
