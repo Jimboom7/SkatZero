@@ -65,13 +65,13 @@ def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
         if (i % 7) == 3:
             base_value = 9
         bid = (multiplier + hand) * base_value
-        if i == 5: # N
+        if i == 12: # N
             bid = 23
-        if i == 12: # NH
+        if i == 5: # NH
             bid = 35
-        if i == 6: # NO
+        if i == 13: # NO
             bid = 46
-        if i == 13: # NOH
+        if i == 6: # NOH
             bid = 59
         bid_list.append(bid)
     return bid_list
@@ -131,9 +131,11 @@ def prepare_state_for_cardplay(raw_state, env, args):
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
-    raw_state['soloplayer_open_hand'] = []
+    raw_state['soloplayer_open_cards'] = []
+    raw_state['open_hand'] = False
     if args[11] != '??':
-        raw_state['soloplayer_open_hand'] = args[11].split(',')
+        raw_state['soloplayer_open_cards'] = args[11].split(',')
+        raw_state['open_hand'] = True
 
     raw_state['trace'] = []
     if len(args) > 12 and args[12] is not None and args[12] != "":
@@ -220,7 +222,14 @@ def bid(args, accuracy, bid_threshold):
                 str_type = 'G'
             if gametype == 5:
                 str_type = 'N'
-            print(str_type + 'H')
+
+            if str_type == 'NO':
+                declaration = str_type + 'H'
+                for card in raw_state['current_hand']:
+                    declaration = declaration + "." + card
+                print(declaration)
+            else:
+                print(str_type + 'H')
             return
     elif args[0] == 'BID':
         bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, False)
@@ -295,7 +304,14 @@ def declare(args):
     for tpl in sorted_dict:
         print(tpl[0], tpl[1][0])
 
-    print(gametype + "." + skat[0] + "." + skat[1])
+    if gametype == 'NO':
+        declaration = gametype + "." + skat[0] + "." + skat[1]
+        for card in raw_state['current_hand']:
+            if card != skat[0] and card != skat[1]:
+                declaration = declaration + "." + card
+        print(declaration)
+    else:
+        print(gametype + "." + skat[0] + "." + skat[1])
 
 
 def cardplay(args):
