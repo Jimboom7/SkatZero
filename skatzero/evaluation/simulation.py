@@ -177,26 +177,25 @@ def get_bidding_data(player, random_game=False):
     return info['values']
 
 
-def prepare_env(player, random_game=False):
-    models = [
-            player,
-            player,
-            player
-        ]
+def prepare_env(random_game=False):
+    basedir = os.path.dirname(os.path.realpath(__file__))
 
     agents = []
-    for _, model_path in enumerate(models):
-        agents.append(load_model(model_path))
+
+    for gametype in ['D', 'G', 'N']:
+        for i in range(0, 3):
+            agents.append(load_model(basedir + "/../../model/" + gametype + "_" + str(i) + ".pth"))
 
     if random_game:
-        env = SkatEnv(blind_hand_chance=1.0)
+        env = SkatEnv(blind_hand_chance=1.0, gametype='D')
     else:
-        seed = 42
+        seed = 46
         set_seed(seed)
-        env = SkatEnv(blind_hand_chance=1.0, seed=seed)
+        env = SkatEnv(blind_hand_chance=1.0, seed=seed, gametype='D')
 
     env.set_agents(agents)
 
     raw_state, _ = env.game.init_game(blind_hand=True)
 
     return env, raw_state
+

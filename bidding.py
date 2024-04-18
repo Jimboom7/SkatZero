@@ -6,9 +6,7 @@ from skatzero.evaluation.bidder import Bidder
 
 if __name__ == '__main__':
 
-    MODEL = "checkpoints/skat_D/0_6000.pth"
-
-    env, raw_state = prepare_env(MODEL, False)
+    env, raw_state = prepare_env(False)
     raw_state['skat'] = []
     bidder = Bidder(env, raw_state)
     hand_cards = bidder.get_hand_cards()
@@ -16,12 +14,12 @@ if __name__ == '__main__':
         print(f'{format_card(card)}')
     hand_estimates = bidder.get_blind_hand_values()
     print('Handspiel-Erwartungswerte:')
-    suits = ['♣', '♠', '♥', '♦']
+    suits = ['♣', '♠', '♥', '♦', 'G']
     for ind, suit in enumerate(suits):
         print(f'{suit}: {hand_estimates[ind]}')
 
 
-    colors = ['green', 'mediumblue', 'red', 'darkorange']
+    colors = ['green', 'mediumblue', 'red', 'darkorange', 'black']
     plt.ion()  # turning interactive mode on
     for ind, color in enumerate(colors):
         line = plt.plot([1, 231], [hand_estimates[ind], hand_estimates[ind]], '--', color=color, label=f'{suits[ind]} Hand')[0]
@@ -32,7 +30,7 @@ if __name__ == '__main__':
     plt.pause(0.05)
 
     means_over_skats = {'C': [], 'S': [], 'H': [], 'D': []}
-    graphs = [None] * 4
+    graphs = [None] * 5
     for i in range(231):
         mean_estimates = bidder.update_value_estimates()
         for game_mode in means_over_skats.keys():
@@ -51,6 +49,8 @@ if __name__ == '__main__':
             #print(f'Mit Skat-Erwartungswerte ({i+1} Skats geprüft):')
             #for ind, suit in enumerate(['♣', '♠', '♥', '♦']):
             #    print(f'{suit}: {}')
+    for game_mode in means_over_skats.keys():
+        print(game_mode + ": " +str(sum(mean_estimates[game_mode]) / len(mean_estimates[game_mode])))
 
     #info = get_bidding_data(MODEL, True)
 

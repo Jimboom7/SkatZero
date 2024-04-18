@@ -12,7 +12,7 @@ class Bidder:
     def __init__(self, env, raw_state, pos = 0):
         self.env = env
         self.raw_state = raw_state
-        self.pos = pos
+        self.pos = int(pos)
         self.raw_state['self'] = 0
         self.raw_state_cpy = copy.deepcopy(self.raw_state)
         self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
@@ -58,9 +58,10 @@ class Bidder:
         raw_state['bids'][2] = swap_bids(raw_state['bids'][2], 'D', game_mode)
 
     def simulate_player_discards(self, raw_state):
-        if self.pos == "0": # Forehand: No discards
+        if self.pos == 0: # Forehand: No discards
             original_state = copy.deepcopy(self.env.game.state)
-            self.env.game.state = raw_state
+            self.env.game.state = copy.deepcopy(raw_state)
+
             state = extract_state(raw_state, self.env.get_legal_actions())
             agent_id = 0
             self.env.game.state = original_state
@@ -85,7 +86,7 @@ class Bidder:
                 current_raw_state['actions'] = actions
                 current_raw_state['trick'] = trick
 
-                self.env.game.state = current_raw_state
+                self.env.game.state = copy.deepcopy(current_raw_state)
                 state = extract_state(current_raw_state, self.env.get_legal_actions())
 
                 agent_id = 0
@@ -132,7 +133,7 @@ class Bidder:
                 current_raw_state['actions'] = current_raw_state['current_hand']
                 current_raw_state['points'] = [get_points(current_raw_state['skat'][0]) + get_points(current_raw_state['skat'][1]), 0]
 
-                self.env.game.state = current_raw_state
+                self.env.game.state = copy.deepcopy(current_raw_state)
                 state = extract_state(current_raw_state, self.env.get_legal_actions())
                 agent_id = 0
                 if current_raw_state['trump'] == 'J':

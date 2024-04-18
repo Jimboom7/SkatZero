@@ -104,6 +104,7 @@ def get_bid_jacks(bid_jacks):
     return matrix
 
 def get_card_encoding(state):
+    global jack_encoding
     encoding = {}
     encoding_values = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
 
@@ -127,8 +128,9 @@ def get_card_encoding(state):
         encoding[k] = i
 
     if state['trump'] is None:
-        global jack_encoding
         jack_encoding = encoding
+    else:
+        jack_encoding = {'C': 0, 'S': 1, 'H': 2, 'D': 3}
 
     return encoding
 

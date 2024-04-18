@@ -52,8 +52,11 @@ def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
         if val <= 25 + bid_threshold and not raw_bids and not (i in [5, 6, 12, 13]): # 25 is average loss of value when others bid. Not valid for Null Games. #TODO: Check actual loss in Nullgames
             bid_list.append(18)
             continue
-        if val <= 50 + bid_threshold and not raw_bids and i in [4, 11]:
+        if val <= 40 + bid_threshold and not raw_bids and i in [4, 11]: # Grand
             bid_list.append(18)
+            continue
+        if val <= 60 + bid_threshold and not raw_bids and i in [4, 11]: # Grand
+            bid_list.append(24)
             continue
         hand = 0
         base_value = 24
@@ -349,7 +352,7 @@ def cardplay(args):
 
 
 if __name__ == '__main__':
-    ACCURACY = 75 # Number of Iterations for Skat simulation
+    ACCURACY = 50 # Number of Iterations for Skat simulation
     BID_THRESHOLD = 0 # How aggressive should the AI bid? 0 is average best return, lower values mean more aggressive
 
     args = sys.argv[1:]
