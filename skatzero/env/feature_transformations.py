@@ -74,7 +74,7 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
             player_card = card
         if trick_counter % 3 == 1:
             base_card = card
-        if trick_counter % 3 == 0:
+        if trick_counter % 3 == 0 or (trick_counter % 3 == 2 and len(trace) == trick_counter):
             if (player_card[0] == base_card[0]
                 or ((((player_card[1] == 'J' or player_card[0] == trump) and
                     (base_card[1] == 'J' or base_card[0] == trump))) and trump is not None)):
@@ -87,7 +87,6 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
                 matrix[card_encoding[base_card[0]], :7] = 1
                 if trump is None: # Null
                     matrix[jack_encoding[base_card[0]], 7] = 1
-
     return matrix.flatten()
 
 def get_bid(bid_dict, card_encoding):

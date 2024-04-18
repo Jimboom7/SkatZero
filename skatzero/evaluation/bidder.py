@@ -44,6 +44,8 @@ class Bidder:
             raw_state['trump'] = 'J'
             self.env.game.round.trump = 'J'
             return
+        self.env.game.gametype = 'D'
+        self.env.game.round.gametype = 'D'
         raw_state['trump'] = 'D'
         self.env.game.round.trump = 'D'
 

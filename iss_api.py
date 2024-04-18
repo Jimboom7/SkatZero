@@ -52,6 +52,9 @@ def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
         if val <= 25 + bid_threshold and not raw_bids and not (i in [5, 6, 12, 13]): # 25 is average loss of value when others bid. Not valid for Null Games. #TODO: Check actual loss in Nullgames
             bid_list.append(18)
             continue
+        if val <= 50 + bid_threshold and not raw_bids and i in [4, 11]:
+            bid_list.append(18)
+            continue
         hand = 0
         base_value = 24
         if i < 7:
@@ -224,7 +227,7 @@ def bid(args, accuracy, bid_threshold):
                 str_type = 'N'
 
             if str_type == 'NO':
-                declaration = str_type + 'H'
+                declaration = 'NHO'
                 for card in raw_state['current_hand']:
                     declaration = declaration + "." + card
                 print(declaration)
@@ -304,7 +307,7 @@ def declare(args):
     for tpl in sorted_dict:
         print(tpl[0], tpl[1][0])
 
-    if gametype == 'NO':
+    if gametype == 'NO': # TODO: Müssen die Karten sortiert sein damit ISS damit umgehen kann?
         declaration = gametype + "." + skat[0] + "." + skat[1]
         for card in raw_state['current_hand']:
             if card != skat[0] and card != skat[1]:
@@ -346,7 +349,7 @@ def cardplay(args):
 
 
 if __name__ == '__main__':
-    ACCURACY = 50 # Number of Iterations for Skat simulation
+    ACCURACY = 75 # Number of Iterations for Skat simulation
     BID_THRESHOLD = 0 # How aggressive should the AI bid? 0 is average best return, lower values mean more aggressive
 
     args = sys.argv[1:]
