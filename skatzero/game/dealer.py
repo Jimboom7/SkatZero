@@ -11,6 +11,12 @@ class Dealer:
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
         self.bid_jacks = [0, 0, 0]
 
+    def reset_bids(self):
+        self.bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+        self.bid_jacks = [0, 0, 0]
+
     def shuffle(self):
         self.np_random.shuffle(self.deck)
 

@@ -9,7 +9,8 @@ if __name__ == '__main__':
     MODEL = "model/0.pth"
 
     env, raw_state = prepare_env(MODEL, True)
-    bidder = Bidder(env, raw_state)
+    raw_state['skat'] = []
+    bidder = Bidder(env, raw_state, pos="0")
     hand_cards = bidder.get_hand_cards()
     for card in hand_cards:
         print(f'{format_card(card)}')

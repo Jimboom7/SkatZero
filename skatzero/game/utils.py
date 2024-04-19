@@ -48,6 +48,79 @@ def calculate_bidding_value(cards):
     return mult
 
 
+def calculate_max_bids(cards, gametype):
+    base_values = {'G': 24, 'C': 12, 'S': 11, 'H': 10, 'D': 9}
+
+    if 'CJ' in cards:
+        if 'SJ' in cards:
+            if 'HJ' in cards:
+                if 'DJ' in cards:
+                    if gametype != 'G' and (gametype + 'A') in cards:
+                        if (gametype + 'T') in cards:
+                            if (gametype + 'K') in cards:
+                                if (gametype + 'Q') in cards:
+                                    if (gametype + '9') in cards:
+                                        if (gametype + '8') in cards:
+                                            if (gametype + '7') in cards:
+                                                mult = 12
+                                            else:
+                                                mult = 11
+                                        else:
+                                            mult = 10
+                                    else:
+                                        mult = 9
+                                else:
+                                    mult = 8
+                            else:
+                                mult = 7
+                        else:
+                            mult = 6
+                    else:
+                        mult = 5
+                else:
+                    mult = 4
+            else:
+                mult = 3
+        else:
+            mult = 2
+    else:
+        if 'SJ' not in cards:
+            if 'HJ' not in cards:
+                if 'DJ' not in cards:
+                    if gametype != 'G' and (gametype + 'A') not in cards:
+                        if (gametype + 'T') not in cards:
+                            if (gametype + 'K') not in cards:
+                                if (gametype + 'Q') not in cards:
+                                    if (gametype + '9') not in cards:
+                                        if (gametype + '8') not in cards:
+                                            if (gametype + '7') not in cards:
+                                                mult = 12
+                                            else:
+                                                mult = 11
+                                        else:
+                                            mult = 10
+                                    else:
+                                        mult = 9
+                                else:
+                                    mult = 8
+                            else:
+                                mult = 7
+                        else:
+                            mult = 6
+                    else:
+                        mult = 5
+                else:
+                    mult = 4
+            else:
+                mult = 3
+        else:
+            mult = 2
+
+    max_bids = {'Normal': mult*base_values[gametype], 'Schneider': (mult+1)*base_values[gametype], 'Schwarz': (mult+2)*base_values[gametype]}
+    return max_bids
+
+
+
 # Simplified von Stegen System, hand is playable at absolut minimum 7 points
 def evaluate_card(card, trump):
     strength = 0

@@ -9,12 +9,12 @@ from skatzero.test.utils import construct_state_from_history
 
 class Bidder:
 
-    def __init__(self, env, raw_state, pos = 0):
+    def __init__(self, env, raw_state, pos = "0"):
         self.env = env
-        self.raw_state = raw_state
+        self.raw_state = copy.deepcopy(raw_state)
         self.pos = pos
         self.raw_state['self'] = 0
-        self.raw_state_cpy = copy.deepcopy(self.raw_state)
+        self.raw_state_cpy = self.raw_state
         self.estimates = {'C': [], 'S': [], 'H': [], 'D': []}
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
@@ -32,6 +32,7 @@ class Bidder:
         raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', game_mode)
         raw_state['others_hand'] = swap_colors(raw_state['others_hand'], 'D', game_mode)
         raw_state['actions'] = swap_colors(raw_state['actions'], 'D', game_mode)
+        # Skat ist normalerweise hier leer, daher muss der hier nicht getauscht werden
 
         raw_state['bids'][1] = swap_bids(raw_state['bids'][1], 'D', game_mode)
         raw_state['bids'][2] = swap_bids(raw_state['bids'][2], 'D', game_mode)
@@ -121,9 +122,9 @@ class Bidder:
             self.prepare_state(game_mode, raw_state_gamemode_prep)
 
             # Performance hotfix -> TODO: Make better
-            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -30 or
-                len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -10):
-                continue
+            #if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -30 or
+            #    len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -10):
+            #    continue
 
             vals_drueckungen = []
             best_state = None

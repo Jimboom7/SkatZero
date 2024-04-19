@@ -45,10 +45,13 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
                 # Eingepasst. Geht nicht in Statistiken ein.
                 continue
 
+            to_eval = True
             for gameTypeToExlude in gameTypesToExclude:
-                if gameTypeToExlude in match.gameType:
+                if gameTypeToExlude == match.gameType[0]:
                     # Dieser Spieltyp soll nicht berücksichtigt werden.
-                    continue
+                    to_eval = False
+            if not to_eval:
+                continue
             
             if match.alleinspielerInd == playerInd:
                 playerEvalDict['numberOfGamesSolo'] += 1
@@ -68,7 +71,8 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
                     playerEvalDict['percentageGrandSolo'] += 'G' in match.gameType
                 else:
                     playerEvalDict['percentageNullSolo'] += 1
-                    ###### TODO: Null auswerten
+                    playerEvalDict['numberOfWinsSolo'] += seegerFabianScoreSolo > 0
+                    playerEvalDict['numberOfLossesSolo'] += seegerFabianScoreSolo < 0
             else:
                 playerEvalDict['numberOfGamesOpp'] += 1
                 seegerFabianScoreOpp = 40 if match.baseValuePoints < 0 else 0
@@ -86,7 +90,8 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
                     playerEvalDict['percentageGrandOpp'] += 'G' in match.gameType
                 else:
                     playerEvalDict['percentageNullOpp'] += 1
-                    ###### TODO: Null auswerten
+                    playerEvalDict['numberOfWinsOpp'] += seegerFabianScoreOpp > 0
+                    playerEvalDict['numberOfLossesOpp'] += seegerFabianScoreOpp == 0
 
     playerEvalDict = calculatePercentages(playerEvalDict)
     return playerEvalDict
@@ -147,9 +152,9 @@ def calculatePercentages(playerEvalDict):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'D:/Skat/Daten/iss2-games-04-2021.sgf'
-    playersToEvaluate = ['xskat', 'kermit']
-    gameTypesToExclude = ['G', 'N'] #'G' = Grand, 'N' = Null
+    issLogFilePath = 'D:/Skat/Daten/iss_Hubert47_6.sgf'
+    playersToEvaluate = ['Hubert47', 'kermit']
+    gameTypesToExclude = [] #'G' = Grand, 'N' = Null
 
     # Logfile parsen und in Liste mit Objekten der Klasse "SkatMatch" übersetzen
     matches = getMatchesFromLogFile(issLogFilePath)

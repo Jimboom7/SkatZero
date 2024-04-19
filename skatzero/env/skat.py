@@ -39,9 +39,13 @@ class SkatEnv(object):
     def set_agents(self, agents):
         self.agents = agents
 
-    def run(self, is_training=False, verbose=0):
+    def run(self, is_training=False, verbose=0, state=None, player_id=None):
         trajectories = [[] for _ in range(self.num_players)]
-        state, player_id = self.reset()
+        
+        if state is None or player_id is None:
+            state, player_id = self.reset()
+        else:
+            state = self.extract_state(state)
 
         trajectories[player_id].append(state)
         while not self.is_over():
