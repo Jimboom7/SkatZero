@@ -204,12 +204,12 @@ def bid(args, accuracy, bid_threshold):
 
     if args[0] == 'SKAT_OR_HAND_DECL':
         bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, True)
-        for i, _ in enumerate(pickup_estimates): # TODO: Kreuz etc. Value mit einrechnen?
-            if bid_list[i] < int(args[5]):
-                pickup_estimates[i] = -100
         for i, _ in enumerate(hand_estimates):
+            if bid_list[i] < int(args[5]):
+                hand_estimates[i] = -1000
+        for i, _ in enumerate(pickup_estimates): # TODO: Kreuz etc. Value mit einrechnen?
             if bid_list[i + 7] < int(args[5]):
-                hand_estimates[i] = -100
+                pickup_estimates[i] = -1000
         if max(pickup_estimates) > max(hand_estimates):
             print('s')
             return
