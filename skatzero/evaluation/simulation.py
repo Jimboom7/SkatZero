@@ -1,3 +1,4 @@
+import copy
 import time
 import os
 import subprocess
@@ -41,23 +42,20 @@ def set_seed(seed):
         random.seed(seed)
 
 
-def act(i, env, result, count, num_games, lock):
+def act(act_num, env, result, count, num_games, lock, seed):
     try:
-        print('Evaluation Actor ' + str(i) + ' started.')
+        print('Evaluation Actor ' + str(act_num) + ' started.')
         payoffs = [0 for _ in range(env.num_players)]
-        while count[0] < num_games:
+        while True:
+            with lock:
+                if count.value >= num_games:
+                    break
+                count.value += 1
+                env.base_seed = count.value + seed
             _, _payoffs = env.run(is_training=False)
-            if isinstance(_payoffs, list):
-                for _p in _payoffs:
-                    for i, _ in enumerate(payoffs):
-                        with lock:
-                            count[i] += 1
-                            result[i] += _p[i]
-            else:
-                for i, _ in enumerate(payoffs):
-                    with lock:
-                        count[i] += 1
-                        result[i] += _payoffs[i]
+            for i, _ in enumerate(payoffs):
+                with lock:
+                    result[i] += _payoffs[i]
     except KeyboardInterrupt:
         pass
     except Exception as e:
@@ -65,23 +63,23 @@ def act(i, env, result, count, num_games, lock):
         raise e
 
 
-def tournament(env, num, num_actors):
+def tournament(env, num, num_actors, seed):
     ctx = mp.get_context('spawn')
 
     with mp.Manager() as manager:
         lock = manager.Lock()
-        count = manager.list([0 for _ in range(env.num_players)])
+        count = manager.Value(int, 0)
         result = manager.list([0 for _ in range(env.num_players)])
 
         actor_list = []
         for i in range(num_actors):
             actor = ctx.Process(
                 target=act,
-                args=(i, env, result, count, num, lock))
+                args=(i, env, result, count, num, lock, seed))
             actor.start()
             actor_list.append(actor)
 
-        while count[0] < num:
+        while count.value < num:
             time.sleep(1)
 
         for actor in actor_list:
@@ -89,53 +87,58 @@ def tournament(env, num, num_actors):
 
         payoffs = [0 for _ in range(env.num_players)]
         for i in range(env.num_players):
-            payoffs[i] = result[i] / count[i]
+            payoffs[i] = result[i] / count.value
 
     return payoffs
 
 
-def save_evaluation_duel(folder, number, num_games, blind_hand_chance=0.1, num_actors=10):
+def save_evaluation_duel(folder, model1, model2, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
     print("Starting Evaluation")
     base_folder = 'checkpoints/'
     folder = str(folder)
-    number = str(number)
+    number1 = str(model1)
+    number2 = str(model2)
 
-    model_solo = [
-            base_folder + folder + '/0_' + number + '.pth',
-            'random',
-            'random'
+    models_solo = [
+            base_folder + folder + '/0_' + number1 + '.pth',
+            base_folder + folder + '/1_' + number2 + '.pth',
+            base_folder + folder + '/2_' + number2 + '.pth'
         ]
-    model_opponent = [
-            'random',
-            base_folder + folder + '/1_' + number + '.pth',
-            base_folder + folder + '/2_' + number + '.pth'
+    models_opponent = [
+            base_folder + folder + '/0_' + number2 + '.pth',
+            base_folder + folder + '/1_' + number1 + '.pth',
+            base_folder + folder + '/2_' + number1 + '.pth'
         ]
 
-    seed = 42
+    if number2 == 'random':
+        models_solo[1] = 'random'
+        models_solo[2] = 'random'
+        models_opponent[0] = 'random'
+
     set_seed(seed)
-    env = SkatEnv(blind_hand_chance, seed=seed)
+    env = SkatEnv(blind_hand_chance, seed=seed, gametype=gametype)
 
     # Evaluation 1: Soloplayer
     agents = []
-    for _, model_path in enumerate(model_solo):
+    for _, model_path in enumerate(models_solo):
         agents.append(load_model(model_path))
     env.set_agents(agents)
-    rewards = tournament(env, num_games, num_actors)
+    rewards = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards):
-        print(position, model_solo[position], reward)
+        print(position, models_solo[position], reward)
 
     # Evaluation 2: Opponents
     agents = []
-    for _, model_path in enumerate(model_opponent):
+    for _, model_path in enumerate(models_opponent):
         agents.append(load_model(model_path))
     env.set_agents(agents)
-    rewards2 = tournament(env, num_games, num_actors)
+    rewards2 = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards2):
-        print(position, model_opponent[position], reward)
+        print(position, models_opponent[position], reward)
 
     print("Score: " + str(rewards[0] - rewards2[0]))
-    with open(base_folder + "/evaluate_log.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(folder) + "," + str(number) + "," + str(num_games) + "," + str(round(rewards[0] - rewards2[0], 2)) + "\n")
+    with open("testresults/evaluate_log.csv", "a", encoding='utf-8') as logfile:
+        logfile.write(str(folder) + "," + str(number1) + "," + str(number2) + "," + str(num_games) + "," + str(round(rewards[0] - rewards2[0], 2)) + "\n")
 
 
 def get_bidding_data(player, random_game=False):
@@ -174,26 +177,25 @@ def get_bidding_data(player, random_game=False):
     return info['values']
 
 
-def prepare_env(player, random_game=False):
-    models = [
-            player,
-            player,
-            player
-        ]
+def prepare_env(random_game=False):
+    basedir = os.path.dirname(os.path.realpath(__file__))
 
     agents = []
-    for _, model_path in enumerate(models):
-        agents.append(load_model(model_path))
+
+    for gametype in ['D', 'G', 'N']:
+        for i in range(0, 3):
+            agents.append(load_model(basedir + "/../../model/" + gametype + "_" + str(i) + ".pth"))
 
     if random_game:
-        env = SkatEnv(blind_hand_chance=1.0)
+        env = SkatEnv(blind_hand_chance=1.0, gametype='D')
     else:
-        seed = 42
+        seed = 46
         set_seed(seed)
-        env = SkatEnv(blind_hand_chance=1.0, seed=seed)
+        env = SkatEnv(blind_hand_chance=1.0, seed=seed, gametype='D')
 
     env.set_agents(agents)
 
     raw_state, _ = env.game.init_game(blind_hand=True)
 
     return env, raw_state
+

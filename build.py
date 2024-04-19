@@ -2,9 +2,9 @@ import torch.onnx
 
 from skatzero.dmc.neural_net import DMCNet
 
-def convert_onnx(player_id, input_size):
+def convert_onnx(player_id, input_size, gametype, postfix):
 
-    path = "checkpoints/skat_30_final/model.tar"
+    path = 'checkpoints/skat_' + gametype + '/model' + postfix + '.tar'
     model = DMCNet(input_size, 32)
     model.load_state_dict(torch.load(path)['model_state_dict'][player_id])
 
@@ -16,7 +16,7 @@ def convert_onnx(player_id, input_size):
     # Export the model
     torch.onnx.export(model,         # model being run
          (dummy_input_obs, dummy_input_actions),       # model input (or a tuple for multiple inputs)
-         f"onnx/normal_{player_id}.onnx",       # where to save the model  
+         f"onnx/{gametype}_{player_id}.onnx",       # where to save the model  
          export_params=True,  # store the trained parameter weights inside the model file
          opset_version=17,    # the ONNX version to export the model to
          do_constant_folding=True,  # whether to execute constant folding for optimization
@@ -30,4 +30,10 @@ def convert_onnx(player_id, input_size):
 if __name__ == "__main__":
 
     for i, x in enumerate([1601, 1623, 1623]):
-        convert_onnx(i, x)
+        convert_onnx(i, x, 'D', '_backup_7600')
+
+    for i, x in enumerate([1601, 1623, 1623]):
+        convert_onnx(i, x, 'G', '_backup_1200')
+
+    for i, x in enumerate([1360, 1414, 1414]):
+        convert_onnx(i, x, 'N', '_backup_700')

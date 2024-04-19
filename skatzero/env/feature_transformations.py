@@ -4,7 +4,7 @@ import numpy as np
 
 from skatzero.game.utils import card_rank_as_number, card_ranks
 
-jack_encoding ={'C': 0, 'S': 1, 'H': 2, 'D': 3}
+jack_encoding = {'C': 0, 'S': 1, 'H': 2, 'D': 3}
 
 def convert_action_id_to_card(action_id, card_encoding):
     if action_id % 8 == 7: # Jack
@@ -74,16 +74,19 @@ def calculate_missing_cards(player_id, trace, trump, card_encoding):
             player_card = card
         if trick_counter % 3 == 1:
             base_card = card
-        if trick_counter % 3 == 0:
+        if trick_counter % 3 == 0 or (trick_counter % 3 == 2 and len(trace) == trick_counter):
             if (player_card[0] == base_card[0]
-                or ((player_card[1] == 'J' or player_card[0] == trump) and
-                    (base_card[1] == 'J' or base_card[0] == trump))):
+                or ((((player_card[1] == 'J' or player_card[0] == trump) and
+                    (base_card[1] == 'J' or base_card[0] == trump))) and trump is not None)):
                 continue
-            if base_card[1] == 'J' or base_card[0] == trump:
-                matrix[card_encoding[trump], :7] = 1
+            if (base_card[1] == 'J' and trump is not None) or base_card[0] == trump:
+                if trump != 'J': # Grand
+                    matrix[card_encoding[trump], :7] = 1
                 matrix[:, 7] = 1
             else:
                 matrix[card_encoding[base_card[0]], :7] = 1
+                if trump is None: # Null
+                    matrix[jack_encoding[base_card[0]], 7] = 1
     return matrix.flatten()
 
 def get_bid(bid_dict, card_encoding):
@@ -101,28 +104,34 @@ def get_bid_jacks(bid_jacks):
     return matrix
 
 def get_card_encoding(state):
-    encoding ={'D': 0, 'H': 1, 'S': 2, 'C': 3}
-    num_h = (len([d for d in state['current_hand'] if d[0] == 'H' and d[1] != 'J']),
-             -len([d for d in state['others_hand'] if d[0] == 'H' and d[1] != 'J']),
-             'HA' in state['current_hand'])
-    num_s = (len([d for d in state['current_hand'] if d[0] == 'S' and d[1] != 'J']),
-             -len([d for d in state['others_hand'] if d[0] == 'S' and d[1] != 'J']),
-             'SA' in state['current_hand'])
-    num_c = (len([d for d in state['current_hand'] if d[0] == 'C' and d[1] != 'J']),
-             -len([d for d in state['others_hand'] if d[0] == 'C' and d[1] != 'J']),
-             'CA' in state['current_hand'])
-    if max(num_h, num_s, num_c) == num_h:
-        encoding = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
-        if max(num_s, num_c) == num_c:
-            encoding = {'D': 0, 'H': 1, 'C': 2, 'S': 3}
-    elif max(num_h, num_s, num_c) == num_s:
-        encoding = {'D': 0, 'S': 1, 'H': 2, 'C': 3}
-        if max(num_h, num_c) == num_c:
-            encoding = {'D': 0, 'S': 1, 'C': 2, 'H': 3}
-    elif max(num_h, num_s, num_c) == num_c:
-        encoding = {'D': 0, 'C': 1, 'H': 2, 'S': 3}
-        if max(num_h, num_s) == num_s:
-            encoding = {'D': 0, 'C': 1, 'S': 2, 'H': 3}
+    global jack_encoding
+    encoding = {}
+    encoding_values = {'D': 0, 'H': 1, 'S': 2, 'C': 3}
+
+    for x in ['D', 'H', 'S', 'C']:
+        if state['trump'] is None:
+            encoding_values[x] = ((len([d for d in state['current_hand'] if d[0] == x]) * 100) -
+                    (len([d for d in state['others_hand'] if d[0] == x]) * 10) -
+                    int(x + '7' in state['current_hand']))
+        else:
+            encoding_values[x] = ((len([d for d in state['current_hand'] if d[0] == x and d[1] != 'J']) * 100) -
+                    (len([d for d in state['others_hand'] if d[0] == x and d[1] != 'J']) * 10) +
+                    int(x + 'A' in state['current_hand']))
+
+    if state['trump'] == 'D':
+        encoding_values['D'] = 10000
+
+    values = {'D': encoding_values['D'], 'H': encoding_values['H'], 'S': encoding_values['S'], 'C': encoding_values['C']}
+
+    sorted_values = {k: v for k, v in sorted(values.items(), key=lambda item: item[1], reverse=True)}
+    for i, k in enumerate(sorted_values):
+        encoding[k] = i
+
+    if state['trump'] is None:
+        jack_encoding = encoding
+    else:
+        jack_encoding = {'C': 0, 'S': 1, 'H': 2, 'D': 3}
+
     return encoding
 
 def get_common_features(state):
@@ -186,6 +195,29 @@ def get_soloplayer_features(state):
                             bid_jacks_left, # 5
                             bid_jacks_right, # 5
                             blind_hand)) # 1
+
+    if state['trump'] is None: # Null
+        if state['open_hand']:
+            open_hand = np.ones([1,], dtype=np.int8)
+        else:
+            open_hand = np.zeros([1,], dtype=np.int8)
+        obs = np.concatenate((current_hand,  # 32
+                                others_hand,  # 32
+                                trick1,  # 32
+                                trick2,  # 32
+                                skat,  # 32
+                                all_actions,  # 30*35
+                                missing_cards_left,  # 32
+                                opponent_left_played_cards,  # 32
+                                missing_cards_right,  # 32
+                                opponent_right_played_cards,  # 32
+                                bid_left, # 5
+                                bid_right, # 5
+                                bid_jacks_left, # 5
+                                bid_jacks_right, # 5
+                                blind_hand, # 1
+                                open_hand)) # 1
+
     return obs
 
 def get_opponent_features(state):
@@ -232,9 +264,34 @@ def get_opponent_features(state):
                             last_teammate_action,  # 32
                             points_own,  # 121
                             points_opp,  # 121
-                            bid_teammate, # 5
-                            bid_jacks_teammate, # 5
+                            bid_teammate,  # 5
+                            bid_jacks_teammate,  # 5
                             blind_hand))  # 1
+
+    if state['trump'] is None: # Null
+        if state['open_hand']:
+            open_hand = np.ones([1,], dtype=np.int8)
+            soloplayer_open_cards = cards2array(state['soloplayer_open_cards'], card_encoding)
+        else:
+            open_hand = np.zeros([1,], dtype=np.int8)
+            soloplayer_open_cards = cards2array(None, card_encoding)
+        obs = np.concatenate((current_hand,  # 32
+                                others_hand,  # 32
+                                trick1,  # 32
+                                trick2,  # 32
+                                all_actions,  # 30*35
+                                missing_cards_solo,  # 32
+                                soloplayer_played_cards,  # 32
+                                missing_cards_teammate,  # 32
+                                teammate_played_cards,  # 32
+                                last_soloplayer_action,  # 32
+                                last_teammate_action,  # 32
+                                soloplayer_open_cards,  # 32
+                                bid_teammate,  # 5
+                                bid_jacks_teammate,  # 5
+                                blind_hand,  # 1
+                                open_hand))  # 1
+
     return obs
 
 def extract_state(state, legal_actions):

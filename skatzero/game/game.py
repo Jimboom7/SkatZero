@@ -7,7 +7,7 @@ from skatzero.game.utils import compare_cards
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, gametype):
         self.np_random = np.random.RandomState()  # pylint: disable=no-member
         self.num_players = 3
         self.done = False
@@ -16,19 +16,22 @@ class Game:
         self.round = None
         self.state = None
         self.blind_hand = False
+        self.open_hand = False
         self.black_soloplayer = True
         self.black_opponent = True
+        self.gametype = gametype
 
-    def init_game(self, blind_hand=False):
+    def init_game(self, blind_hand=False, open_hand=False):
         self.done = False
         self.history = []
         self.blind_hand = blind_hand
+        self.open_hand = open_hand
         self.black_soloplayer = True
         self.black_opponent = True
 
         self.players = [Player(num) for num in range(self.num_players)]
 
-        self.round = Round(self.np_random)
+        self.round = Round(self.np_random, gametype=self.gametype)
         self.round.initiate(self.players)
 
         player_id = self.round.current_player
@@ -37,7 +40,6 @@ class Game:
         return self.state, player_id
 
     def step(self, action):
-
         player = self.players[self.round.current_player]
 
         self.round.proceed_round(player, action)
@@ -67,7 +69,7 @@ class Game:
         else:
             actions = list(player.available_actions(self.round.current_suit, self.round.trump))
         state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick, self.round.trump,
-                                 self.round.dealer.skat, self.round.dealer.bids, self.round.dealer.bid_jacks, self.blind_hand)
+                                 self.round.dealer.skat, self.round.dealer.bids, self.round.dealer.bid_jacks, self.blind_hand, self.open_hand)
 
         return state
 
@@ -75,18 +77,24 @@ class Game:
         soloplayer_id = self.round.soloplayer_id
         payoffs = np.array([0, 0, 0], dtype=float)
 
+        base_value = 10
+        if self.gametype == 'N':
+            return self.compute_null_rewards()
+        elif self.gametype == 'G':
+            base_value = 24
+
         if self.black_opponent:
-            payoffs[soloplayer_id] = ((4 + self.blind_hand) * 10) + 50
+            payoffs[soloplayer_id] = ((4 + self.blind_hand) * base_value) + 50
         elif self.round.solo_points >= 90:
-            payoffs[soloplayer_id] = ((3 + self.blind_hand) * 10) + 50
+            payoffs[soloplayer_id] = ((3 + self.blind_hand) * base_value) + 50
         elif self.round.solo_points > 60:
-            payoffs[soloplayer_id] = ((2 + self.blind_hand) * 10) + 50
+            payoffs[soloplayer_id] = ((2 + self.blind_hand) * base_value) + 50
         elif self.black_soloplayer:
-            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * 10) - 50 - 40
+            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * base_value) - 50 - 40
         elif self.round.solo_points <= 30:
-            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * 10) - 50 - 40
+            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * base_value) - 50 - 40
         elif self.round.solo_points <= 60:
-            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * 10) - 50 - 40
+            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * base_value) - 50 - 40
 
         if is_training:
             payoffs[soloplayer_id] += (self.round.solo_points - 60) / 30
@@ -95,6 +103,29 @@ class Game:
         payoffs[(soloplayer_id + 2) % 3] = -payoffs[soloplayer_id] / 4
 
         return payoffs
+
+    def compute_null_rewards(self):
+        soloplayer_id = self.round.soloplayer_id
+        payoffs = np.array([0, 0, 0], dtype=float)
+        base_value = 23
+
+        if self.blind_hand:
+            base_value = 35
+        if self.open_hand:
+            base_value = 46
+        if self.blind_hand and self.open_hand:
+            base_value = 59
+
+        if self.black_soloplayer:
+            payoffs[soloplayer_id] = base_value + 50
+        if not self.black_soloplayer:
+            payoffs[soloplayer_id] = (base_value * -2) - 50 - 40
+
+        payoffs[(soloplayer_id + 1) % 3] = -payoffs[soloplayer_id] / 4
+        payoffs[(soloplayer_id + 2) % 3] = -payoffs[soloplayer_id] / 4
+
+        return payoffs
+
 
     def check_trick(self):
         if len(self.round.current_trick) == 3:
@@ -113,6 +144,8 @@ class Game:
             if winner == self.round.soloplayer_id:
                 self.round.solo_points += points
                 self.black_soloplayer = False
+                if self.gametype == 'N':
+                    self.done = True
             else:
                 self.round.opponent_points += points
                 self.black_opponent = False

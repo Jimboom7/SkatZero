@@ -20,23 +20,14 @@ class Dealer:
     def shuffle(self):
         self.np_random.shuffle(self.deck)
 
-    def set_player_hands(self, players):
-        hand_num = 10
-
+    def set_player_hands(self, players, gametype):
         for index, player in enumerate(players):
-            current_hand = self.deck[index*hand_num:(index+1)*hand_num]
+            current_hand = self.deck[index*10:(index+1)*10]
             player.current_hand = current_hand
 
-        if evaluate_hand_strength(players[1].current_hand, 'D')['D'] > evaluate_hand_strength(players[0].current_hand, 'D')['D']:
-            tmp = players[0].current_hand
-            players[0].current_hand = players[1].current_hand
-            players[1].current_hand = tmp
-
-        if evaluate_hand_strength(players[2].current_hand, 'D')['D'] > evaluate_hand_strength(players[0].current_hand, 'D')['D']:
-            tmp = players[0].current_hand
-            players[0].current_hand = players[2].current_hand
-            players[2].current_hand = tmp
         self.skat = self.deck[-2:]
+
+        return evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]
 
     def set_bids(self, players):
         diamond = self.np_random.choice(['D', 'H', 'S', 'C'])
@@ -44,7 +35,7 @@ class Dealer:
         for player in players:
             if player.player_id == 0:
                 continue
-            values = evaluate_hand_strength(player.current_hand)
+            values = evaluate_hand_strength(player.current_hand, np_random=self.np_random)
             max_value = max(values, key=values.get)
             with_without = calculate_bidding_value(player.current_hand) - 1
             if with_without < 4 and self.np_random.rand() > 4.4 - (values[max_value] / 3): # Handgame: Starting at 10.5 value sometimes plays hand
@@ -62,7 +53,7 @@ class Dealer:
         for player in players:
             if player.player_id == 0:
                 continue
-            if player.player_id != first_bidder: # no bid if not first and other already bid more
+            if player.player_id != first_bidder and self.np_random.rand() < 0.66: # no bid if not first and other already bid more
                 bid1 = self.bid_jacks[player.player_id] + (self.bids[player.player_id]['N'] * 1.25)
                 bid2 = self.bid_jacks[first_bidder] + (self.bids[first_bidder]['N'] * 1.25)
                 if bid1 < bid2 or bid1 + 0.5 - self.np_random.rand() < bid2:
@@ -71,9 +62,23 @@ class Dealer:
                     self.bid_jacks[player.player_id] = 0
 
 
-    def deal_cards(self, players):
+    def deal_cards(self, players, gametype):
         self.shuffle()
-        self.set_player_hands(players)
+        best_deck = []
+        best_value = -1000
+        num_shuffles = 4
+        if gametype == 'G':
+            num_shuffles = 3
+        if gametype == 'N':
+            num_shuffles = 35
+        for _ in range(num_shuffles):
+            self.shuffle()
+            value = self.set_player_hands(players, gametype)
+            if value > best_value:
+                best_value = value
+                best_deck = self.deck.copy()
+        self.deck = best_deck
+        self.set_player_hands(players, gametype)
         self.set_bids(players)
         players[0].role = 'soloplayer'
         players[1].role = 'opponent'

@@ -8,7 +8,7 @@ class Player:
         self.role = ''
         self.played_cards = None
 
-    def get_state(self, public, others_hands, points, actions, trick, trump, skat, bids, bid_jacks, blind_hand):
+    def get_state(self, public, others_hands, points, actions, trick, trump, skat, bids, bid_jacks, blind_hand, open_hand):
         state = {}
         state['soloplayer'] = public['soloplayer']
         state['trace'] = public['trace']
@@ -25,13 +25,16 @@ class Player:
         state['bids'] = bids
         state['bid_jacks'] = bid_jacks
 
+        state['open_hand'] = open_hand # Only relevant for Null
+        state['soloplayer_open_cards'] = public['soloplayer_open_cards']
+
         return deepcopy(state)
 
     def available_actions(self, suit=None, trump='D'):
         playable_cards = []
         if suit is not None:
             for card in self.current_hand:
-                if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J'):
+                if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J') or (card[0] == suit and trump is None):
                     playable_cards.append(card)
 
         if suit is None or not playable_cards:

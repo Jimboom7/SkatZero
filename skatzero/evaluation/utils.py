@@ -83,7 +83,7 @@ def check_trick(trick, action, player_nr, trump):
 def player_number_to_name(player_nr):
     player = 'Soloplayer'
     if player_nr == 1:
-        player = 'Opponent Right'
-    if player_nr == 2:
         player = 'Opponent Left'
+    if player_nr == 2:
+        player = 'Opponent Right'
     return player
