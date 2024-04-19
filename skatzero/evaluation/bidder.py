@@ -12,8 +12,8 @@ class Bidder:
     def __init__(self, env, raw_state, pos = "0"):
         self.env = env
         self.pos = int(pos)
-        self.raw_state_cpy = copy.deepcopy(raw_state)
-        self.raw_state_cpy['self'] = 0
+        self.raw_state = copy.deepcopy(raw_state)
+        self.raw_state['self'] = 0
         self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
@@ -103,7 +103,7 @@ class Bidder:
     def get_blind_hand_values(self):
         values = []
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
-            current_raw_state = copy.deepcopy(self.raw_state_cpy)
+            current_raw_state = copy.deepcopy(self.raw_state)
             self.prepare_state(game_mode, current_raw_state)
 
             vals_cards = self.simulate_player_discards(current_raw_state)
@@ -158,7 +158,7 @@ class Bidder:
 
     def update_value_estimates(self):
         # Rohzustand vorbereiten mit Skatkarten in eigener Hand (danach 12 Karten) und Abzug von Gegnerhand (danach 20 Karten)
-        raw_state_prep = copy.deepcopy(self.raw_state_cpy)
+        raw_state_prep = copy.deepcopy(self.raw_state)
         current_skat_inds = self.skat_comb_inds[self.current_skat]
         skat = [raw_state_prep['others_hand'][current_skat_inds[0]], raw_state_prep['others_hand'][current_skat_inds[1]]]
         #print(skat)

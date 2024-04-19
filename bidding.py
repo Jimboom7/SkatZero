@@ -14,23 +14,23 @@ if __name__ == '__main__':
         print(f'{format_card(card)}')
     hand_estimates = bidder.get_blind_hand_values()
     print('Handspiel-Erwartungswerte:')
-    suits = ['♣', '♠', '♥', '♦', 'G']
+    suits = ['♣', '♠', '♥', '♦', 'G', 'N', 'NO']
     for ind, suit in enumerate(suits):
         print(f'{suit}: {hand_estimates[ind]}')
 
 
-    colors = ['green', 'mediumblue', 'red', 'darkorange', 'black']
+    colors = ['green', 'mediumblue', 'red', 'darkorange', 'black', 'pink', 'purple']
     plt.ion()  # turning interactive mode on
     for ind, color in enumerate(colors):
         line = plt.plot([1, 231], [hand_estimates[ind], hand_estimates[ind]], '--', color=color, label=f'{suits[ind]} Hand')[0]
         #line.set_label(f'{suits[ind]} Hand')
-    plt.ylim(-150, 100)
+    plt.ylim(-200, 100)
     plt.xlabel('Geprüfte Skats')
     plt.ylabel('Erwartungswert nach Seeger-Fabian')
     plt.pause(0.05)
 
-    means_over_skats = {'C': [], 'S': [], 'H': [], 'D': []}
-    graphs = [None] * 5
+    means_over_skats = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
+    graphs = [None] * 7
     for i in range(231):
         mean_estimates = bidder.update_value_estimates()
         for game_mode in means_over_skats.keys():
