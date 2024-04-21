@@ -1,20 +1,24 @@
 import copy
 import itertools
 import random
+import numpy as np
 
 from skatzero.env.feature_transformations import extract_state
 from skatzero.evaluation.utils import swap_colors, swap_bids
 from skatzero.game.utils import get_points
 from skatzero.test.utils import construct_state_from_history
+from skatzero.evaluation.bidder_simulated_data import SimulatedDataBidder
 
-class Bidder:
+class AdvancedBidder:
 
     def __init__(self, env, raw_state, pos = "0"):
+        self.simulated_data_bidder = SimulatedDataBidder()
         self.env = env
         self.pos = int(pos)
         self.raw_state = copy.deepcopy(raw_state)
         self.raw_state['self'] = 0
         self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
+        self.bid_table = None
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
         random.shuffle(self.skat_comb_inds)
@@ -105,7 +109,7 @@ class Bidder:
     def get_blind_hand_values(self):
         values = []
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
-            values.append(self.get_blind_hand_values_for_game(self, game_mode))
+            values.append(self.get_blind_hand_values_for_game(game_mode))
         return values
     
 
@@ -119,13 +123,14 @@ class Bidder:
 
     def find_best_game_and_discard(self, raw_state_prep):
         best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
+        bid_value_table_skat = np.full((self.simulated_data_bidder.bids.size,), -1000)
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
             raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
             self.prepare_state(game_mode, raw_state_gamemode_prep)
 
             # Performance hotfix -> TODO: Make better
-            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -30 or
-                len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -10):
+            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -60 or
+                len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -60):
                 continue
 
             vals_drueckungen = []
@@ -158,9 +163,15 @@ class Bidder:
 
             #print(f'{game_mode}: {max(vals_drueckungen)}')
             self.env.game.state = original_state
-            vals_cards = self.simulate_player_discards(best_state)
-            self.estimates[game_mode].append(vals_cards)
-        return best_discard
+            best_val = self.simulate_player_discards(best_state)
+
+            bid_value_table_game = self.simulated_data_bidder.get_bid_value_table(raw_state_gamemode_prep, game_mode, best_val)
+            bid_value_table_skat = np.maximum(bid_value_table_skat, bid_value_table_game)
+
+            self.estimates[game_mode].append(best_val)
+
+        return best_discard, bid_value_table_skat
+
 
     def update_value_estimates(self):
         # Rohzustand vorbereiten mit Skatkarten in eigener Hand (danach 12 Karten) und Abzug von Gegnerhand (danach 20 Karten)
@@ -172,7 +183,14 @@ class Bidder:
         raw_state_prep['others_hand'] = [i for j, i in enumerate(raw_state_prep['others_hand']) if j not in current_skat_inds]
         raw_state_prep['blind_hand'] = False
 
-        self.find_best_game_and_discard(raw_state_prep)
+        best_discard, bid_value_table_skat = self.find_best_game_and_discard(raw_state_prep)
+        if self.bid_table is None:
+            self.bid_table = bid_value_table_skat
+        else:
+            # Implementierung hier als laufend aktualisierter Mittelwert
+            factor_old = (self.current_skat) / (self.current_skat+1)
+            factor_new = 1 - factor_old
+            self.bid_table = factor_old * self.bid_table + factor_new * bid_value_table_skat
 
         self.current_skat += 1
-        return self.estimates
+        return self.estimates, self.bid_table

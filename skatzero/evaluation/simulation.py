@@ -189,7 +189,7 @@ def prepare_env(random_game=False):
     if random_game:
         env = SkatEnv(blind_hand_chance=1.0, gametype='D')
     else:
-        seed = 46
+        seed = 52
         set_seed(seed)
         env = SkatEnv(blind_hand_chance=1.0, seed=seed, gametype='D')
 

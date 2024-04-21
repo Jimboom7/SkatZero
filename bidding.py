@@ -3,12 +3,14 @@ import matplotlib.pyplot as plt
 from skatzero.evaluation.utils import format_card
 from skatzero.evaluation.simulation import get_bidding_data, prepare_env
 from skatzero.evaluation.bidder import Bidder
+from skatzero.evaluation.bidder_advanced import AdvancedBidder
 
 if __name__ == '__main__':
 
     env, raw_state = prepare_env(False)
     raw_state['skat'] = []
-    bidder = Bidder(env, raw_state)
+    bidder = AdvancedBidder(env, raw_state)
+
     hand_cards = bidder.get_hand_cards()
     for card in hand_cards:
         print(f'{format_card(card)}')
@@ -32,7 +34,7 @@ if __name__ == '__main__':
     means_over_skats = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
     graphs = [None] * 7
     for i in range(231):
-        mean_estimates = bidder.update_value_estimates()
+        mean_estimates, bid_value_table = bidder.update_value_estimates()
         for game_mode in means_over_skats.keys():
             means_over_skats[game_mode].append(sum(mean_estimates[game_mode]) / len(mean_estimates[game_mode]))
         try:
