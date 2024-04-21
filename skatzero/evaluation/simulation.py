@@ -94,7 +94,7 @@ def tournament(env, num, num_actors, seed):
 
 def save_evaluation_duel(folder, model1, model2, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
     print("Starting Evaluation")
-    base_folder = 'checkpoints/'
+    base_folder = 'models/checkpoints/'
     folder = str(folder)
     number1 = str(model1)
     number2 = str(model2)
@@ -184,7 +184,7 @@ def prepare_env(random_game=False):
 
     for gametype in ['D', 'G', 'N']:
         for i in range(0, 3):
-            agents.append(load_model(basedir + "/../../model/" + gametype + "_" + str(i) + ".pth"))
+            agents.append(load_model(basedir + "/../../models/latest/" + gametype + "_" + str(i) + ".pth"))
 
     if random_game:
         env = SkatEnv(blind_hand_chance=1.0, gametype='D')

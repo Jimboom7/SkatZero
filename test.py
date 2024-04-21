@@ -6,9 +6,9 @@ from skatzero.test.testcases import *
 from skatzero.test.utils import run_testcase
 
 def run_testsuite(model, version):
-    MODEL1 = "checkpoints/" + model + "/0_" + str(version) + ".pth"
-    MODEL2 = "checkpoints/" + model + "/1_" + str(version) + ".pth"
-    MODEL3 = "checkpoints/" + model + "/2_" + str(version) + ".pth"
+    MODEL1 = "models/checkpoints/" + model + "/0_" + str(version) + ".pth"
+    MODEL2 = "models/checkpoints/" + model + "/1_" + str(version) + ".pth"
+    MODEL3 = "models/checkpoints/" + model + "/2_" + str(version) + ".pth"
 
     models = [
             MODEL1,
@@ -90,13 +90,13 @@ if __name__ == '__main__':
     #MODEL = "skat_D"
     #FRAMES = 8000
     MODEL = "skat_G"
-    FRAMES = 1200
+    FRAMES = 3100
     #MODEL = "skat_N"
-    #FRAMES = 620
+    #FRAMES = 1000
 
     #run_testsuite(MODEL, FRAMES)
 
-    for i in range(1100, FRAMES + 10, 10):
+    for i in range(3010, FRAMES + 10, 10):
         run_testsuite(MODEL, i)
 
 

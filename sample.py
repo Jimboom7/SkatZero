@@ -9,15 +9,12 @@ if __name__ == '__main__':
 
     set_seed(42)
 
-    #agent = RandomAgent(num_actions=env.num_actions)
-    #env.set_agents([agent for _ in range(env.num_players)])
-
     MODEL1 = 'random'
     MODEL2 = 'random'
     MODEL3 = 'random'
-    #MODEL1 = 'checkpoints/skat_19_blind_hand/0_100.pth'
-    #MODEL2 = 'checkpoints/skat_19_blind_hand/1_100.pth'
-    #MODEL3 = 'checkpoints/skat_19_blind_hand/2_100.pth'
+    #MODEL1 = 'models/checkpoints/latest/D_0.pth'
+    #MODEL2 = 'models/checkpoints/latest/D_1.pth'
+    #MODEL3 = 'models/checkpoints/latest/D_2.pth'
 
     random_agent = RandomAgent(num_actions=env.num_actions)
     dcm_agent_0 = load_model(MODEL1)

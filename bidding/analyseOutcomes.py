@@ -13,12 +13,12 @@ if __name__ == '__main__':
 
     gametype = 'G' # hier den Spieltyp einstellen
 
-    MODEL1_D = f"model/D_0.pth"
-    MODEL2_D = f"model/D_1.pth"
-    MODEL3_D = f"model/D_2.pth"
-    MODEL1_G = f"model/G_0.pth"
-    MODEL2_G = f"model/G_1.pth"
-    MODEL3_G = f"model/G_2.pth"
+    MODEL1_D = 'models/latest/D_0.pth'
+    MODEL2_D = 'models/latest/D_1.pth'
+    MODEL3_D = 'models/latest/D_2.pth'
+    MODEL1_G = 'models/latest/G_0.pth'
+    MODEL2_G = 'models/latest/G_1.pth'
+    MODEL3_G = 'models/latest/G_2.pth'
 
     models = [
             MODEL1_D,
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                 bids_cpy = copy.deepcopy(env.game.round.dealer.bids)
                 bid_jacks_cpy = copy.deepcopy(env.game.round.dealer.bid_jacks)
 
-                bidder = Bidder(env, raw_state, pos="0")
+                bidder = Bidder(env, raw_state, pos='0')
                 hand_estimate = bidder.get_blind_hand_values_for_game(gametype) # irreführender Name, da hier mit Skat und nicht blind
 
                 if hand_estimate < min_est or hand_estimate > min_est + span:

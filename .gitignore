@@ -17,7 +17,7 @@ dist/
 .coverage*
 docs/rst
 docs/sphinx
-checkpoints
+models/checkpoints
 dist/
 Notizen
 *eval_data*.pkl

@@ -90,7 +90,7 @@ def prepare_env():
 
     for gametype in ['D', 'G', 'N']:
         for i in range(0, 3):
-            agents.append(load_model(basedir + "/model/" + gametype + "_" + str(i) + ".pth"))
+            agents.append(load_model(basedir + "/models/latest/" + gametype + "_" + str(i) + ".pth"))
 
     env = SkatEnv(blind_hand_chance=0, open_hand_chance=0)
 

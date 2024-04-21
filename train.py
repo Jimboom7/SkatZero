@@ -8,7 +8,7 @@ if __name__ == '__main__':
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-    GAMETYPE = 'D' # 'G' oder 'D'
+    GAMETYPE = 'G' # 'G' or 'D' or 'N'
 
     env = SkatEnv(gametype=GAMETYPE)
 
@@ -16,7 +16,7 @@ if __name__ == '__main__':
         env,
         cuda="0", # Empty = everything on cpu, 0 = GPU enabled
         xpid='skat_' + GAMETYPE,
-        savedir='checkpoints',
+        savedir='models/checkpoints',
         save_interval=10, # in million frames
         num_actors=16, # should be equal to number of physical cores, +- some
         training_device="0", # 0 for GPU, needs cuda set to 1 to work

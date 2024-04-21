@@ -4,7 +4,7 @@ from skatzero.dmc.neural_net import DMCNet
 
 def convert_onnx(player_id, input_size, gametype, postfix):
 
-    path = 'checkpoints/skat_' + gametype + '/model' + postfix + '.tar'
+    path = 'models/checkpoints/skat_' + gametype + '/model' + postfix + '.tar'
     model = DMCNet(input_size, 32)
     model.load_state_dict(torch.load(path)['model_state_dict'][player_id])
 
@@ -16,7 +16,7 @@ def convert_onnx(player_id, input_size, gametype, postfix):
     # Export the model
     torch.onnx.export(model,         # model being run
          (dummy_input_obs, dummy_input_actions),       # model input (or a tuple for multiple inputs)
-         f"onnx/{gametype}_{player_id}.onnx",       # where to save the model  
+         f"models/onnx/{gametype}_{player_id}.onnx",       # where to save the model  
          export_params=True,  # store the trained parameter weights inside the model file
          opset_version=17,    # the ONNX version to export the model to
          do_constant_folding=True,  # whether to execute constant folding for optimization
