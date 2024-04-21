@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 
 from skatzero.evaluation.utils import format_card
-from skatzero.evaluation.simulation import get_bidding_data, prepare_env
-from skatzero.evaluation.bidder import Bidder
-from skatzero.evaluation.bidder_advanced import AdvancedBidder
+from skatzero.evaluation.simulation import prepare_env
+from bidding.bidder_advanced import AdvancedBidder
 
 if __name__ == '__main__':
 
@@ -39,7 +38,7 @@ if __name__ == '__main__':
             means_over_skats[game_mode].append(sum(mean_estimates[game_mode]) / len(mean_estimates[game_mode]))
         try:
             for graph in graphs:
-                graph.remove() 
+                graph.remove()
         except:
             pass
         for ind, game_mode in enumerate(means_over_skats.keys()):

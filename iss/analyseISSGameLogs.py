@@ -1,5 +1,5 @@
 import numpy as np
-from SkatMatch import SkatMatch
+from iss.SkatMatch import SkatMatch
 import pickle
 
 def getMatchesFromLogFile(logFilePath):
@@ -152,7 +152,7 @@ def calculatePercentages(playerEvalDict):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'D:/Skat/Daten/iss_Hubert47_6.sgf'
+    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt'
     playersToEvaluate = ['Hubert47', 'kermit']
     gameTypesToExclude = [] #'G' = Grand, 'N' = Null
 

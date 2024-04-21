@@ -198,4 +198,3 @@ def prepare_env(random_game=False):
     raw_state, _ = env.game.init_game(blind_hand=True)
 
     return env, raw_state
-

@@ -6,9 +6,8 @@ import random
 import sys
 sys.path.append('D:\Git\skatzero')
 from skatzero.env.skat import SkatEnv
-from skatzero.evaluation.utils import format_card
-from skatzero.evaluation.simulation import get_bidding_data, prepare_env, load_model
-from skatzero.evaluation.bidder import Bidder
+from skatzero.evaluation.simulation import load_model
+from bidding.bidder import Bidder
 
 if __name__ == '__main__':
 
@@ -156,7 +155,7 @@ if __name__ == '__main__':
     #plt.legend(['Eigenschwarz', 'Eigenschneider', 'Verloren', 'Gewonnen', 'Schneider', 'Schwarz'])
     #plt.show()
 
-    np.save(f'data/values_{gametype}.npy', actual_values)
-    np.save(f'data/outcome_distributions_{gametype}.npy', value_distributions)
+    np.save(f'bidding/data/values_{gametype}.npy', actual_values)
+    np.save(f'bidding/data/outcome_distributions_{gametype}.npy', value_distributions)
 
     print('Ende')

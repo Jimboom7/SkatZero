@@ -7,7 +7,7 @@ from skatzero.env.feature_transformations import extract_state
 from skatzero.evaluation.utils import swap_colors, swap_bids
 from skatzero.game.utils import get_points
 from skatzero.test.utils import construct_state_from_history
-from skatzero.evaluation.bidder_simulated_data import SimulatedDataBidder
+from bidding.bidder_simulated_data import SimulatedDataBidder
 
 class AdvancedBidder:
 
