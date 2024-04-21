@@ -193,4 +193,4 @@ class AdvancedBidder:
             self.bid_table = factor_old * self.bid_table + factor_new * bid_value_table_skat
 
         self.current_skat += 1
-        return self.estimates, self.bid_table
+        return self.estimates, dict(zip(self.simulated_data_bidder.bids, self.bid_table))
