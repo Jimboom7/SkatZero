@@ -1,7 +1,8 @@
 import sys
 import os
+from bidding.bidder import Bidder
+from bidding.bidder_advanced import AdvancedBidder
 from skatzero.env.skat import SkatEnv
-from skatzero.evaluation.bidder import Bidder
 from skatzero.evaluation.simulation import load_model
 from skatzero.evaluation.utils import swap_bids, swap_colors
 from skatzero.game.utils import calculate_bidding_value, init_32_deck
@@ -184,10 +185,10 @@ def bid(args, accuracy, bid_threshold):
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
-    bidder = Bidder(env, raw_state, args[2])
+    bidder = AdvancedBidder(env, raw_state, args[2])
     hand_estimates = bidder.get_blind_hand_values()
     for _ in range(accuracy):
-        mean_estimates = bidder.update_value_estimates()
+        mean_estimates, bid_value_dict = bidder.update_value_estimates()
     pickup_estimates = [sum(mean_estimates['C']) / len(mean_estimates['C']),
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
                         sum(mean_estimates['H']) / len(mean_estimates['H']),
@@ -204,13 +205,13 @@ def bid(args, accuracy, bid_threshold):
 
     if args[0] == 'SKAT_OR_HAND_DECL':
         bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, True)
-        for i, _ in enumerate(hand_estimates):
+        for i, _ in enumerate(hand_estimates): # Set hand games that are not possible with the bid to -1000. #TODO: Remove when hand value table is implemented
             if bid_list[i] < int(args[5]):
                 hand_estimates[i] = -1000
-        for i, _ in enumerate(pickup_estimates): # TODO: Kreuz etc. Value mit einrechnen?
-            if bid_list[i + 7] < int(args[5]):
-                pickup_estimates[i] = -1000
-        if max(pickup_estimates) > max(hand_estimates):
+
+        pickup_average_estimate = bid_value_dict[int(args[5])]
+
+        if pickup_average_estimate > max(hand_estimates):
             print('s')
             return
         else:
@@ -238,8 +239,18 @@ def bid(args, accuracy, bid_threshold):
                 print(str_type + 'H')
             return
     elif args[0] == 'BID':
-        bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, False)
-        highest_bid = max(bid_list)
+        bid_list_hand = calculate_bids_for_gametypes(raw_state, hand_estimates, bid_threshold, False)
+        highest_bid_hand = max(bid_list_hand)
+
+        max_bid = 0
+        if bid_value_dict[18] > 0:
+            max_bid = 18
+        try:
+            max_bid = [key for key, value in bid_value_dict.items() if value > 25][-1]
+        except:
+            pass
+        highest_bid = max(highest_bid_hand, max_bid)
+
         print(str(highest_bid))
         return
 
