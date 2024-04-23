@@ -242,8 +242,6 @@ def bid(args, accuracy, bid_threshold):
         bid_list_hand = calculate_bids_for_gametypes(raw_state, hand_estimates, bid_threshold, False)
         highest_bid_hand = max(bid_list_hand)
 
-        print(bid_value_dict)
-
         max_bid = 0
         if bid_value_dict[18] > 0:
             max_bid = 18
