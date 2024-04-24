@@ -34,6 +34,7 @@ if __name__ == '__main__':
     graphs = [None] * 7
     for i in range(231):
         mean_estimates, bid_value_table = bidder.update_value_estimates()
+        print(bid_value_table)
         for game_mode in means_over_skats.keys():
             means_over_skats[game_mode].append(sum(mean_estimates[game_mode]) / len(mean_estimates[game_mode]))
         try:
