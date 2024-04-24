@@ -7,7 +7,8 @@ from skatzero.evaluation.utils import swap_colors
 
 class SimulatedDataBidder:
 
-    def __init__(self):
+    def __init__(self, gegenreizung_penalties):
+        self.gegenreizung_penalties = gegenreizung_penalties
         self.rewards = {'D': [-170, -150, -130, 70, 80, 90], 'G': [-282, -234, -186, 98, 122, 146]} # Eigenschwarz, ..., Schwarz
         self.values = {}
         self.dists = {}
@@ -95,4 +96,7 @@ class SimulatedDataBidder:
             bid_values_gamemode[self.bids <= 46] = normal_value
             bid_values_gamemode[self.bids > 46] = -182
 
+        # Über 18, also bei Gegenreizung, wird eine durchschnittliche Penalty vom Value abgezogen
+        bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
+        
         return bid_values_gamemode

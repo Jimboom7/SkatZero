@@ -11,8 +11,8 @@ from bidding.bidder_simulated_data import SimulatedDataBidder
 
 class AdvancedBidder:
 
-    def __init__(self, env, raw_state, pos = "0"):
-        self.simulated_data_bidder = SimulatedDataBidder()
+    def __init__(self, env, raw_state, pos = "0", gegenreizung_penalties = {'D': 25, 'G': 40, 'N': 25, 'NO': 25}):
+        self.simulated_data_bidder = SimulatedDataBidder(gegenreizung_penalties)
         self.env = env
         self.pos = int(pos)
         self.raw_state = copy.deepcopy(raw_state)
