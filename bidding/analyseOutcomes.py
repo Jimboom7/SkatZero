@@ -20,13 +20,20 @@ if __name__ == '__main__':
     MODEL2_G = 'models/latest/G_1.pth'
     MODEL3_G = 'models/latest/G_2.pth'
 
-    models = [
-            MODEL1_D,
-            MODEL2_D,
-            MODEL3_D,
+    if gametype == 'D':
+        models = [
+                MODEL1_D,
+                MODEL2_D,
+                MODEL3_D
+            ]
+    else:
+        models = [
             MODEL1_G,
             MODEL2_G,
             MODEL3_G,
+            MODEL1_G, # Workaround
+            MODEL2_G,
+            MODEL3_G
         ]
 
     agents = []
