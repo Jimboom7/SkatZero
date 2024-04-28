@@ -177,15 +177,17 @@ def bid(args, accuracy, bid_threshold):
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     bid_jacks = [0, 0, 0]
+    penalties = {'D': 25, 'G': 40, 'N': 0, 'NO': 0}
 
     if args[0] == 'SKAT_OR_HAND_DECL':
         bids, bid_jacks = parse_bid(int(args[3]), 1, bids, bid_jacks)
         bids, bid_jacks = parse_bid(int(args[4]), 2, bids, bid_jacks)
+        penalties = {'D': 0, 'G': 0, 'N': 0, 'NO': 0}
 
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
-    bidder = AdvancedBidder(env, raw_state, args[2])
+    bidder = AdvancedBidder(env, raw_state, args[2], penalties)
     hand_estimates = bidder.get_blind_hand_values()
     for _ in range(accuracy):
         mean_estimates, bid_value_dict = bidder.update_value_estimates()
@@ -243,13 +245,15 @@ def bid(args, accuracy, bid_threshold):
         highest_bid_hand = max(bid_list_hand)
 
         max_bid = 0
-        if bid_value_dict[18] > 0:
-            max_bid = 18
+        if bid_value_dict[18] > -10 + bid_threshold: # TODO: Currently quick and dirty solution to encourage low bids. Move to Bidder and make better.
+            max_bid = 17
         try:
-            max_bid = [key for key, value in bid_value_dict.items() if value > 25][-1]
+            max_bid = [key for key, value in bid_value_dict.items() if value > (int(key) - 24) + bid_threshold][-1]
         except:
             pass
         highest_bid = max(highest_bid_hand, max_bid)
+
+        print(bid_value_dict)
 
         print(str(highest_bid))
         return
