@@ -63,6 +63,14 @@ class SkatMatch:
                     cardPlay = cardPlay[16:]
             else:
                 self.gedrueckt = self.skatCards
+
+                if cardPlay[0] == 'H': # HH
+                    reizungen += 'H'
+                    cardPlay = cardPlay[1:]
+                if cardPlay[0] == 'O': # NHO
+                    reizungen += 'O'
+                    cardPlay = cardPlay[31:]
+
                 if cardPlay[0] == ' ':
                     # Normales Handspiel ohne Zusätze
                     reizungenParts = reizungen.rpartition(' ')
