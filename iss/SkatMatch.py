@@ -55,7 +55,12 @@ class SkatMatch:
                     # Null Ouvert ist das einzige Spiel ohne Hand mit zwei Buchstaben
                     self.gedrueckt = convertCardStringToMat(cardPlay[11:16], '.')
                     self.gameType = 'NO'
-                    cardPlay = cardPlay[17:]
+                    if cardPlay[16] == '.':
+                        # Alle 12 Karten werden aufgelistet
+                        cardPlay = cardPlay[47:]
+                    else:
+                        # Nur 2 Karten werden aufgelistet
+                        cardPlay = cardPlay[17:]
                 else:
                     # Spiel hat nur einen Buchstaben (G, C, S, H, D, N)
                     self.gedrueckt = convertCardStringToMat(cardPlay[10:15], '.')
