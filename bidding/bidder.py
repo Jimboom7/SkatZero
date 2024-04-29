@@ -105,7 +105,7 @@ class Bidder:
     def get_blind_hand_values(self):
         values = []
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
-            values.append(self.get_blind_hand_values_for_game(self, game_mode))
+            values.append(self.get_blind_hand_values_for_game(game_mode))
         return values
     
 

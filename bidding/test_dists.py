@@ -4,9 +4,9 @@ import sys
 sys.path.append('D:\Git\skatzero')
 from skatzero.game.utils import calculate_max_bids
 
-values = np.load('data/values_G.npy')
+values = np.load('bidding/data/values_G.npy')
 
-dists = np.load('data/outcome_distributions_G.npy')
+dists = np.load('bidding/data/outcome_distributions_G.npy')
 
 plt.figure()
 plt.plot(values, np.mean(dists, axis=1)[:,0])

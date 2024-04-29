@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import copy
 
@@ -34,8 +35,9 @@ class SimulatedDataBidder:
         # dists: probabilities [0, 1]
 
         for gametype in ['D', 'G']:
-            values = np.load(f'bidding/data/values_{gametype}.npy')                # shape: (n,)
-            dists = np.load(f'bidding/data/outcome_distributions_{gametype}.npy')  # shape: (n, m, 6)
+            basedir = os.path.dirname(os.path.realpath(__file__))
+            values = np.load(f'{basedir}/data/values_{gametype}.npy')                # shape: (n,)
+            dists = np.load(f'{basedir}/data/outcome_distributions_{gametype}.npy')  # shape: (n, m, 6)
 
             # reduce dists by hands dimension
             dists = np.mean(dists, axis = 1) # shape: (n, 6)

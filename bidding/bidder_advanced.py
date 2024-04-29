@@ -11,7 +11,7 @@ from bidding.bidder_simulated_data import SimulatedDataBidder
 
 class AdvancedBidder:
 
-    def __init__(self, env, raw_state, pos = "0", gegenreizung_penalties = {'D': 25, 'G': 40, 'N': 25, 'NO': 25}):
+    def __init__(self, env, raw_state, pos = "0", gegenreizung_penalties = {'D': 25, 'G': 40, 'N': 0, 'NO': 0}):
         self.simulated_data_bidder = SimulatedDataBidder(gegenreizung_penalties)
         self.env = env
         self.pos = int(pos)
@@ -129,7 +129,7 @@ class AdvancedBidder:
             self.prepare_state(game_mode, raw_state_gamemode_prep)
 
             # Performance hotfix -> TODO: Make better
-            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -60 or
+            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -90 or
                 len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -60):
                 continue
 
