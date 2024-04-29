@@ -29,6 +29,11 @@ class SkatMatch:
         p2Cards = lineParts[13][62:91]
         skatCards = lineParts[13][92:97]
 
+        self.cards = {}
+        self.cards[self.playerNames[0]] = p0Cards.split(".")
+        self.cards[self.playerNames[1]] = p1Cards.split(".")
+        self.cards[self.playerNames[2]] = p2Cards.split(".")
+
         self.playerCards = np.stack([convertCardStringToMat(p0Cards, '.'), convertCardStringToMat(p1Cards, '.'), convertCardStringToMat(p2Cards, '.')])
         self.skatCards = convertCardStringToMat(skatCards, '.')
 
