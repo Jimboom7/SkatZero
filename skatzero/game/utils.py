@@ -53,8 +53,10 @@ def calculate_bidding_value(cards):
     return mult
 
 
-def calculate_max_bids(cards, gametype):
+def calculate_max_bids(cards, gamemode):
     base_values = {'G': 24, 'C': 12, 'S': 11, 'H': 10, 'D': 9}
+    gametype = gamemode[0]
+    is_hand = True if len(gamemode) > 1 else False
 
     if 'CJ' in cards:
         if 'SJ' in cards:
@@ -121,6 +123,8 @@ def calculate_max_bids(cards, gametype):
         else:
             mult = 2
 
+    if is_hand:
+        mult += 1
     max_bids = {'Normal': mult*base_values[gametype], 'Schneider': (mult+1)*base_values[gametype], 'Schwarz': (mult+2)*base_values[gametype]}
     return max_bids
 

@@ -9,7 +9,10 @@ class SimulatedDataBidder:
 
     def __init__(self, gegenreizung_penalties):
         self.gegenreizung_penalties = gegenreizung_penalties
-        self.rewards = {'D': [-170, -150, -130, 70, 80, 90], 'G': [-282, -234, -186, 98, 122, 146]} # Eigenschwarz, ..., Schwarz
+        self.rewards = {'D': [-170, -150, -130, 70, 80, 90],     # Eigenschwarz, ..., Schwarz
+                        'DH': [-190, -170, -150, 80, 90, 100],
+                        'G': [-282, -234, -186, 98, 122, 146],
+                        'GH': [-330, -282, -234, 122, 146, 170]}
         self.values = {}
         self.dists = {}
         self.bids = self.get_bid_list()
@@ -34,7 +37,7 @@ class SimulatedDataBidder:
         # values: expected rewards
         # dists: probabilities [0, 1]
 
-        for gametype in ['D', 'G']:
+        for gametype in ['D', 'G', 'DH', 'GH']:
             basedir = os.path.dirname(os.path.realpath(__file__))
             values = np.load(f'{basedir}/data/values_{gametype}.npy')                # shape: (n,)
             dists = np.load(f'{basedir}/data/outcome_distributions_{gametype}.npy')  # shape: (n, m, 6)
@@ -52,15 +55,24 @@ class SimulatedDataBidder:
             self.dists[gametype] = dists
 
 
+    def get_bid_value_table_with_penalty(self, raw_state, game_mode, normal_value):
+        game_mode, bid_values_gamemode = self.get_bid_value_table(raw_state, game_mode, normal_value)
+
+        # Über 18, also bei Gegenreizung, wird eine durchschnittliche Penalty vom Value abgezogen
+        bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
+        
+        return bid_values_gamemode
+
     def get_bid_value_table(self, raw_state, game_mode, normal_value):
         bid_values_gamemode = np.zeros((self.bids.size,))
-        if game_mode in ['C', 'S', 'H', 'D', 'G']:
+
+        if game_mode[0] in ['C', 'S', 'H', 'D', 'G']:
             current_hand = raw_state['current_hand']
-            if game_mode != 'G':
-                current_hand = swap_colors(current_hand, game_mode, 'D')
+            if game_mode[0] != 'G':
+                current_hand = swap_colors(current_hand, game_mode[0], 'D')
             max_bids = calculate_max_bids(current_hand, game_mode)
-            if game_mode != 'G':
-                game_mode = 'D' # später ist nur noch interessant, ob es ein Farbspiel ist
+            if game_mode[0] != 'G':
+                game_mode = 'D' + game_mode[1:] # später ist nur noch interessant, ob es ein Farbspiel ist
 
             normal_inds = self.bids <= max_bids['Normal']
             schneider_inds = np.logical_and(self.bids > max_bids['Normal'], self.bids <= max_bids['Schneider'])
@@ -92,11 +104,19 @@ class SimulatedDataBidder:
             bid_values_gamemode[self.bids <= 23] = normal_value
             bid_values_gamemode[self.bids > 23] = -136
 
-        else:
+        elif game_mode == 'NO':
             bid_values_gamemode[self.bids <= 46] = normal_value
             bid_values_gamemode[self.bids > 46] = -182
 
-        # Über 18, also bei Gegenreizung, wird eine durchschnittliche Penalty vom Value abgezogen
-        bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
-        
-        return bid_values_gamemode
+        elif game_mode == 'NH':
+            bid_values_gamemode[self.bids <= 35] = normal_value
+            bid_values_gamemode[self.bids > 35] = -160
+
+        elif game_mode == 'NOH':
+            bid_values_gamemode[self.bids <= 59] = normal_value
+            bid_values_gamemode[self.bids > 59] = -208
+
+        else:
+            raise ValueError(f'game_mode ist {game_mode}, was scheinbar nicht unterstützt wird!')
+
+        return game_mode, bid_values_gamemode

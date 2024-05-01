@@ -19,6 +19,10 @@ if __name__ == '__main__':
     for ind, suit in enumerate(suits):
         print(f'{suit}: {hand_estimates[ind]}')
 
+    
+    bidding_table_hand_max = bidder.get_blind_hand_bidding_table(hand_estimates, return_only_max=True)
+    bidding_table_hand_all = bidder.get_blind_hand_bidding_table(hand_estimates, return_only_max=False)
+
 
     colors = ['green', 'mediumblue', 'red', 'darkorange', 'black', 'pink', 'purple']
     plt.ion()  # turning interactive mode on

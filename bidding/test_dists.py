@@ -4,9 +4,9 @@ import sys
 sys.path.append('D:\Git\skatzero')
 from skatzero.game.utils import calculate_max_bids
 
-values = np.load('bidding/data/values_D_H.npy')
+values = np.load('bidding/data/values_DH.npy')
 
-dists = np.load('bidding/data/outcome_distributions_D_H.npy')
+dists = np.load('bidding/data/outcome_distributions_DH.npy')
 
 plt.figure()
 plt.plot(values, np.mean(dists, axis=1)[:,0])
@@ -32,6 +32,6 @@ plt.ylabel('Tatsächlicher Value (ohne Smooth Points)')
 plt.show()
 
 
-test = calculate_max_bids(['CA', 'H7', 'S9', 'HA'], 'G')
+test = calculate_max_bids(['DJ', 'CA', 'H7', 'S9', 'HA'], 'DH')
 
 print('Ende')
