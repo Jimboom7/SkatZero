@@ -11,7 +11,8 @@ from bidding.bidder import Bidder
 
 if __name__ == '__main__':
 
-    gametype = 'G' # hier den Spieltyp einstellen
+    gametype = 'D' # hier den Spieltyp einstellen
+    is_hand = True
 
     MODEL1_D = 'models/latest/D_0.pth'
     MODEL2_D = 'models/latest/D_1.pth'
@@ -42,14 +43,22 @@ if __name__ == '__main__':
 
     if gametype == 'D':
         span = 4
-        min_estimates = np.concatenate(([-147, -102, -52, -22], np.arange(-12, 68, 10), np.arange(62, 90, 4)))
-        num_hands = 500
-        possible_rewards = [-170, -150, -130, 70, 80, 90]
+        num_hands = 200
+        if is_hand:
+            min_estimates = np.array([-167, -102, -52, -22, -12, -2, 8, 18, 28, 38, 48, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94])
+            possible_rewards = [-190, -170, -150, 80, 90, 100]
+        else:
+            min_estimates = np.array([-147, -102, -52, -22, -12, -2, 8, 18, 28, 38, 48, 58, 62, 66, 70, 74, 78, 82, 86])
+            possible_rewards = [-170, -150, -130, 70, 80, 90]
     else:
         span = 8
-        min_estimates = np.concatenate(([-224, -104, -54, -24], np.arange(-14, 106, 20), np.arange(96, 146, 10)))
-        num_hands = 100 #1000
-        possible_rewards = [-282, -234, -186, 98, 122, 146]
+        num_hands = 200
+        if is_hand:
+            min_estimates = np.array([-264, -104, -54, -24, -9, 6, 21, 36, 51, 66, 81, 96, 106, 116, 126, 136, 146, 156, 161])
+            possible_rewards = [-330, -282, -234, 122, 146, 170]
+        else:
+            min_estimates = np.array([-224, -104, -54, -24, -9, 6, 21, 36, 51, 66, 81, 96, 106, 116, 126, 136, 146])
+            possible_rewards = [-282, -234, -186, 98, 122, 146]
 
     value_distributions = np.zeros((len(min_estimates), num_hands, 6))
     actual_values = []
@@ -66,11 +75,11 @@ if __name__ == '__main__':
             while True:
                 player_id = 2
                 while player_id != 0:
-                    env = SkatEnv(blind_hand_chance = 0.0, seed=None, gametype=gametype)
+                    env = SkatEnv(blind_hand_chance = is_hand, seed=None, gametype=gametype)
 
                     env.set_agents(agents)
 
-                    raw_state, player_id = env.game.init_game(blind_hand=False)
+                    raw_state, player_id = env.game.init_game(blind_hand=is_hand)
 
                 #print(env.game.players[0].current_hand)
                 #print(env.game.state['skat'])
@@ -162,7 +171,11 @@ if __name__ == '__main__':
     #plt.legend(['Eigenschwarz', 'Eigenschneider', 'Verloren', 'Gewonnen', 'Schneider', 'Schwarz'])
     #plt.show()
 
-    np.save(f'bidding/data/values_{gametype}.npy', actual_values)
-    np.save(f'bidding/data/outcome_distributions_{gametype}.npy', value_distributions)
+    if is_hand:
+        np.save(f'bidding/data/values_{gametype}_H.npy', actual_values)
+        np.save(f'bidding/data/outcome_distributions_{gametype}_H.npy', value_distributions)
+    else:
+        np.save(f'bidding/data/values_{gametype}.npy', actual_values)
+        np.save(f'bidding/data/outcome_distributions_{gametype}.npy', value_distributions)
 
     print('Ende')
