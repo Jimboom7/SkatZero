@@ -123,7 +123,7 @@ class AdvancedBidder:
 
     def find_best_game_and_discard(self, raw_state_prep):
         best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
-        bid_value_table_skat = np.full((self.simulated_data_bidder.bids.size,), -1000)
+        bid_value_table_skat = np.full((self.simulated_data_bidder.bids.size,), -170)
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
             raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
             self.prepare_state(game_mode, raw_state_gamemode_prep)
