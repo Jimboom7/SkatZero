@@ -37,7 +37,7 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
         if matchInd % 20000 == 0:
             print(matchInd)
         for playerInd, player in enumerate(match.playerNames):
-            if player != evalPlayer and player != evalPlayer+':2':
+            if player != evalPlayer:
                 # Eval-Spieler nicht am Tisch.
                 continue
 
@@ -153,7 +153,7 @@ def calculatePercentages(playerEvalDict):
 if __name__ == '__main__':
     # Parameter
     issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt'
-    playersToEvaluate = ['Hubert47', 'kermit']
+    playersToEvaluate = ['Hubert47', 'kermit', 'kermit:2']
     gameTypesToExclude = [] #'G' = Grand, 'N' = Null
 
     # Logfile parsen und in Liste mit Objekten der Klasse "SkatMatch" übersetzen

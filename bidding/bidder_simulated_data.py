@@ -54,16 +54,7 @@ class SimulatedDataBidder:
             self.values[gametype] = values
             self.dists[gametype] = dists
 
-
-    def get_bid_value_table_with_penalty(self, raw_state, game_mode, normal_value):
-        game_mode, bid_values_gamemode = self.get_bid_value_table(raw_state, game_mode, normal_value)
-
-        # Über 18, also bei Gegenreizung, wird eine durchschnittliche Penalty vom Value abgezogen
-        bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
-        
-        return bid_values_gamemode
-
-    def get_bid_value_table(self, raw_state, game_mode, normal_value):
+    def get_bid_value_table(self, raw_state, game_mode, normal_value, penalty=False):
         bid_values_gamemode = np.zeros((self.bids.size,))
 
         if game_mode[0] in ['C', 'S', 'H', 'D', 'G']:
@@ -118,5 +109,8 @@ class SimulatedDataBidder:
 
         else:
             raise ValueError(f'game_mode ist {game_mode}, was scheinbar nicht unterstützt wird!')
+        
+        if penalty:
+            bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
 
-        return game_mode, bid_values_gamemode
+        return bid_values_gamemode

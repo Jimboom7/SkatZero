@@ -1,4 +1,4 @@
-from bidding.bidder_advanced import AdvancedBidder
+from bidding.bidder import Bidder
 from iss.SkatMatch import SkatMatch
 from iss_api import prepare_env
 from skatzero.game.utils import init_32_deck
@@ -41,7 +41,7 @@ def analyseHand(cards):
     raw_state['bids'] = bids
     raw_state['bid_jacks'] = bid_jacks
 
-    bidder = AdvancedBidder(env, raw_state, 0, penalties)
+    bidder = Bidder(env, raw_state, 0, penalties)
     hand_estimates = bidder.get_blind_hand_values()
 
     return max(hand_estimates)
@@ -59,12 +59,12 @@ if __name__ == '__main__':
 
     score = 0
     for card in cards:
-        score += analyseHand(card["zoot"])
-    print("Zoot: " + str(score/len(cards)))
+        score += analyseHand(card["kermit"])
+    print("kermit: " + str(score/len(cards)))
 
     score = 0
     for card in cards:
-        score += analyseHand(card["zoot:2"])
-    print("Zoot2: " + str(score/len(cards)))
+        score += analyseHand(card["kermit:2"])
+    print("kermit2: " + str(score/len(cards)))
 
     print('Ende')

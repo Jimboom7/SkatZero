@@ -1,20 +1,24 @@
 import copy
 import itertools
 import random
+import numpy as np
 
 from skatzero.env.feature_transformations import extract_state
 from skatzero.evaluation.utils import swap_colors, swap_bids
 from skatzero.game.utils import get_points
 from skatzero.test.utils import construct_state_from_history
+from bidding.bidder_simulated_data import SimulatedDataBidder
 
 class Bidder:
 
-    def __init__(self, env, raw_state, pos = "0"):
+    def __init__(self, env, raw_state, pos = "0", gegenreizung_penalties = {'D': 0, 'G': 0, 'N': 0, 'NO': 0, 'DH': 0, 'GH': 0, 'NH': 0, 'NOH': 0}):
+        self.simulated_data_bidder = SimulatedDataBidder(gegenreizung_penalties)
         self.env = env
         self.pos = int(pos)
         self.raw_state = copy.deepcopy(raw_state)
         self.raw_state['self'] = 0
         self.estimates = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
+        self.bid_table = None
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
         random.shuffle(self.skat_comb_inds)
@@ -115,17 +119,46 @@ class Bidder:
 
         vals_cards = self.simulate_player_discards(current_raw_state)
         return vals_cards
+    
+
+    def get_blind_hand_bidding_table(self, blind_hand_values, return_only_max=True, penalty=False):
+        game_modes = ['CH', 'SH', 'HH', 'DH', 'GH', 'NH', 'NOH']
+        bid_tables_all_gamemodes = []
+
+        for game_mode_ind, game_mode in enumerate(game_modes):
+            bid_tables_gamemode_all_skats = []
+            for current_skat_inds in self.skat_comb_inds:
+                # Rohzustand vorbereiten mit Skatkarten in eigener Hand (danach 12 Karten) und Abzug von Gegnerhand (danach 20 Karten)
+                raw_state_prep = copy.deepcopy(self.raw_state)
+                skat = [raw_state_prep['others_hand'][current_skat_inds[0]], raw_state_prep['others_hand'][current_skat_inds[1]]]
+                raw_state_prep['current_hand'] = skat + raw_state_prep['current_hand']
+                # Achtung! Rest vom State wird nicht geändert, da derzeit ab hier nicht mehr als current_hand genutzt wird!
+                bid_tables_gamemode_all_skats.append(self.simulated_data_bidder.get_bid_value_table(raw_state_prep, game_mode, blind_hand_values[game_mode_ind], penalty=penalty))
+            bid_tables_gamemode_all_skats = np.stack(bid_tables_gamemode_all_skats)
+            bid_tables_all_gamemodes.append(np.mean(bid_tables_gamemode_all_skats, axis=0))
+
+        if return_only_max:
+            bid_table = np.max(np.stack(bid_tables_all_gamemodes), axis=0)
+            bid_table_dict = dict(zip(self.simulated_data_bidder.bids, bid_table))
+            return bid_table_dict
+        else:
+            bid_table_dict_gamemodes = {}
+            for game_mode_ind, game_mode in enumerate(game_modes):
+                bid_table_dict_gamemodes[game_mode] = dict(zip(self.simulated_data_bidder.bids, bid_tables_all_gamemodes[game_mode_ind]))
+            return bid_table_dict_gamemodes
+
 
 
     def find_best_game_and_discard(self, raw_state_prep):
         best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
+        bid_value_table_skat = np.full((self.simulated_data_bidder.bids.size,), -170)
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
             raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
             self.prepare_state(game_mode, raw_state_gamemode_prep)
 
             # Performance hotfix -> TODO: Make better
-            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -30 or
-                len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -10):
+            if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -90 or
+                len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -60):
                 continue
 
             vals_drueckungen = []
@@ -158,9 +191,15 @@ class Bidder:
 
             #print(f'{game_mode}: {max(vals_drueckungen)}')
             self.env.game.state = original_state
-            vals_cards = self.simulate_player_discards(best_state)
-            self.estimates[game_mode].append(vals_cards)
-        return best_discard
+            best_val = self.simulate_player_discards(best_state)
+
+            bid_value_table_game = self.simulated_data_bidder.get_bid_value_table(raw_state_gamemode_prep, game_mode, best_val, penalty=True)
+            bid_value_table_skat = np.maximum(bid_value_table_skat, bid_value_table_game)
+
+            self.estimates[game_mode].append(best_val)
+
+        return best_discard, bid_value_table_skat
+
 
     def update_value_estimates(self):
         # Rohzustand vorbereiten mit Skatkarten in eigener Hand (danach 12 Karten) und Abzug von Gegnerhand (danach 20 Karten)
@@ -172,7 +211,14 @@ class Bidder:
         raw_state_prep['others_hand'] = [i for j, i in enumerate(raw_state_prep['others_hand']) if j not in current_skat_inds]
         raw_state_prep['blind_hand'] = False
 
-        self.find_best_game_and_discard(raw_state_prep)
+        best_discard, bid_value_table_skat = self.find_best_game_and_discard(raw_state_prep)
+        if self.bid_table is None:
+            self.bid_table = bid_value_table_skat
+        else:
+            # Implementierung hier als laufend aktualisierter Mittelwert
+            factor_old = (self.current_skat) / (self.current_skat+1)
+            factor_new = 1 - factor_old
+            self.bid_table = factor_old * self.bid_table + factor_new * bid_value_table_skat
 
         self.current_skat += 1
-        return self.estimates
+        return self.estimates, dict(zip(self.simulated_data_bidder.bids, self.bid_table))

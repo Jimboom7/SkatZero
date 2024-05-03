@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 
 from skatzero.evaluation.utils import format_card
 from skatzero.evaluation.simulation import prepare_env
-from bidding.bidder_advanced import AdvancedBidder
+from bidding.bidder import Bidder
 
 if __name__ == '__main__':
 
     env, raw_state = prepare_env(False)
     raw_state['skat'] = []
-    bidder = AdvancedBidder(env, raw_state)
+    bidder = Bidder(env, raw_state)
 
     hand_cards = bidder.get_hand_cards()
     for card in hand_cards:

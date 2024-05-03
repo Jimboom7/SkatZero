@@ -1,11 +1,11 @@
+import copy
 import sys
 import os
 from bidding.bidder import Bidder
-from bidding.bidder_advanced import AdvancedBidder
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.simulation import load_model
 from skatzero.evaluation.utils import swap_bids, swap_colors
-from skatzero.game.utils import calculate_bidding_value, init_32_deck
+from skatzero.game.utils import init_32_deck
 from skatzero.test.utils import available_actions, construct_state_from_history
 
 def parse_history(history, trump): # Parsing history in the form of "1HT,2HA,0H8,..."
@@ -18,70 +18,30 @@ def parse_history(history, trump): # Parsing history in the form of "1HT,2HA,0H8
         cards.append((int(triplet[0]), card))
     return cards
 
-def parse_bid(bid, pos, bids, bid_jacks):
+def parse_bid(bid_value, pos, bids, bid_jacks):
     d_bids = [18, 27, 45]
     h_bids = [20, 30, 40, 50]
     s_bids = [22, 33, 44, 55]
     c_bids = [24, 36, 48, 60]
     n_bids = [23, 35, 46, 59]
 
-    if bid in d_bids:
+    if bid_value in d_bids:
         bids[pos]['D'] = 1
-        if bid != 18:
-            bid_jacks[pos] = int(bid / 9) - 1
-    elif bid in h_bids:
+        if bid_value != 18:
+            bid_jacks[pos] = int(bid_value / 9) - 1
+    elif bid_value in h_bids:
         bids[pos]['H'] = 1
-        bid_jacks[pos] = int(bid / 10) - 1
-    elif bid in s_bids:
+        bid_jacks[pos] = int(bid_value / 10) - 1
+    elif bid_value in s_bids:
         bids[pos]['S'] = 1
-        bid_jacks[pos] = int(bid / 11) - 1
-    elif bid in c_bids:
+        bid_jacks[pos] = int(bid_value / 11) - 1
+    elif bid_value in c_bids:
         bids[pos]['C'] = 1
-        bid_jacks[pos] = int(bid / 12) - 1
-    elif bid in n_bids:
+        bid_jacks[pos] = int(bid_value / 12) - 1
+    elif bid_value in n_bids:
         bids[pos]['N'] = 1
 
     return bids, bid_jacks
-
-def calculate_bids_for_gametypes(raw_state, estimates, bid_threshold, raw_bids):
-    bid_list = []
-    multiplier = calculate_bidding_value(raw_state['current_hand'])
-    for i, val in enumerate(estimates):
-        if val <= bid_threshold and not raw_bids:
-            bid_list.append(0)
-            continue
-        if val <= 25 + bid_threshold and not raw_bids and not (i in [5, 6, 12, 13]): # 25 is average loss of value when others bid. Not valid for Null Games. #TODO: Check actual loss in Nullgames
-            bid_list.append(18)
-            continue
-        if val <= 40 + bid_threshold and not raw_bids and i in [4, 11]: # Grand
-            bid_list.append(18)
-            continue
-        if val <= 60 + bid_threshold and not raw_bids and i in [4, 11]: # Grand
-            bid_list.append(24)
-            continue
-        hand = 0
-        base_value = 24
-        if i < 7:
-            hand = 1
-        if (i % 7) == 0:
-            base_value = 12
-        if (i % 7) == 1:
-            base_value = 11
-        if (i % 7) == 2:
-            base_value = 10
-        if (i % 7) == 3:
-            base_value = 9
-        bid = (multiplier + hand) * base_value
-        if i == 12: # N
-            bid = 23
-        if i == 5: # NH
-            bid = 35
-        if i == 13: # NO
-            bid = 46
-        if i == 6: # NOH
-            bid = 59
-        bid_list.append(bid)
-    return bid_list
 
 def prepare_env():
     basedir = os.path.dirname(os.path.realpath(__file__))
@@ -173,21 +133,21 @@ def bid(args, accuracy, bid_threshold):
     raw_state['skat'] = []
     raw_state['actions'] = available_actions(raw_state['current_hand'])
 
-    bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+    hand_bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     bid_jacks = [0, 0, 0]
-    penalties = {'D': 25, 'G': 40, 'N': 0, 'NO': 0}
+    penalties = {'D': 25, 'G': 40, 'N': 0, 'NO': 0, 'DH': 25, 'GH': 40, 'NH': 0, 'NOH': 0}
 
     if args[0] == 'SKAT_OR_HAND_DECL':
-        bids, bid_jacks = parse_bid(int(args[3]), 1, bids, bid_jacks)
-        bids, bid_jacks = parse_bid(int(args[4]), 2, bids, bid_jacks)
-        penalties = {'D': 0, 'G': 0, 'N': 0, 'NO': 0}
+        hand_bids, bid_jacks = parse_bid(int(args[3]), 1, hand_bids, bid_jacks)
+        hand_bids, bid_jacks = parse_bid(int(args[4]), 2, hand_bids, bid_jacks)
+        penalties = {'D': 0, 'G': 0, 'N': 0, 'NO': 0, 'DH': 0, 'GH': 0, 'NH': 0, 'NOH': 0}
 
-    raw_state['bids'] = bids
+    raw_state['bids'] = hand_bids
     raw_state['bid_jacks'] = bid_jacks
 
-    bidder = AdvancedBidder(env, raw_state, args[2], penalties)
+    bidder = Bidder(env, raw_state, args[2], penalties)
     hand_estimates = bidder.get_blind_hand_values()
     for _ in range(accuracy):
         mean_estimates, bid_value_dict = bidder.update_value_estimates()
@@ -206,18 +166,22 @@ def bid(args, accuracy, bid_threshold):
         print(gametype, all_estimates[i])
 
     if args[0] == 'SKAT_OR_HAND_DECL':
-        bid_list = calculate_bids_for_gametypes(raw_state, hand_estimates + pickup_estimates, bid_threshold, True)
-        for i, _ in enumerate(hand_estimates): # Set hand games that are not possible with the bid to -1000. #TODO: Remove when hand value table is implemented
-            if bid_list[i] < int(args[5]):
-                hand_estimates[i] = -1000
+        bid_hand_dict = bidder.get_blind_hand_bidding_table(hand_estimates, return_only_max=False, penalty=False)
+
+        hand_bids = []
+        for i, gametype in enumerate(['CH', 'SH', 'HH', 'DH', 'GH', 'NH', 'NOH']):
+            hand_bids.append(bid_hand_dict[gametype][int(args[5])])
 
         pickup_average_estimate = bid_value_dict[int(args[5])]
 
-        if pickup_average_estimate > max(hand_estimates):
+        print(pickup_average_estimate)
+        print(hand_bids)
+
+        if pickup_average_estimate > max(hand_bids):
             print('s')
             return
         else:
-            gametype = hand_estimates.index(max(hand_estimates))
+            gametype = hand_bids.index(max(hand_bids))
             str_type = 'NO'
             if gametype == 0:
                 str_type = 'C'
@@ -241,22 +205,29 @@ def bid(args, accuracy, bid_threshold):
                 print(str_type + 'H')
             return
     elif args[0] == 'BID':
-        bid_list_hand = calculate_bids_for_gametypes(raw_state, hand_estimates, bid_threshold, False)
-        highest_bid_hand = max(bid_list_hand)
+        bid_hand_dict = bidder.get_blind_hand_bidding_table(hand_estimates, return_only_max=True, penalty=True)
 
-        max_bid = 0
-        if bid_value_dict[18] > -10 + bid_threshold: # TODO: Currently quick and dirty solution to encourage low bids. Move to Bidder and make better.
-            max_bid = 17
-        try:
-            max_bid = [key for key, value in bid_value_dict.items() if value > (int(key) - 24) + bid_threshold][-1]
-        except:
-            pass
-        highest_bid = max(highest_bid_hand, max_bid)
+        max_bid_hand = get_max_bid(bid_threshold, bid_hand_dict)
 
-        print(bid_value_dict)
+        max_bid = get_max_bid(bid_threshold, bid_value_dict)
+
+        highest_bid = max(max_bid_hand, max_bid)
+
+        print(bid_hand_dict)
+        print(bid_value_dict) # TODO: Remove? Pretty Print?
 
         print(str(highest_bid))
         return
+
+def get_max_bid(bid_threshold, bid_dict):
+    max_bid_hand = 0
+    if bid_dict[18] > -5 + bid_threshold:
+        max_bid_hand = 17
+    try:
+        max_bid_hand = [key for key, value in bid_dict.items() if value > bid_threshold + 10 or (value > bid_threshold and int(key) < 27)][-1]
+    except IndexError:
+        pass
+    return max_bid_hand
 
 def declare(args):
     _, env, raw_state = prepare_env()
@@ -281,58 +252,34 @@ def declare(args):
 
     bidder = Bidder(env, raw_state, args[2])
 
-    game_discards = bidder.find_best_game_and_discard(bidder.raw_state)
+    game_discards, _ = bidder.find_best_game_and_discard(bidder.raw_state)
 
-    multiplier = calculate_bidding_value(raw_state['current_hand'])
+    current_state = copy.deepcopy(raw_state)
+    gametype_values = {}
+    for gametype in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
+        current_state['current_hand'] = game_discards[gametype] + raw_state['current_hand']
+        bid_values = bidder.simulated_data_bidder.get_bid_value_table(current_state, gametype, bidder.estimates[gametype], penalty=False)
+        bid_values = dict(zip(bidder.simulated_data_bidder.bids, bid_values))
+        gametype_values[gametype] = bid_values[int(args[5])]
 
-    best = -999
-    for key, value in bidder.estimates.items():
-        base_value = 9
-        if key == 'G':
-            base_value = 24
-        if key == 'C':
-            base_value = 12
-        elif key == 'S':
-            base_value = 11
-        elif key == 'H':
-            base_value = 10
-        elif key == 'D':
-            base_value = 9
-        bid = multiplier * base_value
-        if key == 'N':
-            bid = 23
-        if key == 'NH':
-            bid = 35
-        if key == 'NO':
-            bid = 46
-        if key == 'NOH':
-            bid = 59
-        if bid < int(args[5]):
-            continue
-        if value[0] > best:
-            best = value[0]
+    best_gametype = max(gametype_values, key=gametype_values.get)
 
-    if best == -999: # Überreizt -> Spielt einfach das stärkste Spiel
-        gametype = max(bidder.estimates, key=bidder.estimates.get)
-    else:
-        gametype = [k for k, v in bidder.estimates.items() if v == best][0]
+    skat = game_discards[best_gametype]
 
-    skat = game_discards[gametype]
-
-    for k, v in bidder.estimates.items():
-        bidder.estimates[k][0] = round(v[0], 2)
-    sorted_dict = sorted(bidder.estimates.items(), key=lambda x: -x[1][0])
+    for k, v in gametype_values.items():
+        gametype_values[k] = round(v, 2)
+    sorted_dict = sorted(gametype_values.items(), key=lambda x: -x[1])
     for tpl in sorted_dict:
-        print(tpl[0], tpl[1][0])
+        print(tpl[0], tpl[1])
 
-    if gametype == 'NO': # TODO: Müssen die Karten sortiert sein damit ISS damit umgehen kann?
-        declaration = gametype + "." + skat[0] + "." + skat[1]
+    if best_gametype == 'NO':
+        declaration = best_gametype + "." + skat[0] + "." + skat[1]
         for card in raw_state['current_hand']:
             if card != skat[0] and card != skat[1]:
                 declaration = declaration + "." + card
         print(declaration)
     else:
-        print(gametype + "." + skat[0] + "." + skat[1])
+        print(best_gametype + "." + skat[0] + "." + skat[1])
 
 
 def cardplay(args):
@@ -368,18 +315,18 @@ def cardplay(args):
 
 if __name__ == '__main__':
     ACCURACY = 50 # Number of Iterations for Skat simulation
-    BID_THRESHOLD = 0 # How aggressive should the AI bid? 0 is average best return, lower values mean more aggressive
+    BID_THRESHOLD = -20 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
 
-    args = sys.argv[1:]
+    arguments = sys.argv[1:]
 
-    if args[0] == 'BID':
-        bid(args, ACCURACY, BID_THRESHOLD)
-    elif args[0] == 'SKAT_OR_HAND_DECL':
-        bid(args, ACCURACY, BID_THRESHOLD)
-    elif args[0] == 'DISCARD_AND_DECL':
-        declare(args)
-    elif args[0] == 'CARDPLAY':
-        if args[1] in ['D', 'H', 'S', 'C', 'G', 'N']:
-            cardplay(args)
+    if arguments[0] == 'BID':
+        bid(arguments, ACCURACY, BID_THRESHOLD)
+    elif arguments[0] == 'SKAT_OR_HAND_DECL':
+        bid(arguments, ACCURACY, BID_THRESHOLD)
+    elif arguments[0] == 'DISCARD_AND_DECL':
+        declare(arguments)
+    elif arguments[0] == 'CARDPLAY':
+        if arguments[1] in ['D', 'H', 'S', 'C', 'G', 'N']:
+            cardplay(arguments)
         else:
             print("Wrong Gamemode")
