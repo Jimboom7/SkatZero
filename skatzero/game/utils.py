@@ -1,6 +1,3 @@
-import random
-
-
 card_suits = ['D', 'H', 'S', 'C']
 card_suit_as_number = {'D': 0 , 'H': 1, 'S': 2, 'C': 3}
 
