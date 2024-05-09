@@ -6,7 +6,7 @@ from skatzero.evaluation.seeding import np_random
 
 
 class SkatEnv(object):
-    def __init__(self, blind_hand_chance = 0.1, seed=None, gametype='D', open_hand_chance = 0.1):
+    def __init__(self, blind_hand_chance = 0.1, seed=None, gametype='D', open_hand_chance = 0.1, lstm=True):
         self.name = 'skat'
         self.game = Game(gametype=gametype)
 
@@ -17,6 +17,7 @@ class SkatEnv(object):
         self.num_actions = self.game.get_num_actions()
 
         self.timestep = 0
+        self.lstm = lstm
 
         self.base_seed = seed
         self.seed(seed)
@@ -33,6 +34,10 @@ class SkatEnv(object):
             self.state_shape = [[1360], [1414], [1414]]
         else:
             self.state_shape = [[1601], [1623], [1623]]
+        if self.lstm:
+            self.state_shape[0][0] -= 1050
+            self.state_shape[1][0] -= 1050
+            self.state_shape[2][0] -= 1050
 
     def reset(self):
         if self.base_seed is not None:
@@ -41,7 +46,7 @@ class SkatEnv(object):
         is_blind_hand = self.np_random.rand() < self.blind_hand_chance
         is_open_hand = self.np_random.rand() < self.open_hand_chance
         state, player_id = self.game.init_game(blind_hand=is_blind_hand, open_hand=is_open_hand)
-        return self.extract_state(state), player_id
+        return self.extract_state(state,), player_id
 
     def step(self, action):
         action = self.decode_action(action)
@@ -104,7 +109,7 @@ class SkatEnv(object):
         return seed
 
     def extract_state(self, state):
-        extracted_state = extract_state(state, self.get_legal_actions())
+        extracted_state = extract_state(state, self.get_legal_actions(), self.lstm)
         return extracted_state
 
     def get_rewards(self, is_training):

@@ -11,7 +11,7 @@ from torch import multiprocessing as mp
 from torch import nn
 
 from skatzero.dmc.file_writer import FileWriter
-from skatzero.dmc.model import DMCModel
+from skatzero.dmc.model import DMCModel, DMCModelLSTM
 from skatzero.dmc.utils import (
     get_batch,
     create_buffers,
@@ -34,18 +34,23 @@ def learn(
     training_device,
     max_grad_norm,
     mean_episode_return_buf,
-    lock
+    lock,
+    lstm
 ):
     """Performs a learning (optimization) step."""
     device = "cuda:"+str(training_device) if training_device != "cpu" else "cpu"
     state = torch.flatten(batch['state'].to(device), 0, 1).float()
+    history = torch.flatten(batch['history'].to(device), 0, 1).float()
     action = torch.flatten(batch['action'].to(device), 0, 1).float()
     target = torch.flatten(batch['target'].to(device), 0, 1)
     episode_returns = batch['episode_return'][batch['done']]
     mean_episode_return_buf[position].append(torch.mean(episode_returns).to(device))
 
     with lock:
-        values = agent.forward(state, action)
+        if lstm:
+            values = agent.forward(state, history, action)
+        else:
+            values = agent.forward(state, action)
         loss = compute_loss(values, target)
         stats = {
             'mean_episode_return_'+str(position): torch.mean(torch.stack([_r for _r in mean_episode_return_buf[position]])).item(),
@@ -62,7 +67,7 @@ def learn(
         return stats
 
 
-class DMCTrainer:    
+class DMCTrainer:
     """
     Deep Monte-Carlo
 
@@ -110,7 +115,8 @@ class DMCTrainer:
         momentum=0,
         epsilon=0.00001,
         actor_device='cpu',
-        eval=False
+        eval=False,
+        lstm=True
     ):
         self.env = env
 
@@ -142,19 +148,29 @@ class DMCTrainer:
         self.epsilon = epsilon
         self.eval = eval
         self.actor_device = actor_device
+        self.lstm = lstm
 
         self.num_players = self.env.num_players
         self.action_shape = self.env.action_shape
         if self.action_shape[0] is None:
             self.action_shape = [[self.env.num_actions] for _ in range(self.num_players)]
 
-        def model_func(device):
-            return DMCModel(
-                self.env.state_shape,
-                self.action_shape,
-                exp_epsilon=self.exp_epsilon,
-                device=str(device),
-            )
+        if lstm:
+            def model_func(device):
+                return DMCModelLSTM(
+                    self.env.state_shape,
+                    self.action_shape,
+                    exp_epsilon=self.exp_epsilon,
+                    device=str(device),
+                )
+        else:
+            def model_func(device):
+                return DMCModel(
+                    self.env.state_shape,
+                    self.action_shape,
+                    exp_epsilon=self.exp_epsilon,
+                    device=str(device),
+                )
 
         self.model_func = model_func
 
@@ -275,7 +291,8 @@ class DMCTrainer:
                     self.training_device,
                     self.max_grad_norm,
                     self.mean_episode_return_buf,
-                    position_lock
+                    position_lock,
+                    self.lstm
                 )
 
                 with lock:
