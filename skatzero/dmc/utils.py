@@ -46,6 +46,7 @@ def create_buffers(
                 episode_return=dict(size=(T,), dtype=torch.float32),
                 target=dict(size=(T,), dtype=torch.float32),
                 state=dict(size=(T,)+tuple(state_shape[player_id]), dtype=torch.int8),
+                history=dict(size=(T, 10, 105), dtype=torch.int8),
                 action=dict(size=(T,)+tuple(action_shape[player_id]), dtype=torch.int8),
             )
             _buffers = {key: [] for key in specs}
@@ -99,6 +100,7 @@ def act(
         episode_return_buf = [[] for _ in range(env.num_players)]
         target_buf = [[] for _ in range(env.num_players)]
         state_buf = [[] for _ in range(env.num_players)]
+        history_buf = [[] for _ in range(env.num_players)]
         action_buf = [[] for _ in range(env.num_players)]
         size = [0 for _ in range(env.num_players)]
 
@@ -116,8 +118,10 @@ def act(
                     # State and action
                     for i in range(0, len(trajectories[p])-2, 2):
                         state = trajectories[p][i]['obs']
+                        history = trajectories[p][i]['history']
                         action = env.get_action_feature(trajectories[p][i+1])
                         state_buf[p].append(torch.from_numpy(state))
+                        history_buf[p].append(torch.from_numpy(history))
                         action_buf[p].append(torch.from_numpy(action))
 
                 while size[p] > T:
@@ -129,12 +133,14 @@ def act(
                         buffers[p]['episode_return'][index][t, ...] = episode_return_buf[p][t]
                         buffers[p]['target'][index][t, ...] = target_buf[p][t]
                         buffers[p]['state'][index][t, ...] = state_buf[p][t]
+                        buffers[p]['history'][index][t, ...] = history_buf[p][t]
                         buffers[p]['action'][index][t, ...] = action_buf[p][t]
                     full_queue[p].put(index)
                     done_buf[p] = done_buf[p][T:]
                     episode_return_buf[p] = episode_return_buf[p][T:]
                     target_buf[p] = target_buf[p][T:]
                     state_buf[p] = state_buf[p][T:]
+                    history_buf[p] = history_buf[p][T:]
                     action_buf[p] = action_buf[p][T:]
                     size[p] -= T
 

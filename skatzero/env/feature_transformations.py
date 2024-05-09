@@ -155,7 +155,7 @@ def get_common_features(state):
 
     return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding
 
-def get_soloplayer_features(state):
+def get_soloplayer_features(state, lstm):
     current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
 
     opponent_left_played_cards = cards2array(state['played_cards'][1], card_encoding)
@@ -177,6 +177,11 @@ def get_soloplayer_features(state):
         skat = cards2array([state['skat'][0], state['skat'][1]], card_encoding)
     else:
         skat = cards2array(None, card_encoding)
+
+    history = np.zeros([1050,], dtype=np.int8)
+    if lstm:
+        history = all_actions
+        all_actions = np.empty([0,], dtype=np.int8)
 
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
@@ -218,9 +223,9 @@ def get_soloplayer_features(state):
                                 blind_hand, # 1
                                 open_hand)) # 1
 
-    return obs
+    return obs, history
 
-def get_opponent_features(state):
+def get_opponent_features(state, lstm):
     current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
     soloplayer_played_cards = cards2array(state['played_cards'][0], card_encoding)
 
@@ -250,6 +255,11 @@ def get_opponent_features(state):
     bid_teammate = get_bid(state['bids'][teammate_id], card_encoding)
 
     bid_jacks_teammate = get_bid_jacks(state['bid_jacks'][teammate_id])
+
+    history = np.zeros([1050,], dtype=np.int8)
+    if lstm:
+        history = all_actions
+        all_actions = np.empty([0,], dtype=np.int8)
 
     obs = np.concatenate((current_hand,  # 32
                             others_hand,  # 32
@@ -292,14 +302,16 @@ def get_opponent_features(state):
                                 blind_hand,  # 1
                                 open_hand))  # 1
 
-    return obs
+    return obs, history
 
-def extract_state(state, legal_actions):
+def extract_state(state, legal_actions, lstm=True):
     if state['self'] == state['soloplayer']:
-        obs = get_soloplayer_features(state)
+        obs, history = get_soloplayer_features(state, lstm)
     else:
-        obs = get_opponent_features(state)
+        obs, history = get_opponent_features(state, lstm)
     extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
+    history = history.reshape(10, 105)
+    extracted_state['history'] = history
     extracted_state['raw_obs'] = state
     extracted_state['raw_legal_actions'] = [a for a in state['actions']]
     return extracted_state

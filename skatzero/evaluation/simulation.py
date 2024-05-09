@@ -13,6 +13,7 @@ from skatzero.agents.random_agent import RandomAgent
 from skatzero.agents.human_agent import HumanAgent
 from skatzero.agents.rule_based_agent import RuleBasedAgent
 from skatzero.env.skat import SkatEnv
+from skatzero.evaluation.eval_env import EvalEnv
 
 def load_model(model_path, device='cpu'):
     if os.path.isfile(model_path):  # Torch model
@@ -92,20 +93,21 @@ def tournament(env, num, num_actors, seed):
     return payoffs
 
 
-def save_evaluation_duel(folder, model1, model2, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
+def save_evaluation_duel(folder, folder2, model1, model2, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
     print("Starting Evaluation")
     base_folder = 'models/checkpoints/'
     folder = str(folder)
+    folder2 = str(folder2)
     number1 = str(model1)
     number2 = str(model2)
 
     models_solo = [
             base_folder + folder + '/0_' + number1 + '.pth',
-            base_folder + folder + '/1_' + number2 + '.pth',
-            base_folder + folder + '/2_' + number2 + '.pth'
+            base_folder + folder2 + '/1_' + number2 + '.pth',
+            base_folder + folder2 + '/2_' + number2 + '.pth'
         ]
     models_opponent = [
-            base_folder + folder + '/0_' + number2 + '.pth',
+            base_folder + folder2 + '/0_' + number2 + '.pth',
             base_folder + folder + '/1_' + number1 + '.pth',
             base_folder + folder + '/2_' + number1 + '.pth'
         ]
@@ -116,7 +118,7 @@ def save_evaluation_duel(folder, model1, model2, num_games, blind_hand_chance=0.
         models_opponent[0] = 'random'
 
     set_seed(seed)
-    env = SkatEnv(blind_hand_chance, seed=seed, gametype=gametype)
+    env = EvalEnv(blind_hand_chance, seed=seed, gametype=gametype, lstm=[True, False, False])
 
     # Evaluation 1: Soloplayer
     agents = []
@@ -126,6 +128,9 @@ def save_evaluation_duel(folder, model1, model2, num_games, blind_hand_chance=0.
     rewards = tournament(env, num_games, num_actors, seed)
     for position, reward in enumerate(rewards):
         print(position, models_solo[position], reward)
+
+    set_seed(seed)
+    env = EvalEnv(blind_hand_chance, seed=seed, gametype=gametype, lstm=[False, True, True])
 
     # Evaluation 2: Opponents
     agents = []
