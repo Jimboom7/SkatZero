@@ -257,7 +257,6 @@ def declare(args):
     current_state = copy.deepcopy(raw_state)
     gametype_values = {}
     for gametype in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
-        current_state['current_hand'] = game_discards[gametype] + raw_state['current_hand']
         bid_values = bidder.simulated_data_bidder.get_bid_value_table(current_state, gametype, bidder.estimates[gametype], penalty=False)
         bid_values = dict(zip(bidder.simulated_data_bidder.bids, bid_values))
         gametype_values[gametype] = bid_values[int(args[5])]
