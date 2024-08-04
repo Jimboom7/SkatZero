@@ -93,7 +93,7 @@ def act(
         log.info('Device %s Actor %i started.', str(device), i)
 
         # Configure environment
-        env.seed(i)
+        env.seed(None) # critical fix: set to None!
         env.set_agents(model.get_agents())
 
         done_buf = [[] for _ in range(env.num_players)]
