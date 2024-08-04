@@ -1,7 +1,7 @@
 from skatzero.game.utils import calculate_bidding_value, can_play_null, init_32_deck, evaluate_hand_strength
 
 class Dealer:
-    def __init__(self, np_random, blind_hand):
+    def __init__(self, np_random, blind_hand, open_hand):
         self.np_random = np_random
         self.deck = init_32_deck()
         self.soloplayer = None
@@ -11,6 +11,7 @@ class Dealer:
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
         self.bid_jacks = [0, 0, 0]
         self.blind_hand = blind_hand
+        self.open_hand = open_hand
         self.suit_values = [10, 11, 12]
 
     def reset_bids(self):
@@ -37,7 +38,7 @@ class Dealer:
     # current player + 0 Geben
     # current player + 1 Hören
     # current player + 2 sagen
-    def set_bids(self, players, starting_player):
+    def set_bids(self, players, starting_player, gametype):
         self.reset_bids()
         diamond = self.np_random.choice(['D', 'H', 'S', 'C'])
         for player in players:
@@ -58,33 +59,54 @@ class Dealer:
                     self.bid_jacks[player.player_id] = 0
             elif can_play_null(player.current_hand):
                 self.bids[player.player_id]['N'] = 1
-        self.bids[0]['D'] = 1
-        self.bid_jacks[0] = calculate_bidding_value(players[0].current_hand) - 1 + self.blind_hand
+
+        if gametype == 'N':
+            self.bids[0]['N'] = 1
+        elif gametype == 'D':
+            self.bids[0]['D'] = 1
+            self.bid_jacks[0] = calculate_bidding_value(players[0].current_hand) - 1 + self.blind_hand
+        else:
+            self.bids[0]['D'] = 1
+            self.bid_jacks[0] = 10
+
         max_bid = 0
         first_bid = -1
         player_is_max = False
+        #print(self.bids)
         for p in [(1 + starting_player) % 3, (2 + starting_player) % 3, (0 + starting_player) % 3]: # Simulates 3 player bidding
             player = players[p]
-            bid = self.get_bid_value(self.bids[player.player_id], self.bid_jacks[player.player_id], diamond)
+            bid = self.get_bid_value(self.bids[player.player_id], self.bid_jacks[player.player_id], diamond, p == 0)
+            #print(str(p) + " " + str(bid))
             if p == starting_player and bid <= first_bid: # no bid if first player already bid more
                 for x in ['D', 'H', 'S', 'C', 'N']:
                     self.bids[player.player_id][x] = 0
                 self.bid_jacks[player.player_id] = 0
-            if p != starting_player and (bid < first_bid or first_bid == -1):
-                if bid == 0 and first_bid > 0:
+            if p != starting_player and (bid < first_bid or first_bid <= 0):
+                if first_bid == 0 and bid > 0:
                     first_bid = 18
                 else:
                     first_bid = bid
             if bid > max_bid:
                 max_bid = bid
                 player_is_max = p == 0
+        #print(self.bids)
+        #print(player_is_max)
+        #print("....")
         return player_is_max
 
-    def get_bid_value(self, bid, bid_jack, diamond):
-        if bid['D'] == 0 and bid['H'] == 0 and bid['S'] == 0 and bid['C'] == 0:
+    def get_bid_value(self, bid, bid_jack, diamond, own_player):
+        if bid['D'] == 0 and bid['H'] == 0 and bid['S'] == 0 and bid['C'] == 0 and bid['N'] == 0:
             return 0
         if bid['N'] == 1:
-            if self.np_random.rand() < 0.35:
+            if not own_player:
+                if self.np_random.rand() < 0.35:
+                    return 35
+                return 23
+            if self.open_hand and self.blind_hand:
+                return 59
+            if self.open_hand:
+                return 46
+            if self.blind_hand:
                 return 35
             return 23
         if bid[diamond] == 1:
@@ -117,7 +139,7 @@ class Dealer:
                 best_deck = self.deck.copy()
         self.deck = best_deck
         self.set_player_hands(players, gametype)
-        if not self.set_bids(players, starting_player) and gametype == 'D':
+        if not self.set_bids(players, starting_player, gametype):
             self.deal_cards(players, gametype, starting_player)
         players[0].role = 'soloplayer'
         players[1].role = 'opponent'
