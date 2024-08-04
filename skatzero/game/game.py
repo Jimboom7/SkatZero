@@ -31,7 +31,7 @@ class Game:
 
         self.players = [Player(num) for num in range(self.num_players)]
 
-        self.round = Round(self.np_random, gametype=self.gametype)
+        self.round = Round(self.np_random, gametype=self.gametype, blind_hand=blind_hand)
         self.round.initiate(self.players)
 
         player_id = self.round.current_player

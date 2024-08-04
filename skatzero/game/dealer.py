@@ -1,7 +1,7 @@
 from skatzero.game.utils import calculate_bidding_value, can_play_null, init_32_deck, evaluate_hand_strength
 
 class Dealer:
-    def __init__(self, np_random):
+    def __init__(self, np_random, blind_hand):
         self.np_random = np_random
         self.deck = init_32_deck()
         self.soloplayer = None
@@ -10,6 +10,8 @@ class Dealer:
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
         self.bid_jacks = [0, 0, 0]
+        self.blind_hand = blind_hand
+        self.suit_values = [10, 11, 12]
 
     def reset_bids(self):
         self.bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
@@ -19,6 +21,7 @@ class Dealer:
 
     def shuffle(self):
         self.np_random.shuffle(self.deck)
+        self.np_random.shuffle(self.suit_values)
 
     def set_player_hands(self, players, gametype):
         for index, player in enumerate(players):
@@ -29,9 +32,14 @@ class Dealer:
 
         return evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]
 
-    def set_bids(self, players):
+    # TODO: Startposition übergeben, anhand dessen bestimmen wer was sagt
+    # Andere Farbspiele möglich machen (alles größer 8.5 -> ist spielbar)
+    # current player + 0 Geben
+    # current player + 1 Hören
+    # current player + 2 sagen
+    def set_bids(self, players, starting_player):
+        self.reset_bids()
         diamond = self.np_random.choice(['D', 'H', 'S', 'C'])
-        first_bidder = self.np_random.choice([1, 2])
         for player in players:
             if player.player_id == 0:
                 continue
@@ -50,19 +58,49 @@ class Dealer:
                     self.bid_jacks[player.player_id] = 0
             elif can_play_null(player.current_hand):
                 self.bids[player.player_id]['N'] = 1
-        for player in players:
-            if player.player_id == 0:
+        self.bids[0]['D'] = 1
+        self.bid_jacks[0] = calculate_bidding_value(players[0].current_hand) - 1 + self.blind_hand
+        max_bid = 0
+        first_bid = -1
+        player_is_max = False
+        for p in [(1 + starting_player) % 3, (2 + starting_player) % 3, (0 + starting_player) % 3]: # Simulates 3 player bidding
+            player = players[p]
+            bid = self.get_bid_value(self.bids[player.player_id], self.bid_jacks[player.player_id], diamond)
+            if p == starting_player and bid <= first_bid: # no bid if first player already bid more
+                for x in ['D', 'H', 'S', 'C', 'N']:
+                    self.bids[player.player_id][x] = 0
+                self.bid_jacks[player.player_id] = 0
+            if p != starting_player and (bid < first_bid or first_bid == -1):
+                if bid == 0 and first_bid > 0:
+                    first_bid = 18
+                else:
+                    first_bid = bid
+            if bid > max_bid:
+                max_bid = bid
+                player_is_max = p == 0
+        return player_is_max
+
+    def get_bid_value(self, bid, bid_jack, diamond):
+        if bid['D'] == 0 and bid['H'] == 0 and bid['S'] == 0 and bid['C'] == 0:
+            return 0
+        if bid['N'] == 1:
+            if self.np_random.rand() < 0.35:
+                return 35
+            return 23
+        if bid[diamond] == 1:
+            if bid_jack == 0:
+                return 18
+            return 9 * (bid_jack + 1)
+        i = 0
+        for suit in ['D', 'H', 'S', 'C']:
+            if suit == diamond:
                 continue
-            if player.player_id != first_bidder and self.np_random.rand() < 0.66: # no bid if not first and other already bid more
-                bid1 = self.bid_jacks[player.player_id] + (self.bids[player.player_id]['N'] * 1.25)
-                bid2 = self.bid_jacks[first_bidder] + (self.bids[first_bidder]['N'] * 1.25)
-                if bid1 < bid2 or bid1 + 0.5 - self.np_random.rand() < bid2:
-                    for x in ['D', 'H', 'S', 'C', 'N']:
-                        self.bids[player.player_id][x] = 0
-                    self.bid_jacks[player.player_id] = 0
+            if bid[suit] == 1:
+                return self.suit_values[i] * (bid_jack + 1)
+            i += 1
+        return 0
 
-
-    def deal_cards(self, players, gametype):
+    def deal_cards(self, players, gametype, starting_player):
         self.shuffle()
         best_deck = []
         best_value = -1000
@@ -79,7 +117,8 @@ class Dealer:
                 best_deck = self.deck.copy()
         self.deck = best_deck
         self.set_player_hands(players, gametype)
-        self.set_bids(players)
+        if not self.set_bids(players, starting_player) and gametype == 'D':
+            self.deal_cards(players, gametype, starting_player)
         players[0].role = 'soloplayer'
         players[1].role = 'opponent'
         players[2].role = 'opponent'
