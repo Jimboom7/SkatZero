@@ -33,30 +33,41 @@ class Dealer:
 
         return evaluate_hand_strength(players[0].current_hand, gametype, self.np_random)[gametype]
 
-    # TODO: Startposition übergeben, anhand dessen bestimmen wer was sagt
-    # Andere Farbspiele möglich machen (alles größer 8.5 -> ist spielbar)
-    # current player + 0 Geben
-    # current player + 1 Hören
-    # current player + 2 sagen
     def set_bids(self, players, starting_player, gametype):
         self.reset_bids()
         diamond = self.np_random.choice(['D', 'H', 'S', 'C'])
         for player in players:
+            plays_hand = False
             if player.player_id == 0:
                 continue
             values = evaluate_hand_strength(player.current_hand, np_random=self.np_random)
-            max_value = max(values, key=values.get)
+            values_sorted = sorted(values.items(),key=(lambda i: i[1]))
+            max_value = values_sorted[-1][0]
             with_without = calculate_bidding_value(player.current_hand) - 1
             if with_without < 4 and self.np_random.rand() > 4.4 - (values[max_value] / 3): # Handgame: Starting at 10.5 value sometimes plays hand
                 with_without += 1
+                plays_hand = True
             if values[max_value] > 8 and self.np_random.rand() > 0.45 + (values[max_value] / 20): # "18" just looking chance
                 self.bids[player.player_id][diamond] = 1
                 self.bid_jacks[player.player_id] = 0
             elif values[max_value] > 8.5:
-                self.bids[player.player_id][max_value] = 1
-                self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < 0.45 + (values[max_value] / 20) else 1 # Sometimes only bids with 1
-                if with_without == 1 and diamond == max_value: # Diamond with 1 -> mark same as "just 18"
-                    self.bid_jacks[player.player_id] = 0
+                suits = ['D', 'H', 'S', 'C']
+                suits.remove(diamond)
+                if values_sorted[0][1] > 9.5: # Grand
+                    if gametype != 'G':
+                        return False
+                if (values_sorted[-2][1] > 8.5 and values_sorted[-2][0] != diamond and # Bid second strongest suit
+                    (values_sorted[-1][0] == diamond or self.suit_values[suits.index(values_sorted[-2][0])] > self.suit_values[suits.index(values_sorted[-1][0])]) and
+                    self.np_random.rand() < -1 + (values_sorted[-2][1] / 5) and (not plays_hand or self.np_random.rand() > 4.4 - (values_sorted[-2][1] / 3))):
+                    self.bids[player.player_id][values_sorted[-2][0]] = 1
+                    self.bid_jacks[player.player_id] = with_without
+                    if with_without == 1 and diamond == values_sorted[-2][0]: # Diamond with 1 -> mark same as "just 18"
+                        self.bid_jacks[player.player_id] = 0
+                else:
+                    self.bids[player.player_id][max_value] = 1
+                    self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < 0.45 + (values[max_value] / 20) else 1 # Sometimes only bids with 1
+                    if with_without == 1 and diamond == max_value: # Diamond with 1 -> mark same as "just 18"
+                        self.bid_jacks[player.player_id] = 0
             elif can_play_null(player.current_hand):
                 self.bids[player.player_id]['N'] = 1
 
@@ -72,11 +83,9 @@ class Dealer:
         max_bid = 0
         first_bid = -1
         player_is_max = False
-        #print(self.bids)
         for p in [(1 + starting_player) % 3, (2 + starting_player) % 3, (0 + starting_player) % 3]: # Simulates 3 player bidding
             player = players[p]
             bid = self.get_bid_value(self.bids[player.player_id], self.bid_jacks[player.player_id], diamond, p == 0)
-            #print(str(p) + " " + str(bid))
             if p == starting_player and bid <= first_bid: # no bid if first player already bid more
                 for x in ['D', 'H', 'S', 'C', 'N']:
                     self.bids[player.player_id][x] = 0
@@ -89,9 +98,6 @@ class Dealer:
             if bid > max_bid:
                 max_bid = bid
                 player_is_max = p == 0
-        #print(self.bids)
-        #print(player_is_max)
-        #print("....")
         return player_is_max
 
     def get_bid_value(self, bid, bid_jack, diamond, own_player):
