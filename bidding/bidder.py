@@ -28,6 +28,7 @@ class Bidder:
         return self.raw_state['current_hand']
 
     def prepare_state(self, game_mode, raw_state):
+        self.env.lstm = True
         self.env.set_state_shape(game_mode)
         if game_mode == 'N' or game_mode == 'NO':
             self.env.game.gametype = 'N'
@@ -67,7 +68,7 @@ class Bidder:
             original_state = copy.deepcopy(self.env.game.state)
             self.env.game.state = copy.deepcopy(raw_state)
 
-            state = extract_state(raw_state, self.env.get_legal_actions())
+            state = extract_state(raw_state, self.env.get_legal_actions(), lstm=self.env.lstm)
             agent_id = 0
             self.env.game.state = original_state
             if raw_state['trump'] == 'J':
@@ -92,7 +93,7 @@ class Bidder:
                 current_raw_state['trick'] = trick
 
                 self.env.game.state = copy.deepcopy(current_raw_state)
-                state = extract_state(current_raw_state, self.env.get_legal_actions())
+                state = extract_state(current_raw_state, self.env.get_legal_actions(), lstm=self.env.lstm)
 
                 agent_id = 0
                 if current_raw_state['trump'] == 'J':
@@ -173,7 +174,7 @@ class Bidder:
                 current_raw_state['points'] = [get_points(current_raw_state['skat'][0]) + get_points(current_raw_state['skat'][1]), 0]
 
                 self.env.game.state = copy.deepcopy(current_raw_state)
-                state = extract_state(current_raw_state, self.env.get_legal_actions())
+                state = extract_state(current_raw_state, self.env.get_legal_actions(), lstm=self.env.lstm)
                 agent_id = 0
                 if current_raw_state['trump'] == 'J':
                     agent_id = 3
