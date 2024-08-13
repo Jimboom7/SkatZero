@@ -15,23 +15,19 @@ class Game:
         self.players = []
         self.round = None
         self.state = None
-        self.blind_hand = False
-        self.open_hand = False
         self.black_soloplayer = True
         self.black_opponent = True
         self.gametype = gametype
 
-    def init_game(self, blind_hand=False, open_hand=False):
+    def init_game(self):
         self.done = False
         self.history = []
-        self.blind_hand = blind_hand
-        self.open_hand = open_hand
         self.black_soloplayer = True
         self.black_opponent = True
 
         self.players = [Player(num) for num in range(self.num_players)]
 
-        self.round = Round(self.np_random, gametype=self.gametype, blind_hand=blind_hand, open_hand=open_hand)
+        self.round = Round(self.np_random, gametype=self.gametype)
         self.round.initiate(self.players)
 
         player_id = self.round.current_player
@@ -61,7 +57,7 @@ class Game:
         player = self.players[player_id]
         others_hands = self.get_others_current_hand(player)
         solo_points = self.round.solo_points
-        if player_id != self.round.soloplayer_id or self.blind_hand:
+        if player_id != self.round.soloplayer_id or self.round.blind_hand:
             solo_points -= (get_points(self.round.dealer.skat[0]) + get_points(self.round.dealer.skat[1]))
         points = [solo_points, self.round.opponent_points]
         if self.is_over():
@@ -69,7 +65,7 @@ class Game:
         else:
             actions = list(player.available_actions(self.round.current_suit, self.round.trump))
         state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick, self.round.trump,
-                                 self.round.dealer.skat, self.round.dealer.bids, self.round.dealer.bid_jacks, self.blind_hand, self.open_hand)
+                                 self.round.dealer.skat, self.round.dealer.bids, self.round.dealer.bid_jacks, self.round.blind_hand, self.round.open_hand)
 
         return state
 
@@ -84,17 +80,17 @@ class Game:
             base_value = 24
 
         if self.black_opponent:
-            payoffs[soloplayer_id] = ((4 + self.blind_hand) * base_value) + 50
+            payoffs[soloplayer_id] = ((4 + self.round.blind_hand) * base_value) + 50
         elif self.round.solo_points >= 90:
-            payoffs[soloplayer_id] = ((3 + self.blind_hand) * base_value) + 50
+            payoffs[soloplayer_id] = ((3 + self.round.blind_hand) * base_value) + 50
         elif self.round.solo_points > 60:
-            payoffs[soloplayer_id] = ((2 + self.blind_hand) * base_value) + 50
+            payoffs[soloplayer_id] = ((2 + self.round.blind_hand) * base_value) + 50
         elif self.black_soloplayer:
-            payoffs[soloplayer_id] = (((-4 - self.blind_hand) * 2) * base_value) - 50 - 40
+            payoffs[soloplayer_id] = (((-4 - self.round.blind_hand) * 2) * base_value) - 50 - 40
         elif self.round.solo_points <= 30:
-            payoffs[soloplayer_id] = (((-3 - self.blind_hand) * 2) * base_value) - 50 - 40
+            payoffs[soloplayer_id] = (((-3 - self.round.blind_hand) * 2) * base_value) - 50 - 40
         elif self.round.solo_points <= 60:
-            payoffs[soloplayer_id] = (((-2 - self.blind_hand) * 2) * base_value) - 50 - 40
+            payoffs[soloplayer_id] = (((-2 - self.round.blind_hand) * 2) * base_value) - 50 - 40
 
         if is_training:
             payoffs[soloplayer_id] += (self.round.solo_points - 60) / 30
@@ -109,11 +105,11 @@ class Game:
         payoffs = np.array([0, 0, 0], dtype=float)
         base_value = 23
 
-        if self.blind_hand:
+        if self.round.blind_hand:
             base_value = 35
-        if self.open_hand:
+        if self.round.open_hand:
             base_value = 46
-        if self.blind_hand and self.open_hand:
+        if self.round.blind_hand and self.round.open_hand:
             base_value = 59
 
         if self.black_soloplayer:
@@ -172,6 +168,6 @@ class Game:
         player_right = self.players[(player.player_id+1) % self.num_players]
         player_left = self.players[(player.player_id-1) % self.num_players]
         others_hand = player_right.current_hand + player_left.current_hand
-        if player.player_id != self.round.soloplayer_id or self.blind_hand:
+        if player.player_id != self.round.soloplayer_id or self.round.blind_hand:
             others_hand = others_hand + self.round.dealer.skat
         return others_hand.copy()

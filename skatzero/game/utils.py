@@ -160,7 +160,7 @@ def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=Non
             strength += evaluate_grand_card(c)
         if np_random is None:
             return {'G': strength}
-        return {'G': strength * np_random.uniform(0.9, 1.1)}
+        return {'G': strength * np_random.uniform(0.8, 1.2)}
     strength = {'D': 0, 'H': 0, 'S': 0, 'C': 0}
     for suit in gametype:
         s = 0
@@ -194,6 +194,70 @@ def evaluate_null_strength(cards):
                     current_strength += mod
     return -strength
 
+"""
+https://www.vg88.de/Download/_besser-Skat-spielen-V1b.pdf
+Stufe 1: Das Ass zu viert, etwa 7-8-10-Ass oder 7-9-Bube-Ass
+ Stufe 2: Die blanke 8
+ Stufe 3: 7-10
+ Stufe 4: 8-9 und (gleich schwach) die Dame zu dritt: 7-8-Dame bzw. 7-9-Dame
+ Stufe 5: 8-10
+ Stufe 6: Die blanke 9
+ Stufe 7: 7-9-König bzw. 7-8-König
+ """
+def evaluate_null_strength_for_druecken(cards):
+    strength = 0
+    for suit in ['D', 'H', 'S', 'C']:
+        if sum(suit in s for s in cards) == 0:
+            strength += 0
+        elif (sum(suit in s for s in cards) == 4 and suit + '7' in cards and
+        (suit + '8' in cards or suit + '9' in cards) in cards and
+        ((suit + '8' in cards and suit + '9' in cards) or suit + 'J' in cards or suit + 'Q' in cards or suit + 'K' in cards) and
+        suit + 'A' in cards):
+            strength += 1
+        elif sum(suit in s for s in cards) == 1 and suit + '8' in cards:
+            strength += 2
+        elif sum(suit in s for s in cards) == 2 and suit + '7' in cards and suit + 'T' in cards:
+            strength += 3
+        elif sum(suit in s for s in cards) == 2 and suit + '8' in cards and suit + '9' in cards:
+            strength += 4
+        elif sum(suit in s for s in cards) == 3 and suit + '7' in cards and (suit + '8' in cards or suit + '9' in cards) and suit + 'Q' in cards:
+            strength += 4
+        elif sum(suit in s for s in cards) == 2 and suit + '8' in cards and suit + 'T' in cards:
+            strength += 5
+        elif sum(suit in s for s in cards) == 1 and suit + '9' in cards:
+            strength += 6
+        elif sum(suit in s for s in cards) == 3 and suit + '7' in cards and (suit + '8' in cards or suit + '9' in cards) and suit + 'K' in cards:
+            strength += 7
+        else:
+            mod = 20
+            filler = 0
+            current_strength = 0
+            for rank in ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']:
+                if mod < 6:
+                    break
+                if suit + rank in cards:
+                    strength += current_strength
+                    current_strength = 0
+                    mod *= 0.6
+                    filler += 1
+                else:
+                    if filler > 0:
+                        filler -= 1
+                    else:
+                        current_strength += mod
+    return -strength
 
-def can_play_null(cards):
-    return evaluate_null_strength(cards) > -2.8
+def can_play_null(cards, gametype, np_random): # Bids more aggressive when the trained model is not a Null model. Otherwise there are not enough null bids.
+    if gametype != 'N':
+        return evaluate_null_strength(cards) >= -4.3
+    return evaluate_null_strength(cards) >= -2 - np_random.uniform(0, 0.8)
+
+def can_play_null_ouvert(cards, gametype, np_random):
+    if gametype != 'N':
+        return evaluate_null_strength(cards) >= -2.6
+    return evaluate_null_strength(cards) >= -0.9 - np_random.uniform(0, 0.6)
+
+def can_play_null_ouvert_hand(cards, gametype, np_random):
+    if gametype != 'N':
+        return evaluate_null_strength(cards) >= -1
+    return evaluate_null_strength(cards) >= -0.3 - np_random.uniform(0, 0.75)

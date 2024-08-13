@@ -2,7 +2,7 @@ from skatzero.game.dealer import Dealer
 from skatzero.game.utils import get_points
 
 class Round:
-    def __init__(self, np_random, gametype, blind_hand, open_hand):
+    def __init__(self, np_random, gametype):
         self.np_random = np_random
         self.played_cards = []
         self.trace = []
@@ -15,20 +15,18 @@ class Round:
         self.solo_points = 0
         self.opponent_points = 0
         self.winners = []
-        self.blind_hand = blind_hand
-        self.open_hand = open_hand
+        self.blind_hand = False
+        self.open_hand = False
 
         self.trump = None
         self.gametype=gametype
 
-        self.dealer = Dealer(self.np_random, blind_hand, open_hand)
+        self.dealer = Dealer(self.np_random)
 
     def initiate(self, players, starting_player=None):
         if starting_player is None:
-            self.current_player = self.np_random.randint(0, 3)
-        else:
-            self.current_player = starting_player
-        soloplayer_id = self.dealer.deal_cards(players, self.gametype, self.current_player)
+            starting_player = self.np_random.randint(0, 3)
+        soloplayer_id, self.current_player, self.blind_hand, self.open_hand = self.dealer.deal_cards(players, self.gametype, starting_player)
         self.soloplayer_id = soloplayer_id
         self.public = {'deck': self.dealer.deck, 'soloplayer': self.soloplayer_id,
                        'trace': self.trace, 'played_cards': ['' for _ in range(len(players))],

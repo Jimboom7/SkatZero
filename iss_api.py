@@ -5,7 +5,7 @@ from bidding.bidder import Bidder
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.simulation import load_model
 from skatzero.evaluation.utils import swap_bids, swap_colors
-from skatzero.game.utils import init_32_deck
+from skatzero.game.utils import compare_cards, get_points, init_32_deck
 from skatzero.test.utils import available_actions, construct_state_from_history
 
 def parse_history(history, trump): # Parsing history in the form of "1HT,2HA,0H8,..."
@@ -51,12 +51,17 @@ def prepare_env():
     for gametype in ['D', 'G', 'N']:
         for i in range(0, 3):
             agents.append(load_model(basedir + "/models/latest/" + gametype + "_" + str(i) + ".pth"))
+            #agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_D/" + str(i) + "_12620.pth"))
 
-    env = SkatEnv(blind_hand_chance=0, open_hand_chance=0)
+    env = SkatEnv()
 
     env.set_agents(agents)
 
-    raw_state, _ = env.game.init_game(blind_hand=True, open_hand=False)
+    raw_state, _ = env.game.init_game()
+    env.game.round.blind_hand = True
+    env.game.round.open_hand = False
+    raw_state['blind_hand'] = True
+    raw_state['open_hand'] = False
 
     return agents, env, raw_state
 
@@ -281,7 +286,7 @@ def declare(args):
         print(best_gametype + "." + skat[0] + "." + skat[1])
 
 
-def cardplay(args):
+def cardplay(args, recursed=False):
     agents, env, raw_state = prepare_env()
 
     raw_state = prepare_state_for_cardplay(raw_state, env, args)
@@ -297,6 +302,7 @@ def cardplay(args):
     _, info = agents[agent_mode + raw_state['self']].eval_step(state, True)
 
     card_to_play = max(info['values'], key=info['values'].get)
+    max_value = info['values'][card_to_play]
     if args[1] in ['H', 'S', 'C']:
         card_to_play = swap_colors([card_to_play], 'D', args[1])[0]
 
@@ -305,12 +311,65 @@ def cardplay(args):
     sorted_dict = sorted(info['values'].items(), key=lambda x: -x[1])
     for tpl in sorted_dict:
         if args[1] in ['H', 'S', 'C']:
-            print(swap_colors([tpl[0]], 'D', args[1])[0], tpl[1])
+            if not recursed:
+                print(swap_colors([tpl[0]], 'D', args[1])[0], tpl[1])
         else:
-            print(tpl[0], tpl[1])
+            if not recursed:
+                print(tpl[0], tpl[1])
 
-    print(card_to_play)
+    if not recursed:
+        print(card_to_play)
+    if recursed:
+        return max_value
+    if len(raw_state["current_hand"]) > 1 and len(raw_state["trick"]) == 2 and args[1] != 'N': # full trick: check if self is next, then calculate next state and best discard value for each card
+        card_values = {}
+        for card in raw_state['actions']:
+            current_state = copy.deepcopy(raw_state)
+            current_state['trick'].append((0, card))
+            winner, points = check_trick(current_state['trick'], raw_state['trump'])
+            if winner != 2:
+                if args[1] in ['H', 'S', 'C']:
+                    card_values[card] = info['values'][card]
+                else:
+                    card_values[card] = info['values'][card]
+            else:
+                args_for_next_turn = args.copy()
+                args_for_next_turn[12] += ',' + str(raw_state["self"]) + card
+                args_for_next_turn[2] = args_for_next_turn[2].replace(card, '').replace(',,', ',').strip(',')
+                if raw_state["self"] == 0:
+                    args_for_next_turn[3] = int(args_for_next_turn[3]) + points
+                else:
+                    args_for_next_turn[4] = int(args_for_next_turn[4]) + points
+                card_values[card] = cardplay(args_for_next_turn, True)
+        print("After recursion:")
+        for k, v in card_values.items():
+            card_values[k] = round(v, 2)
+        sorted_dict = sorted(card_values.items(), key=lambda x: -x[1])
+        for tpl in sorted_dict:
+            if args[1] in ['H', 'S', 'C']:
+                if not recursed:
+                    print(swap_colors([tpl[0]], 'D', args[1])[0], tpl[1])
+            else:
+                if not recursed:
+                    print(tpl[0], tpl[1])
+        card_to_play = max(card_values, key=card_values.get)
+        if args[1] in ['H', 'S', 'C']:
+            card_to_play = swap_colors([card_to_play], 'D', args[1])[0]
+        print(card_to_play)
 
+def check_trick(trick, trump):
+    winner = 0
+    card1 = trick[0][1]
+    card2 = trick[1][1]
+    card3 = trick[2][1]
+    highest_card = card1
+    if not compare_cards(card1, card2, trump, card1[0]):
+        highest_card = card2
+        winner = 1
+    if not compare_cards(highest_card, card3, trump, card1[0]):
+        winner = 2
+    points = get_points(card1) + get_points(card2) + get_points(card3)
+    return winner, points
 
 if __name__ == '__main__':
     ACCURACY = 50 # Number of Iterations for Skat simulation
