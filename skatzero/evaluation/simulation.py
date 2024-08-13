@@ -93,7 +93,7 @@ def tournament(env, num, num_actors, seed):
     return payoffs
 
 
-def save_evaluation_duel(folder, folder2, model1, model2, num_games, blind_hand_chance=0.1, num_actors=10, gametype='D', seed='42'):
+def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=10, gametype='D', seed='42'):
     print("Starting Evaluation")
     base_folder = 'models/checkpoints/'
     folder = str(folder)
@@ -117,8 +117,11 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, blind_hand_
         models_solo[2] = 'random'
         models_opponent[0] = 'random'
 
+    lstm_1 = 'lstm' in folder
+    lstm_2 = 'lstm' in folder2
+
     set_seed(seed)
-    env = EvalEnv(blind_hand_chance, seed=seed, gametype=gametype, lstm=[True, False, False])
+    env = EvalEnv(seed=seed, gametype=gametype, lstm=[lstm_1, lstm_2, lstm_2])
 
     # Evaluation 1: Soloplayer
     agents = []
@@ -130,7 +133,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, blind_hand_
         print(position, models_solo[position], reward)
 
     set_seed(seed)
-    env = EvalEnv(blind_hand_chance, seed=seed, gametype=gametype, lstm=[False, True, True])
+    env = EvalEnv(seed=seed, gametype=gametype, lstm=[lstm_2, lstm_1, lstm_1])
 
     # Evaluation 2: Opponents
     agents = []
@@ -144,6 +147,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, blind_hand_
     print("Score: " + str(rewards[0] - rewards2[0]))
     with open("testresults/evaluate_log.csv", "a", encoding='utf-8') as logfile:
         logfile.write(str(folder) + "," + str(number1) + "," + str(number2) + "," + str(num_games) + "," + str(round(rewards[0] - rewards2[0], 2)) + "\n")
+    return rewards[0], rewards2[0]
 
 
 def get_bidding_data(player, random_game=False):
@@ -158,17 +162,17 @@ def get_bidding_data(player, random_game=False):
         agents.append(load_model(model_path))
 
     if random_game:
-        env = SkatEnv(blind_hand_chance=1.0)
+        env = SkatEnv()
     else:
         seed = 42
         set_seed(seed)
-        env = SkatEnv(blind_hand_chance=1.0, seed=seed)
+        env = SkatEnv(seed=seed)
 
     env.set_agents(agents)
 
     #state, _ = env.reset(always_solo=True)
 
-    raw_state, _ = env.game.init_game(blind_hand=1.0)
+    raw_state, _ = env.game.init_game()
 
     raw_state['self'] = 0
 
@@ -192,14 +196,14 @@ def prepare_env(random_game=False):
             agents.append(load_model(basedir + "/../../models/latest/" + gametype + "_" + str(i) + ".pth"))
 
     if random_game:
-        env = SkatEnv(blind_hand_chance=1.0, gametype='D')
+        env = SkatEnv(gametype='D')
     else:
         seed = 52
         set_seed(seed)
-        env = SkatEnv(blind_hand_chance=1.0, seed=seed, gametype='D')
+        env = SkatEnv(seed=seed, gametype='D')
 
     env.set_agents(agents)
 
-    raw_state, _ = env.game.init_game(blind_hand=True)
+    raw_state, _ = env.game.init_game()
 
     return env, raw_state

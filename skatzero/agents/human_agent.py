@@ -2,8 +2,9 @@ from skatzero.env.feature_transformations import convert_card_to_action_id, get_
 from skatzero.evaluation.utils import format_card, format_hand
 
 class HumanAgent():
-    def __init__(self, num_actions):
+    def __init__(self, num_actions, player_id):
         self.num_actions = num_actions
+        self.player_id = 0
 
     def step(self, state):
         self.print_state(state['raw_obs'])
@@ -19,6 +20,10 @@ class HumanAgent():
 
 
     def print_state(self, state):
+        if len(state['current_hand']) == 10:
+            if self.player_id == 0:
+                print('===============   Skat   ===============')
+                print(', '.join([format_card(card) for card in state['skat']]))
         print('===============   Current Trick   ===============')
         print(', '.join([format_card(card) for _, card in state['trick']]))
         print('===============      Score      ===============')
