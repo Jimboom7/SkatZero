@@ -6,12 +6,9 @@ from skatzero.evaluation.seeding import np_random
 
 
 class SkatEnv(object):
-    def __init__(self, blind_hand_chance = 0.1, seed=None, gametype='D', open_hand_chance = 0.1, lstm=True):
+    def __init__(self, seed=None, gametype='D', lstm=True):
         self.name = 'skat'
         self.game = Game(gametype=gametype)
-
-        self.blind_hand_chance = blind_hand_chance
-        self.open_hand_chance = open_hand_chance # Only used for Null Games!
 
         self.num_players = self.game.get_num_players()
         self.num_actions = self.game.get_num_actions()
@@ -43,9 +40,7 @@ class SkatEnv(object):
         if self.base_seed is not None:
             self.base_seed += 1
             self.seed(self.base_seed)
-        is_blind_hand = self.np_random.rand() < self.blind_hand_chance
-        is_open_hand = self.np_random.rand() < self.open_hand_chance
-        state, player_id = self.game.init_game(blind_hand=is_blind_hand, open_hand=is_open_hand)
+        state, player_id = self.game.init_game()
         return self.extract_state(state,), player_id
 
     def step(self, action):
