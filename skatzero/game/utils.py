@@ -172,6 +172,229 @@ def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=Non
             strength[suit] = s * np_random.uniform(0.9, 1.1)
     return strength
 
+def evaluate_d_strength_for_druecken(cards, skat):
+    strength = 0
+    for card in cards:
+        expected_value = 0
+        sum_suit = sum(card[0] in s and s[1] != 'J' for s in cards)
+        sum_suit_total = sum(card[0] in s and s[1] != 'J' for s in cards + skat)
+        sum_trump = sum(s[1] == 'J' or s[0] == 'D' for s in cards)
+        if card == 'CJ':
+            expected_value = 240
+        if card == 'SJ':
+            expected_value = 220
+        if card == 'HJ':
+            expected_value = 210
+        if card == 'DJ':
+            expected_value = 200
+
+        if card[0] == 'D':
+            expected_value = 180
+
+        elif card[1] == 'A' or (card[1] == 'T' and card[0] + 'A' in cards + skat):
+            expected_value = 100
+            if sum_trump <= 4:
+                if card[0] + 'T' in cards + skat:
+                    if sum_suit_total == 4:
+                        expected_value = 0
+                    elif sum_suit_total >= 5:
+                        expected_value = 0
+                elif sum_suit_total >= 5:
+                    expected_value = 0
+
+        elif card[1] == 'T':
+            if card[0] + 'K' in cards:
+                expected_value = 9
+            elif card[0] + 'Q' in cards:
+                expected_value = 3
+            else:
+                if sum_suit <= 2:
+                    expected_value = -3
+                else:
+                    expected_value = 0
+            if sum_suit == 3:
+                expected_value *= 1.2
+            if sum_trump <= 4:
+                if sum_suit_total >= 4:
+                    expected_value = 0
+
+        elif card[1] == 'K':
+            if card[0] + 'A' in cards + skat and sum_suit >= 3:
+                expected_value = 2.9
+            else:
+                expected_value = 0
+
+        elif card[1] == 'Q':
+            if card[0] + 'A' in cards + skat and sum_suit >= 3:
+                expected_value = 3
+                if card[0] + 'K' in skat:
+                    expected_value -= 0.2
+            else:
+                expected_value = 0
+
+        elif card[1] == '7' or card[1] == '8' or card[1] == '9':
+            if sum_suit >= 3:
+                expected_value = 0.1
+            else:
+                expected_value = 0
+
+        if sum_trump >= 6 and sum_suit >= 4:
+            expected_value += 5
+
+        strength += expected_value
+
+    for suit in ['H', 'S', 'C']:
+        sum_suit = sum(suit in s and s[1] != 'J' for s in cards)
+        if sum_suit == 0:
+            if suit + 'A' not in skat:
+                strength += (sum_trump - 3) * 3
+            if suit + 'T' not in skat:
+                strength += (sum_trump - 3) * 3
+        if sum_suit == 1:
+            strength += 2
+            if suit + 'K' in cards:
+                strength -= 1
+            if suit + 'Q' in cards:
+                strength -= 0.5
+        if sum_suit == 2:
+            if suit + 'A' not in cards:
+                strength -= 5
+
+        if suit + 'T' in cards and suit + 'K' in skat:
+            strength -= 1000
+        if suit + 'K' in cards and suit + 'Q' in skat:
+            strength -= 1000
+        if suit + 'Q' in cards and suit + '9' in skat:
+            strength -= 1000
+
+        if suit + 'A' in skat and suit + 'T' in skat and sum_suit == 2:
+            strength -= 10
+
+    if skat[0][0] == skat[1][0]:
+        strength += 2
+
+    strength += get_points(skat[0]) + get_points(skat[1])
+    if skat[0][1] == 'A': # Fix to make A and T equally valuable
+        strength -= 1
+    if skat[1][1] == 'A':
+        strength -= 1
+
+    return strength
+
+def evaluate_grand_strength_for_druecken(cards, skat):
+    strength = 0
+    for card in cards:
+        expected_value = 0
+        sum_suit = sum(card[0] in s and s[1] != 'J' for s in cards)
+        sum_suit_total = sum(card[0] in s and s[1] != 'J' for s in cards + skat)
+        sum_trump = sum(s[1] == 'J' for s in cards)
+        if card == 'CJ':
+            expected_value = 24
+        if card == 'SJ':
+            expected_value = 22
+        if card == 'HJ':
+            expected_value = 21
+        if card == 'DJ':
+            expected_value = 20
+
+        if card[1] == 'A' or (card[1] == 'T' and card[0] + 'A' in skat):
+            expected_value = 11
+            if card[0] + 'T' not in cards + skat:
+                expected_value += 3
+            if card[0] + 'K' not in cards + skat:
+                expected_value += 1
+            if card[0] + 'Q' not in cards + skat:
+                expected_value += 1
+            if sum_suit_total <= 1:
+                expected_value += 100
+            if sum_trump <= 1:
+                if card[0] + 'T' in cards + skat:
+                    if sum_suit_total == 3:
+                        expected_value = 3
+                    elif sum_suit_total >= 4:
+                        expected_value = 0
+                elif sum_suit_total >= 5:
+                    expected_value = 0
+
+        elif card[1] == 'T':
+            if card[0] + 'A' in cards + skat:
+                expected_value = 10
+                if card[0] + 'K' not in cards + skat:
+                    expected_value += 1
+                if card[0] + 'Q' not in cards + skat:
+                    expected_value += 1
+            else:
+                if card[0] + 'K' in cards:
+                    expected_value = 5
+                elif card[0] + 'Q' in cards:
+                    expected_value = 3
+                else:
+                    if sum_suit <= 2:
+                        expected_value = -3
+                    else:
+                        expected_value = 0
+                if sum_suit == 3:
+                    expected_value *= 1.2
+            if sum_trump <= 1:
+                if sum_suit_total >= 4:
+                    expected_value = 0
+
+        elif card[1] == 'K':
+            if card[0] + 'A' in cards + skat and sum_suit >= 3:
+                expected_value = 2.9
+            else:
+                expected_value = 0
+
+        elif card[1] == 'Q':
+            if card[0] + 'A' in cards + skat and sum_suit >= 3:
+                expected_value = 3
+                if card[0] + 'K' in skat:
+                    expected_value -= 0.2
+            else:
+                expected_value = 0
+
+        elif card[1] == '7' or card[1] == '8' or card[1] == '9':
+            if sum_suit >= 3:
+                expected_value = 0.1
+            else:
+                expected_value = 0
+
+        if sum_trump >= 3 and sum_suit >= 4:
+            expected_value += 5
+
+        strength += expected_value
+
+    for suit in ['D', 'H', 'S', 'C']:
+        sum_suit = sum(suit in s and s[1] != 'J' for s in cards)
+        if sum_suit == 0:
+            if suit + 'A' not in skat:
+                strength += (sum_trump - 1) * 3
+            if suit + 'T' not in skat:
+                strength += (sum_trump - 1) * 3
+        if sum_suit == 1:
+            strength += 2
+            if suit + 'K' in cards:
+                strength -= 1
+            if suit + 'Q' in cards:
+                strength -= 0.5
+
+        if suit + 'T' in cards and suit + 'K' in skat:
+            strength -= 1000
+        if suit + 'K' in cards and suit + 'Q' in skat:
+            strength -= 1000
+        if suit + 'Q' in cards and suit + '9' in skat:
+            strength -= 1000
+
+    if skat[0][0] == skat[1][0]:
+        strength += 2
+
+    strength += get_points(skat[0]) + get_points(skat[1])
+    if skat[0][1] == 'A': # Fix to make A and T equally valuable
+        strength -= 1
+    if skat[1][1] == 'A':
+        strength -= 1
+
+    return strength
 
 def evaluate_null_strength(cards):
     strength = 0
@@ -204,7 +427,7 @@ Stufe 1: Das Ass zu viert, etwa 7-8-10-Ass oder 7-9-Bube-Ass
  Stufe 6: Die blanke 9
  Stufe 7: 7-9-König bzw. 7-8-König
  """
-def evaluate_null_strength_for_druecken(cards):
+def evaluate_null_strength_for_druecken(cards, skat):
     strength = 0
     for suit in ['D', 'H', 'S', 'C']:
         if sum(suit in s for s in cards) == 0:
@@ -241,10 +464,12 @@ def evaluate_null_strength_for_druecken(cards):
                     mod *= 0.6
                     filler += 1
                 else:
-                    if filler > 0:
-                        filler -= 1
-                    else:
+                    if suit + rank in skat:
+                        mod *= 0.8
+                    if filler <= 0:
                         current_strength += mod
+                    filler -= 1
+
     return -strength
 
 def can_play_null(cards, gametype, np_random): # Bids more aggressive when the trained model is not a Null model. Otherwise there are not enough null bids.
