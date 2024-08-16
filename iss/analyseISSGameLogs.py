@@ -152,9 +152,11 @@ def calculatePercentages(playerEvalDict):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt'
+    issLogFilePath = 'C:/Users/janvo/Desktop/log.txt'
     playersToEvaluate = ['Hubert47', 'kermit', 'kermit:2']
-    gameTypesToExclude = [] #'G' = Grand, 'N' = Null
+    # gameTypesToExclude = ['D', 'H', 'S', 'C', 'N', 'NO'] # Grand
+    # gameTypesToExclude = ['G', 'N', 'NO'] # Farbspiel
+    gameTypesToExclude = ['D', 'H', 'S', 'C', 'G'] #Null
 
     # Logfile parsen und in Liste mit Objekten der Klasse "SkatMatch" übersetzen
     matches = getMatchesFromLogFile(issLogFilePath)
