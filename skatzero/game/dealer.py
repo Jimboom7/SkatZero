@@ -1,6 +1,6 @@
 import numpy as np
 
-from skatzero.game.utils import calculate_bidding_value, can_play_null, can_play_null_ouvert, can_play_null_ouvert_hand, evaluate_null_strength, evaluate_null_strength_for_druecken, init_32_deck, evaluate_hand_strength
+from skatzero.game.utils import calculate_bidding_value, can_play_null, can_play_null_ouvert, can_play_null_ouvert_hand, evaluate_d_strength_for_druecken, evaluate_grand_strength_for_druecken, evaluate_null_strength_for_druecken, init_32_deck, evaluate_hand_strength
 from skatzero.evaluation.utils import swap_colors, swap_bids
 
 class Dealer:
@@ -19,6 +19,7 @@ class Dealer:
         self.grand = [False, False, False]
         self.is_hand = [False, False, False]
         self.is_open = [False, False, False]
+        self.starting_player = -1
         # self.counter1 = 0
         # self.counter2 = 0
         # self.counter3 = 0
@@ -244,7 +245,7 @@ class Dealer:
             # print("Full Hand: " + str(full_hand))
             values = evaluate_hand_strength(full_hand, np_random=self.np_random)
             grand_value = evaluate_hand_strength(full_hand, gametype = 'G', np_random=self.np_random)['G']
-            if grand_value > self.np_random.rand() < (grand_value / 2) - 2.3:
+            if self.np_random.rand() < (grand_value / 2) - 2.3:
                 # print("Grand nach Skat!")
                 # self.counter7 += 1
                 return 'G'
@@ -354,33 +355,26 @@ class Dealer:
         players[0].current_hand.append(self.skat[0])
         players[0].current_hand.append(self.skat[1])
         self.skat = []
-        drueck_probs = [0,0,0,0,0,0,0,0,0,0,0,0]
         drueck = []
 
-        if gametype == 'N':
-            drueck = self.druecken_null(players)
-        elif gametype == 'D':
-            self.druecken_d(players, drueck_probs)
-        else:
-            self.druecken_grand(players, drueck_probs)
+        best_drueck = -10000
+        drueck = [players[0].current_hand[0], players[0].current_hand[1]]
+        for c1 in players[0].current_hand:
+            for c2 in players[0].current_hand:
+                if players[0].current_hand.index(c2) <= players[0].current_hand.index(c1):
+                    continue
+                cards = [x for x in players[0].current_hand if x != c1 and x != c2]
+                if gametype == 'N':
+                    value = evaluate_null_strength_for_druecken(cards, [c1, c2])
+                elif gametype == 'D':
+                    value = evaluate_d_strength_for_druecken(cards, [c1, c2])
+                else:
+                    value = evaluate_grand_strength_for_druecken(cards, [c1, c2])
+                if value > best_drueck and self.np_random.rand() < 0.95:
+                    drueck = [c1, c2]
+                    best_drueck = value
 
-        if gametype == 'D' or gametype == 'G':
-            drueck_probs = np.array(drueck_probs)
-            drueck_probs /= drueck_probs.sum()
-            if self.np_random.rand() < 0.1:
-                drueck = self.np_random.choice(players[0].current_hand, 2, p=drueck_probs, replace=False)
-                max2 = players[0].current_hand.index(drueck[1])
-            else:
-                max1 = drueck_probs.argsort()[-1]
-                max2 = drueck_probs.argsort()[-2]
-                drueck = [players[0].current_hand[max1], players[0].current_hand[max2]] # variant without randomness
-
-            if (sum(drueck[0][0] in s and s[1] != 'J' and s[1] != 'A' for s in players[0].current_hand) == 2 and drueck[1][0] != drueck[0][0] and self.np_random.rand() < 0.9 and drueck[0][1] != 'T'):
-                d = next(x for x in players[0].current_hand if x[0] == drueck[0][0] and x[1] != drueck[0][1] and x[1] != 'J' and x[1] != 'A') # If two from one suit: drueck both
-                if drueck_probs[players[0].current_hand.index(d)] + 1 + self.np_random.rand() > drueck_probs[max2]:
-                    drueck[1] = d
-
-        #print(drueck)
+        print(drueck)
         #print(" ")
 
         players[0].current_hand.remove(drueck[0])
@@ -388,126 +382,18 @@ class Dealer:
         self.skat.append(drueck[0])
         self.skat.append(drueck[1])
 
-    def druecken_grand(self, players, drueck_probs):
-        i = -1
-        for card in players[0].current_hand:
-            i += 1
-            drueck_probs[i] = 0.001
-            num_trump = sum('J' in s for s in players[0].current_hand)
-            trump_threshold = 2
-            num_curr_suit = sum(card[0] in s and s[1] != 'J' for s in players[0].current_hand)
-            if card[1] == 'J':
-                continue
-            if card[1] == 'A' and card[0] + 'T' in players[0].current_hand and num_trump < trump_threshold: # Ace: When low on trump and 10 in hand, and suit is long: higher chance to drueck
-                if num_curr_suit >= 3:
-                    drueck_probs[i] = num_curr_suit - 3 + (trump_threshold - num_trump)
-            elif card[1] == 'T' and card[0] + 'A' not in players[0].current_hand: # 10 without ace: always high chance to drueck with less cards
-                drueck_probs[i] = 3.5 - (num_curr_suit / 1)
-                if card[0] + 'K' in players[0].current_hand and num_curr_suit == 2:
-                    drueck_probs[i] = 0.5
-            elif card[1] == 'T' and card[0] + 'A' in players[0].current_hand and num_trump < trump_threshold: # 10: When low on trump and Ace in hand, and suit is long: higher chance to drueck
-                if num_curr_suit >= 3:
-                    drueck_probs[i] = num_curr_suit - 3 + (trump_threshold - num_trump)
-            elif card[1] == 'K': # king: small chance to drueck
-                drueck_probs[i] = 0.2 - (num_curr_suit / 20)
-                if card[0] + 'T' in players[0].current_hand and num_curr_suit == 2:
-                    drueck_probs[i] = -0.7
-            elif card[1] == 'Q': # queen: small chance to drueck
-                drueck_probs[i] = 0.2 - (num_curr_suit / 20)
-                if drueck_probs[i] < 0:
-                    drueck_probs[i] = 0.004
-                if card[0] + 'K' in players[0].current_hand:
-                    drueck_probs[i] -= 0.01
-            elif card[1] in ['7', '8', '9']: # 7, 8, 9: small chance to drueck
-                drueck_probs[i] = 0.1 - (num_curr_suit / 20)
-                if drueck_probs[i] < 0:
-                    drueck_probs[i] = 0.003
-            if num_curr_suit == 1 and card[1] != 'A': # single card (no ace) in suit: high chance to drueck
-                drueck_probs[i] += 1.2
-            if num_curr_suit == 2 and card[1] != 'A' and (card[1] != 'T' or card[0] + 'A' not in players[0].current_hand): # suit with 2 cards (no ace, or no ace + 10): medium chance to drueck
-                drueck_probs[i] += 0.7
-                if (sum('D' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1 or
-                        sum('H' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1 or
-                        sum('S' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1 or
-                        sum('C' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1):
-                    drueck_probs[i] += 0.5
-            if num_curr_suit == 2 and card[1] != 'A' and (card[0] + 'A' in players[0].current_hand):
-                drueck_probs[i] -= 0.5
-            if drueck_probs[i] <= 0:
-                drueck_probs[i] = 0.002
-        #print(drueck_probs)
-
-    def druecken_d(self, players, drueck_probs):
-        i = -1
-        for card in players[0].current_hand:
-            i += 1
-            drueck_probs[i] = 0.001
-            num_trump = sum('J' in s for s in players[0].current_hand) + sum('D' in s and s[1] != 'J' for s in players[0].current_hand)
-            trump_threshold = 4.5
-            num_curr_suit = sum(card[0] in s and s[1] != 'J' for s in players[0].current_hand)
-            if card[1] == 'J' or card[0] == 'D':
-                continue
-            if card[1] == 'A' and card[0] + 'T' in players[0].current_hand and num_trump < trump_threshold: # Ace: When low on trump and 10 in hand, and suit is long: higher chance to drueck
-                if num_curr_suit >= 4:
-                    drueck_probs[i] = num_curr_suit - 3 + (trump_threshold - num_trump)
-            elif card[1] == 'T' and card[0] + 'A' not in players[0].current_hand: # 10 without ace: always high chance to drueck with less cards
-                drueck_probs[i] = 3.5 - (num_curr_suit / 1)
-                if card[0] + 'K' in players[0].current_hand and num_curr_suit == 2:
-                    drueck_probs[i] = 0
-            elif card[1] == 'T' and card[0] + 'A' in players[0].current_hand and num_trump < trump_threshold: # 10: When low on trump and Ace in hand, and suit is long: higher chance to drueck
-                if num_curr_suit >= 4:
-                    drueck_probs[i] = num_curr_suit - 3 + (trump_threshold - num_trump)
-            elif card[1] == 'K': # king: small chance to drueck
-                drueck_probs[i] = 0.2 - (num_curr_suit / 20)
-                if card[0] + 'T' in players[0].current_hand and num_curr_suit == 2:
-                    drueck_probs[i] = -0.7
-            elif card[1] == 'Q': # queen: small chance to drueck
-                drueck_probs[i] = 0.2 - (num_curr_suit / 20)
-                if card[0] + 'K' in players[0].current_hand:
-                    drueck_probs[i] -= 0.01
-            elif card[1] in ['7', '8', '9']: # 7, 8, 9: small chance to drueck
-                drueck_probs[i] = 0.1 - (num_curr_suit / 20)
-                if drueck_probs[i] < 0:
-                    drueck_probs[i] = 0.003
-            if num_curr_suit == 1 and card[1] != 'A': # single card (no ace) in suit: high chance to drueck
-                drueck_probs[i] += 1.2
-            if num_curr_suit == 2 and card[1] != 'A' and (card[1] != 'T' or card[0] + 'A' not in players[0].current_hand): # suit with 2 cards (no ace, or no ace + 10): medium chance to drueck
-                drueck_probs[i] += 0.7
-                if (sum('H' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1 or
-                        sum('S' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1 or
-                        sum('C' in s and s[1] != 'J' and s[1] != 'T' and s[1] != 'A' for s in players[0].current_hand) == 1):
-                    drueck_probs[i] += 0.4
-            if num_curr_suit == 2 and card[1] != 'A' and (card[0] + 'A' in players[0].current_hand):
-                drueck_probs[i] -= 0.5
-            if drueck_probs[i] <= 0:
-                drueck_probs[i] = 0.002
-
-    def druecken_null(self, players):
-        best_drueck = -10000
-        drueck = [players[0].current_hand[0], players[0].current_hand[1]]
-        for c1 in players[0].current_hand:
-            for c2 in players[0].current_hand:
-                if c1 == c2:
-                    continue
-                cards = [x for x in players[0].current_hand if x != c1 and x != c2]
-                value = evaluate_null_strength_for_druecken(cards)
-                if value > best_drueck and self.np_random.rand() < 0.95:
-                    drueck = [c1, c2]
-                    best_drueck = value
-        return drueck
-
-    def deal_cards(self, players, gametype, starting_player):
-        new_starting_player = -1
-        while new_starting_player == -1:
+    def deal_cards(self, players, gametype):
+        initial_starting_player = self.np_random.randint(0, 3)
+        while self.starting_player == -1:
             self.shuffle()
             self.set_player_hands(players)
-            new_starting_player = self.determine_soloplayer(players, starting_player, gametype)
+            self.starting_player = self.determine_soloplayer(players, initial_starting_player, gametype)
         players[0].role = 'soloplayer'
         players[1].role = 'opponent'
         players[2].role = 'opponent'
         self.soloplayer = players[0]
 
-        return self.soloplayer.player_id, new_starting_player, self.blind_hand, self.open_hand
+        return self.soloplayer.player_id, self.starting_player, self.blind_hand, self.open_hand
 
 # from skatzero.game.player import Player
 # d = Dealer(np.random.RandomState())
