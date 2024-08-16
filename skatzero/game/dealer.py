@@ -1,6 +1,6 @@
 import numpy as np
 
-from skatzero.game.utils import calculate_bidding_value, can_play_null, can_play_null_ouvert, can_play_null_ouvert_hand, evaluate_d_strength_for_druecken, evaluate_grand_strength_for_druecken, evaluate_null_strength_for_druecken, init_32_deck, evaluate_hand_strength
+from skatzero.game.utils import calculate_bidding_value, can_play_null, can_play_null_ouvert, can_play_null_ouvert_hand, evaluate_d_strength_for_druecken, evaluate_grand_strength_for_druecken, evaluate_null_strength, init_32_deck, evaluate_hand_strength
 from skatzero.evaluation.utils import swap_colors, swap_bids
 
 class Dealer:
@@ -330,7 +330,6 @@ class Dealer:
                             self.bid_jacks[player.player_id] = 0
             elif can_play_null(player.current_hand, gametype, self.np_random):
                 self.bids[player.player_id]['N'] = 1
-                # print(evaluate_null_strength(player.current_hand))
                 if can_play_null_ouvert_hand(player.current_hand, gametype, self.np_random):
                     if gametype == 'N' and self.np_random.rand() < 0.6:
                         return -1
@@ -365,7 +364,7 @@ class Dealer:
                     continue
                 cards = [x for x in players[0].current_hand if x != c1 and x != c2]
                 if gametype == 'N':
-                    value = evaluate_null_strength_for_druecken(cards, [c1, c2])
+                    value = evaluate_null_strength(cards, [c1, c2])
                 elif gametype == 'D':
                     value = evaluate_d_strength_for_druecken(cards, [c1, c2])
                 else:
@@ -374,7 +373,7 @@ class Dealer:
                     drueck = [c1, c2]
                     best_drueck = value
 
-        print(drueck)
+        #print(drueck)
         #print(" ")
 
         players[0].current_hand.remove(drueck[0])
@@ -415,8 +414,9 @@ class Dealer:
 # players[1] = Player(1)
 # players[2] = Player(2)
 
-# for i in range (0,1312):
-#     d.deal_cards(players, 'N', 0)
+# for i in range (0,10000):
+#     d.starting_player = -1
+#     d.deal_cards(players, 'D')
 # print(d.counter1)
 # print(d.counter2)
 # print(d.counter3)
