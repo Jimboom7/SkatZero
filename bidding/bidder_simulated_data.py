@@ -114,3 +114,29 @@ class SimulatedDataBidder:
             bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
 
         return bid_values_gamemode
+
+if __name__ == '__main__':
+    # Transform for JavaScript
+    s = SimulatedDataBidder(0)
+    s.load_data()
+    print(s.values)
+    print(s.dists)
+
+    float_formatter = "{:.3f},".format
+    np.set_printoptions(linewidth=np.inf)
+    np.set_printoptions(formatter={'float_kind':float_formatter})
+
+    st = "const BIDDING_VALUES = {\n"
+    for a, v in s.values.items():
+        st += "\t" + str(a) + ": " + str(v)[:-2] + "],\n"
+    st = st[:-2] + "\n};"
+    print(st)
+    print()
+    st = "const BIDDING_DISTS = {\n"
+    for a, d in s.dists.items():
+        st += "\t" + str(a) + ": ["
+        for x in np.transpose(d):
+            st += str(x)[:-2] + "], "
+        st = st[:-3] + "]],\n"
+    st = st[:-2] + "\n};"
+    print(st)
