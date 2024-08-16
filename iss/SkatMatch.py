@@ -1,5 +1,5 @@
 import numpy as np
-from helpers import *
+from iss.helpers import *
 
 class SkatMatch:
     # Spieler mit Index 0 ist immer Vorhand (hören)
@@ -19,9 +19,11 @@ class SkatMatch:
 
         try:
             self.alleinspielerInd = int(lineParts[14][2])
+            self.alleinspielerName = self.playerNames[self.alleinspielerInd]
             self.eingepasst = False
         except:
             self.alleinspielerInd = np.nan
+            self.alleinspielerName = ""
             self.eingepasst = True
 
         p0Cards = lineParts[13][2:31]
@@ -33,6 +35,7 @@ class SkatMatch:
         self.cards[self.playerNames[0]] = p0Cards.split(".")
         self.cards[self.playerNames[1]] = p1Cards.split(".")
         self.cards[self.playerNames[2]] = p2Cards.split(".")
+        self.originalSkat = skatCards.split(".")
 
         self.playerCards = np.stack([convertCardStringToMat(p0Cards, '.'), convertCardStringToMat(p1Cards, '.'), convertCardStringToMat(p2Cards, '.')])
         self.skatCards = convertCardStringToMat(skatCards, '.')
@@ -47,6 +50,8 @@ class SkatMatch:
         self.gameType = ''
         self.playedFullRounds = 0
 
+        self.is_hand = False
+
         if not self.eingepasst:
             reizAndPlaySplit = reizAndPlay.split(' s w ')
             self.skatTaken = len(reizAndPlaySplit) > 1
@@ -59,6 +64,7 @@ class SkatMatch:
                 if 'NO' in cardPlay:
                     # Null Ouvert ist das einzige Spiel ohne Hand mit zwei Buchstaben
                     self.gedrueckt = convertCardStringToMat(cardPlay[11:16], '.')
+                    self.gedrueckt_cards = cardPlay[11:16].split(".")
                     self.gameType = 'NO'
                     if cardPlay[16] == '.':
                         # Alle 12 Karten werden aufgelistet
@@ -69,10 +75,13 @@ class SkatMatch:
                 else:
                     # Spiel hat nur einen Buchstaben (G, C, S, H, D, N)
                     self.gedrueckt = convertCardStringToMat(cardPlay[10:15], '.')
+                    self.gedrueckt_cards = cardPlay[10:15].split(".")
                     self.gameType = cardPlay[8]
                     cardPlay = cardPlay[16:]
             else:
+                self.is_hand = True
                 self.gedrueckt = self.skatCards
+                self.gedrueckt_cards = self.originalSkat
 
                 if cardPlay[0] == 'H': # HH
                     reizungen += 'H'
