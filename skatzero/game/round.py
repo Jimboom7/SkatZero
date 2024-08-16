@@ -23,10 +23,17 @@ class Round:
 
         self.dealer = Dealer(self.np_random)
 
-    def initiate(self, players, starting_player=None):
-        if starting_player is None:
-            starting_player = self.np_random.randint(0, 3)
-        soloplayer_id, self.current_player, self.blind_hand, self.open_hand = self.dealer.deal_cards(players, self.gametype, starting_player)
+    def initiate(self, players, dealer=None):
+        if dealer is None:
+            soloplayer_id, self.current_player, self.blind_hand, self.open_hand = self.dealer.deal_cards(players, self.gametype)
+        else:
+            self.dealer = dealer
+            self.dealer.soloplayer = players[0]
+            soloplayer_id = dealer.soloplayer.player_id
+            self.current_player = dealer.starting_player
+            self.blind_hand = dealer.blind_hand
+            self.open_hand = dealer.open_hand
+            self.dealer.set_player_hands(players)
         self.soloplayer_id = soloplayer_id
         self.public = {'deck': self.dealer.deck, 'soloplayer': self.soloplayer_id,
                        'trace': self.trace, 'played_cards': ['' for _ in range(len(players))],

@@ -3,11 +3,11 @@ from skatzero.env.skat import SkatEnv
 
 
 class EvalEnv(SkatEnv):
-    def __init__(self, seed=None, gametype='D', lstm=[True, False, False], rounds=None):
+    def __init__(self, seed=None, gametype='D', lstm=[True, False, False], dealers=None):
         super().__init__(seed, gametype, False)
         self.lstm_list = lstm
-        self.rounds = rounds
-        self.round_id = 0
+        self.dealers = dealers
+        self.dealer_id = 0
 
         if lstm[0]:
             self.state_shape[0][0] -= 1050
@@ -26,10 +26,12 @@ class EvalEnv(SkatEnv):
             self.seed(self.base_seed)
         state, player_id = self.game.init_game()
 
-        if self.rounds is not None:
-            self.game.round = self.rounds[self.round_id]
-            self.game.players = self.game.round.players
-            self.round_id += 1
+        if self.dealers is not None:
+            self.game.round.initiate(self.game.players, dealer = self.dealers[self.dealer_id])
+            self.dealer_id += 1
+            player_id = self.game.round.current_player
+            state = self.game.get_state(player_id)
+            self.game.state = state
 
         return self.extract_state(state, player_id), player_id
 
