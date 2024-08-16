@@ -153,7 +153,7 @@ def evaluate_grand_card(card):
 
 def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=None):
     if gametype == 'N':
-        return {'N': evaluate_null_strength(cards) * np_random.uniform(0.9, 1.1)}
+        return {'N': evaluate_null_strength(cards, []) * np_random.uniform(0.9, 1.1)}
     elif gametype == 'G':
         strength = 0
         for c in cards:
@@ -396,27 +396,6 @@ def evaluate_grand_strength_for_druecken(cards, skat):
 
     return strength
 
-def evaluate_null_strength(cards):
-    strength = 0
-    for suit in ['D', 'H', 'S', 'C']:
-        mod = 1
-        filler = 0
-        current_strength = 0
-        for rank in ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A']:
-            if mod < 0.3:
-                continue
-            if suit + rank in cards:
-                strength += current_strength
-                current_strength = 0
-                mod *= 0.6
-                filler += 1
-            else:
-                if filler > 0:
-                    filler -= 1
-                else:
-                    current_strength += mod
-    return -strength
-
 """
 https://www.vg88.de/Download/_besser-Skat-spielen-V1b.pdf
 Stufe 1: Das Ass zu viert, etwa 7-8-10-Ass oder 7-9-Bube-Ass
@@ -427,13 +406,13 @@ Stufe 1: Das Ass zu viert, etwa 7-8-10-Ass oder 7-9-Bube-Ass
  Stufe 6: Die blanke 9
  Stufe 7: 7-9-König bzw. 7-8-König
  """
-def evaluate_null_strength_for_druecken(cards, skat):
+def evaluate_null_strength(cards, skat = []):
     strength = 0
     for suit in ['D', 'H', 'S', 'C']:
         if sum(suit in s for s in cards) == 0:
             strength += 0
         elif (sum(suit in s for s in cards) == 4 and suit + '7' in cards and
-        (suit + '8' in cards or suit + '9' in cards) in cards and
+        (suit + '8' in cards or suit + '9' in cards) and
         ((suit + '8' in cards and suit + '9' in cards) or suit + 'J' in cards or suit + 'Q' in cards or suit + 'K' in cards) and
         suit + 'A' in cards):
             strength += 1
@@ -474,15 +453,15 @@ def evaluate_null_strength_for_druecken(cards, skat):
 
 def can_play_null(cards, gametype, np_random): # Bids more aggressive when the trained model is not a Null model. Otherwise there are not enough null bids.
     if gametype != 'N':
-        return evaluate_null_strength(cards) >= -4.3
-    return evaluate_null_strength(cards) >= -2 - np_random.uniform(0, 0.8)
+        return evaluate_null_strength(cards) >= -78
+    return evaluate_null_strength(cards) >= -30 - np_random.uniform(0, 10)
 
 def can_play_null_ouvert(cards, gametype, np_random):
     if gametype != 'N':
-        return evaluate_null_strength(cards) >= -2.6
-    return evaluate_null_strength(cards) >= -0.9 - np_random.uniform(0, 0.6)
+        return evaluate_null_strength(cards) >= -45
+    return evaluate_null_strength(cards) >= -8 - np_random.uniform(0, 2.5)
 
 def can_play_null_ouvert_hand(cards, gametype, np_random):
     if gametype != 'N':
-        return evaluate_null_strength(cards) >= -1
-    return evaluate_null_strength(cards) >= -0.3 - np_random.uniform(0, 0.75)
+        return evaluate_null_strength(cards) >= -5
+    return evaluate_null_strength(cards) >= -2 - np_random.uniform(0, 2.2)
