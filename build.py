@@ -31,10 +31,10 @@ def convert_onnx(player_id, input_size, gametype, postfix):
 if __name__ == "__main__":
 
     for i, x in enumerate([551, 573, 573]):
-        convert_onnx(i, x, 'D', '12840')
+        convert_onnx(i, x, 'D', '13570')
 
     for i, x in enumerate([551, 573, 573]):
-        convert_onnx(i, x, 'G', '10460')
+        convert_onnx(i, x, 'G', '10810')
 
     for i, x in enumerate([310, 364, 364]):
-        convert_onnx(i, x, 'N', '4060') #4080_0
+        convert_onnx(i, x, 'N', '4350')
