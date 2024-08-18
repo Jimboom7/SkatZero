@@ -323,7 +323,8 @@ def cardplay(args, recursed=False):
         return max_value
     if len(raw_state["current_hand"]) > 1 and len(raw_state["trick"]) == 2 and args[1] != 'N': # full trick: check if self is next, then calculate next state and best discard value for each card
         card_values = {}
-        for card in raw_state['actions']:
+        for card_swapped in raw_state['actions']:
+            card = swap_colors([card_swapped], 'D', args[1])[0]
             current_state = copy.deepcopy(raw_state)
             current_state['trick'].append((0, card))
             winner, points = check_trick(current_state['trick'], raw_state['trump'])
@@ -340,7 +341,7 @@ def cardplay(args, recursed=False):
                     args_for_next_turn[3] = int(args_for_next_turn[3]) + points
                 else:
                     args_for_next_turn[4] = int(args_for_next_turn[4]) + points
-                card_values[card] = cardplay(args_for_next_turn, True)
+                card_values[card_swapped] = cardplay(args_for_next_turn, True)
         print("After recursion:")
         for k, v in card_values.items():
             card_values[k] = round(v, 2)
@@ -373,7 +374,7 @@ def check_trick(trick, trump):
 
 if __name__ == '__main__':
     ACCURACY = 50 # Number of Iterations for Skat simulation
-    BID_THRESHOLD = -20 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
+    BID_THRESHOLD = -12 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
 
     arguments = sys.argv[1:]
 
