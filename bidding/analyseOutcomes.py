@@ -11,7 +11,7 @@ from bidding.bidder import Bidder
 
 if __name__ == '__main__':
 
-    gametype = 'D' # hier den Spieltyp einstellen
+    gametype = 'G' # hier den Spieltyp einstellen
     is_hand = True
 
     MODEL1_D = 'models/latest/D_0.pth'
@@ -45,10 +45,10 @@ if __name__ == '__main__':
         span = 4
         num_hands = 200
         if is_hand:
-            min_estimates = np.array([-167, -102, -52, -22, -12, -2, 8, 18, 28, 38, 48, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94])
+            min_estimates = np.array([-172, -102, -52, -22, -12, -2, 8, 18, 28, 38, 48, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94])
             possible_rewards = [-190, -170, -150, 80, 90, 100]
         else:
-            min_estimates = np.array([-147, -102, -52, -22, -12, -2, 8, 18, 28, 38, 48, 58, 62, 66, 70, 74, 78, 82, 86])
+            min_estimates = np.array([-142, -102, -52, -22, -12, -2, 8, 18, 28, 38, 48, 58, 62, 66, 70, 74, 78, 82, 86])
             possible_rewards = [-170, -150, -130, 70, 80, 90]
     else:
         span = 8
@@ -57,7 +57,7 @@ if __name__ == '__main__':
             min_estimates = np.array([-264, -104, -54, -24, -9, 6, 21, 36, 51, 66, 81, 96, 106, 116, 126, 136, 146, 156, 161])
             possible_rewards = [-330, -282, -234, 122, 146, 170]
         else:
-            min_estimates = np.array([-224, -104, -54, -24, -9, 6, 21, 36, 51, 66, 81, 96, 106, 116, 126, 136, 146])
+            min_estimates = np.array([-204, -104, -54, -24, -9, 6, 21, 36, 51, 66, 81, 96, 106, 116, 126, 136, 146])
             possible_rewards = [-282, -234, -186, 98, 122, 146]
 
     value_distributions = np.zeros((len(min_estimates), num_hands, 6))
@@ -75,11 +75,11 @@ if __name__ == '__main__':
             while True:
                 player_id = 2
                 while player_id != 0:
-                    env = SkatEnv(blind_hand_chance = is_hand, seed=None, gametype=gametype)
+                    env = SkatEnv(seed=None, gametype=gametype)
 
                     env.set_agents(agents)
 
-                    raw_state, player_id = env.game.init_game(blind_hand=is_hand)
+                    raw_state, player_id = env.game.init_game()
 
                 #print(env.game.players[0].current_hand)
                 #print(env.game.state['skat'])
