@@ -151,28 +151,33 @@ def evaluate_grand_card(card):
     return 0
 
 
-def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=None):
+def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], np_random=None, more_random=False):
+    rand_l = 0.7 if more_random else 0.9
+    rand_u = 1.2 if more_random else 1.1
     if gametype == 'N':
-        return {'N': evaluate_null_strength(cards, []) * np_random.uniform(0.9, 1.1)}
+        return {'N': evaluate_null_strength(cards, []) * np_random.uniform(rand_l, rand_u)}
     elif gametype == 'G':
+        rand = 0.5 if more_random else 0.2
         strength = 0
         for c in cards:
             strength += evaluate_grand_card(c)
         if np_random is None:
             return {'G': strength}
-        return {'G': strength * np_random.uniform(0.8, 1.2)}
+        return {'G': strength * np_random.uniform(1 - rand, 1 + rand)}
     strength = {'D': 0, 'H': 0, 'S': 0, 'C': 0}
     for suit in gametype:
         s = 0
         for c in cards:
             s += evaluate_card(c, suit)
+        if sum(card[0] == suit for card in cards) <= 4:
+            s += 0.2 - (sum(card[0] == suit and (card[1] == 'T' or card[1] == 'A') for card in cards) / 5)
         if np_random is None:
             strength[suit] = s
         else:
-            strength[suit] = s * np_random.uniform(0.9, 1.1)
+            strength[suit] = s * np_random.uniform(rand_l, rand_u)
     return strength
 
-def evaluate_d_strength_for_druecken(cards, skat):
+def evaluate_d_strength_for_druecken(cards, skat, np_random=None):
     strength = 0
     for card in cards:
         expected_value = 0
@@ -204,11 +209,17 @@ def evaluate_d_strength_for_druecken(cards, skat):
 
         elif card[1] == 'T':
             if card[0] + 'K' in cards:
-                expected_value = 9
+                expected_value = 9 - (np_random.rand() * 6)
+                if sum_suit == 3:
+                    expected_value = 9 - (np_random.rand() * 4)
             elif card[0] + 'Q' in cards:
-                expected_value = 3
+                expected_value = 3 - (np_random.rand() * 2)
+                if sum_suit == 3:
+                    expected_value = 3 - (np_random.rand() * 1)
             else:
-                if sum_suit <= 2:
+                if sum_suit == 1:
+                    expected_value = -10
+                elif sum_suit == 2:
                     expected_value = -3
                 else:
                     expected_value = 0
@@ -281,7 +292,7 @@ def evaluate_d_strength_for_druecken(cards, skat):
 
     return strength
 
-def evaluate_grand_strength_for_druecken(cards, skat):
+def evaluate_grand_strength_for_druecken(cards, skat, np_random=None):
     strength = 0
     for card in cards:
         expected_value = 0
@@ -325,11 +336,17 @@ def evaluate_grand_strength_for_druecken(cards, skat):
                     expected_value += 1
             else:
                 if card[0] + 'K' in cards:
-                    expected_value = 5
+                    expected_value = 5 - (np_random.rand() * 3)
+                    if sum_suit == 3:
+                        expected_value = 5 - (np_random.rand() * 1.5)
                 elif card[0] + 'Q' in cards:
-                    expected_value = 3
+                    expected_value = 3 - (np_random.rand() * 2)
+                    if sum_suit == 3:
+                        expected_value = 3 - (np_random.rand() * 1)
                 else:
-                    if sum_suit <= 2:
+                    if sum_suit == 1:
+                        expected_value = -10
+                    elif sum_suit == 2:
                         expected_value = -3
                     else:
                         expected_value = 0
