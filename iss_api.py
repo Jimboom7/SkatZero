@@ -51,7 +51,12 @@ def prepare_env():
     for gametype in ['D', 'G', 'N']:
         for i in range(0, 3):
             agents.append(load_model(basedir + "/models/latest/" + gametype + "_" + str(i) + ".pth"))
-            #agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_D/" + str(i) + "_12620.pth"))
+    # for i in range(0, 3):
+    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_D/" + str(i) + "_11790.pth"))
+    # for i in range(0, 3):
+    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_G/" + str(i) + "_11450.pth"))
+    # for i in range(0, 3):
+    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_N/" + str(i) + "_3800.pth"))
 
     env = SkatEnv()
 
@@ -62,6 +67,7 @@ def prepare_env():
     env.game.round.open_hand = False
     raw_state['blind_hand'] = True
     raw_state['open_hand'] = False
+    raw_state['points'] = [0, 0]
 
     return agents, env, raw_state
 
@@ -142,7 +148,7 @@ def bid(args, accuracy, bid_threshold):
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     bid_jacks = [0, 0, 0]
-    penalties = {'D': 25, 'G': 40, 'N': 0, 'NO': 0, 'DH': 25, 'GH': 40, 'NH': 0, 'NOH': 0}
+    penalties = {'D': 15, 'G': 40, 'N': 0, 'NO': 0, 'DH': 30, 'GH': 60, 'NH': 0, 'NOH': 0}
 
     if args[0] == 'SKAT_OR_HAND_DECL':
         hand_bids, bid_jacks = parse_bid(int(args[3]), 1, hand_bids, bid_jacks)
@@ -324,15 +330,18 @@ def cardplay(args, recursed=False):
     if len(raw_state["current_hand"]) > 1 and len(raw_state["trick"]) == 2 and args[1] != 'N': # full trick: check if self is next, then calculate next state and best discard value for each card
         card_values = {}
         for card_swapped in raw_state['actions']:
-            card = swap_colors([card_swapped], 'D', args[1])[0]
+            if args[1] in ['H', 'S', 'C']:
+                card = swap_colors([card_swapped], 'D', args[1])[0]
+            else:
+                card = card_swapped
             current_state = copy.deepcopy(raw_state)
-            current_state['trick'].append((0, card))
+            current_state['trick'].append((0, card_swapped))
             winner, points = check_trick(current_state['trick'], raw_state['trump'])
             if winner != 2:
                 if args[1] in ['H', 'S', 'C']:
-                    card_values[card] = info['values'][card]
+                    card_values[card_swapped] = info['values'][card_swapped]
                 else:
-                    card_values[card] = info['values'][card]
+                    card_values[card_swapped] = info['values'][card_swapped]
             else:
                 args_for_next_turn = args.copy()
                 args_for_next_turn[12] += ',' + str(raw_state["self"]) + card
@@ -374,7 +383,7 @@ def check_trick(trick, trump):
 
 if __name__ == '__main__':
     ACCURACY = 50 # Number of Iterations for Skat simulation
-    BID_THRESHOLD = -12 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
+    BID_THRESHOLD = -15 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
 
     arguments = sys.argv[1:]
 
