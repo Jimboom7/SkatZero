@@ -1215,6 +1215,33 @@ def case10_hard(raw_state):
     raw_state['trick'] = trick
     return raw_state, ('C7') # Damit man die 2 Farben fürs Endspiel hat (Nächster Zug mit König an Stich, dann mit Karo höchste Karte haben)
 
+def case1_bonus(raw_state):
+    print("Endspiel: Schmierung behalten")
+    raw_state['self'] = 1
+    raw_state['points'] = [17, 42]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['C9', 'C8', 'C7', 'SQ', 'S8']
+    raw_state['trace'] = [(1, 'HK'), (2, 'HT'), (0, 'H7'),
+                          (2, 'HA'), (0, 'D8'), (1, 'H9'),
+                          (0, 'DJ'), (1, 'DK'), (2, 'D9'),
+                          (0, 'HJ'), (1, 'ST'), (2, 'CJ'),
+                          (2, 'H8'), (0, 'CQ'), (1, 'SA'),
+                          (2, 'S7'), (0, 'D7')]
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'])
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+    return raw_state, ('S8') # Auf keinen Fall SQ schmeißen, die 3 Augen schmiert man am Ende für 60 (Letzter Zug: 0CK, 1SQ, 2CA)
+
 def case1_null(raw_state):
     print("Null Ouvert: Mit 7 starten, Partner schlägt später mit 9")
     # https://www.youtube.com/watch?v=RUBQLOfBrVI&list=PLoG_4JUJAvDAMipoDHmnBuQEAyLjw95HE
