@@ -47,7 +47,11 @@ class DMCNetLSTM(nn.Module):
 
     def forward(self, obs, history, actions):
         lstm_out, (_, _) = self.lstm(history)
-        lstm_out = lstm_out[:,-1,:] # transforms lstm output to shape (batch_size, hidden_dim)
+        if history.dim() == 2:
+            lstm_out = lstm_out[-1:,:] # transforms lstm output to shape (batch_size, hidden_dim)
+            lstm_out = torch.repeat_interleave(lstm_out, obs.shape[0], dim=0)
+        else:
+            lstm_out = lstm_out[:,-1,:] # transforms lstm output to shape (batch_size, hidden_dim)
         obs = torch.cat([lstm_out, obs], dim=-1)
         #obs = torch.flatten(obs, 1)
         #actions = torch.flatten(actions, 1)
