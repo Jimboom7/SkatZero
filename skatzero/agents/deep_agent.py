@@ -147,7 +147,7 @@ class DMCAgentLSTM:
         action_values = np.array(action_values, dtype=np.float32)
 
         obs = np.repeat(obs[np.newaxis, :], len(action_keys), axis=0)
-        history = np.repeat(history[np.newaxis, :, :], len(action_keys), axis=0)
+        # history = np.repeat(history[np.newaxis, :, :], len(action_keys), axis=0)
 
         with torch.no_grad():
             values = self.net.forward(torch.from_numpy(obs).to(self.device), torch.from_numpy(history).to(self.device),
