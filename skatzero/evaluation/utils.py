@@ -87,3 +87,28 @@ def player_number_to_name(player_nr):
     if player_nr == 2:
         player = 'Opponent Right'
     return player
+
+def parse_bid(bid_value, pos, bids, bid_jacks):
+    d_bids = [18, 27, 45]
+    h_bids = [20, 30, 40, 50]
+    s_bids = [22, 33, 44, 55]
+    c_bids = [24, 36, 48, 60]
+    n_bids = [23, 35, 46, 59]
+
+    if bid_value in d_bids:
+        bids[pos]['D'] = 1
+        if bid_value != 18:
+            bid_jacks[pos] = int(bid_value / 9) - 1
+    elif bid_value in h_bids:
+        bids[pos]['H'] = 1
+        bid_jacks[pos] = int(bid_value / 10) - 1
+    elif bid_value in s_bids:
+        bids[pos]['S'] = 1
+        bid_jacks[pos] = int(bid_value / 11) - 1
+    elif bid_value in c_bids:
+        bids[pos]['C'] = 1
+        bid_jacks[pos] = int(bid_value / 12) - 1
+    elif bid_value in n_bids:
+        bids[pos]['N'] = 1
+
+    return bids, bid_jacks

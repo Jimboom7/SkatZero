@@ -34,35 +34,39 @@ def run_testsuite(model, version):
                    case21_medium, case22_medium, case23_medium, case24_medium, case25_medium, case26_medium, case27_medium, case28_medium, case29_medium, case30_medium, case31_medium,
                    case1_hard, case2_hard, case3_hard, case4_hard, case5_hard, case6_hard, case7_hard, case8_hard, case9_hard, case10_hard]
     elif model == 'skat_G' or model == 'skat_lstm_G':
-        testcases = [case1_easy_grand, case2_easy_grand, case3_easy_grand, case1_medium_grand, case2_medium_grand, case3_medium_grand, case1_hard_grand, case2_hard_grand]
+        testcases = [case1_easy_grand, case2_easy_grand, case3_easy_grand, case1_medium_grand, case2_medium_grand, case3_medium_grand, case1_hard_grand, case2_hard_grand, case1_euroskat_grand]
     elif model == 'skat_N' or model == 'skat_lstm_N':
         testcases = [case1_null]
 
     w_score = 0
     c_score = 0
     correct = 0
+    correct2 = 0
     results = []
     for testcase in testcases:
-        w_diff, c_diff = run_testcase(testcase, raw_state, env, agents)
+        w_diff, c_diff, pos = run_testcase(testcase, raw_state, env, agents)
         w_score += w_diff
         c_score += c_diff
         if w_diff == 0:
-            correct += 1
+            if pos == 0:
+                correct += 1
+            else:
+                correct2 += 1
         if w_diff == 0:
             results.append(c_diff)
         else:
             results.append(w_diff)
-    if correct == 0:
+    if correct + correct2 == 0:
         correct = 0.0001
-    if correct == len(testcases):
-        correct = len(testcases) - 0.0001
+    if correct + correct2 == len(testcases):
+        correct -= 0.0001
     print("Overall")
     print("Score for Failed: " + str(w_score / (len(testcases) - correct)))
     print("Score for Passed: " + str(c_score / correct))
-    print("Correct: " + str(correct) + "/" + str(len(testcases)))
+    print("Correct: " + str(correct) + " + " + str(correct2) + "/" + str(len(testcases)))
 
     with open("testresults/test_results.csv", "a", encoding='utf-8') as logfile:
-        logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str((c_score + w_score) / len(testcases)) + "\n")
+        logfile.write(str(model) + "," + str(version) + "," + str(correct) + "," + str(correct2) + "," + str((c_score + w_score) / len(testcases)) + "\n")
         # Plot: https://list2chart.com/csv-to-chart/
     return correct, ((c_score + w_score) / len(testcases)), results
 
@@ -89,16 +93,19 @@ def get_averages(model, version):
 
 if __name__ == '__main__':
     MODEL = "skat_lstm_D"
-    FRAMES = 14720
-    #MODEL = "skat_lstm_G"
-    #FRAMES = 10740
+    FRAMES = 16030
+    # MODEL = "skat_lstm_G"
+    # FRAMES = 13070
     #MODEL = "skat_N"
     #FRAMES = 1600
 
     # run_testsuite(MODEL, FRAMES)
 
-    for i in range(14670, FRAMES + 10, 10):
-        run_testsuite(MODEL, i)
+    for i in range(16010, FRAMES + 10, 10):
+        try:
+            run_testsuite(MODEL, i)
+        except:
+            pass
 
 
     #get_averages(MODEL, FRAMES)

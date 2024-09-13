@@ -5,7 +5,7 @@ import numpy as np
 
 from skatzero.env.feature_transformations import extract_state
 from skatzero.evaluation.utils import swap_colors, swap_bids
-from skatzero.game.utils import get_points
+from skatzero.game.utils import evaluate_d_strength_for_druecken, evaluate_grand_strength_for_druecken, evaluate_null_strength, get_points
 from skatzero.test.utils import construct_state_from_history
 from bidding.bidder_simulated_data import SimulatedDataBidder
 
@@ -23,9 +23,40 @@ class Bidder:
         self.current_skat = 0
         random.shuffle(self.skat_comb_inds)
         self.drueck_comb_inds = list(itertools.combinations(list(range(12)), 2)) # Skat wird vor die Handkarten gesetzt.
+        self.bid_value_table_list = []
+        self.drueck_prio_dict = {}
 
     def get_hand_cards(self):
         return self.raw_state['current_hand']
+
+    def get_drueck_priority_list(self, raw_state_prep):
+        drueck_prio_dict = {}
+
+        for game_mode in ['C', 'S', 'H', 'D', 'G', 'N']:
+            raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
+            self.prepare_state(game_mode, raw_state_gamemode_prep)
+            drueck = []
+
+            gamemode_drueck_prio_dict = {}
+
+            for c1 in raw_state_gamemode_prep['current_hand']:
+                for c2 in raw_state_gamemode_prep['current_hand']:
+                    if raw_state_gamemode_prep['current_hand'].index(c2) <= raw_state_gamemode_prep['current_hand'].index(c1):
+                        continue
+                    cards = [x for x in raw_state_gamemode_prep['current_hand'] if x != c1 and x != c2]
+                    if game_mode == 'N':
+                        value = evaluate_null_strength(cards, [c1, c2])
+                    elif game_mode in ['C', 'S', 'H', 'D']:
+                        value = evaluate_d_strength_for_druecken(cards, [c1, c2])
+                    else:
+                        value = evaluate_grand_strength_for_druecken(cards, [c1, c2])
+                    drueck = [c1, c2]
+                    gamemode_drueck_prio_dict[drueck[0] + drueck[1]] = value
+            drueck_prio_dict[game_mode] = [[k[0:2], k[2:4]] for k, v in sorted(gamemode_drueck_prio_dict.items(), key=lambda item: item[1], reverse=True)]
+            if game_mode == 'N':
+                drueck_prio_dict['NO'] = drueck_prio_dict['N']
+        return drueck_prio_dict
+
 
     def prepare_state(self, game_mode, raw_state):
         self.env.lstm = True
@@ -64,7 +95,7 @@ class Bidder:
         raw_state['bids'][2] = swap_bids(raw_state['bids'][2], 'D', game_mode)
 
     def simulate_player_discards(self, raw_state):
-        if self.pos == 0: # Forehand: No discards
+        if self.pos == 0: # Forehand: No discards.
             original_state = copy.deepcopy(self.env.game.state)
             self.env.game.state = copy.deepcopy(raw_state)
 
@@ -104,8 +135,12 @@ class Bidder:
                 values.append(max(vals_cards))
             self.env.game.state = original_state
             values.sort()
-            return sum(values[:5]) / 5
-
+            if raw_state['trump'] is None: # Null: Take average of 15 worst discards of opponent, both for MH and BH
+                return sum(values[:15]) / 15
+            if self.pos == 1: # Middlehand: Take average of 10 worst discards of opponent
+                return sum(values[:10]) / 10
+            else: # Backhand: Can't simulate 2 discards, so take an average that is usually close to that
+                return sum(values[-18:]) / 18
 
     def get_blind_hand_values(self):
         values = []
@@ -150,7 +185,7 @@ class Bidder:
 
 
 
-    def find_best_game_and_discard(self, raw_state_prep):
+    def find_best_game_and_discard(self, raw_state_prep, drueck_list=None, accuracy=66):
         best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
         bid_value_table_skat = np.full((self.simulated_data_bidder.bids.size,), -170)
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
@@ -160,16 +195,28 @@ class Bidder:
             # Performance hotfix -> TODO: Make better
             if (len(self.estimates[game_mode]) > 5 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -90 or
                 len(self.estimates[game_mode]) > 20 and (sum(self.estimates[game_mode]) / len(self.estimates[game_mode])) < -60):
-                continue
+                if game_mode in ['C', 'S', 'H', 'D'] and raw_state_gamemode_prep['current_hand'][0][0] != 'D' and raw_state_gamemode_prep['current_hand'][1][0] != 'D':
+                    continue
+                if game_mode in ['N', 'NO'] and raw_state_gamemode_prep['current_hand'][0][1] not in ['7', '8', '9'] and raw_state_gamemode_prep['current_hand'][1][1] not in ['7', '8', '9']:
+                    continue
+                if game_mode == 'G' and raw_state_gamemode_prep['current_hand'][0][1] not in ['A', 'J'] and raw_state_gamemode_prep['current_hand'][1][1] not in ['A', 'J']:
+                    continue
 
             vals_drueckungen = []
             best_state = None
+
+            if drueck_list is None or game_mode not in drueck_list.keys():
+                drueck_list = {}
+                drueck_list[game_mode] = []
+                for drueck_inds in self.drueck_comb_inds:
+                    drueck_list[game_mode].append([raw_state_gamemode_prep['current_hand'][drueck_inds[0]], raw_state_gamemode_prep['current_hand'][drueck_inds[1]]])
+
             original_state = copy.deepcopy(self.env.game.state)
-            for drueck_inds in self.drueck_comb_inds:
+            for i in range(accuracy):
                 current_raw_state = copy.deepcopy(raw_state_gamemode_prep)
                 # drücken (Skat und Hand updaten)
-                current_raw_state['skat'] = [current_raw_state['current_hand'][drueck_inds[0]], current_raw_state['current_hand'][drueck_inds[1]]]
-                current_raw_state['current_hand'] = [i for j, i in enumerate(current_raw_state['current_hand']) if j not in drueck_inds]
+                current_raw_state['skat'] = drueck_list[game_mode][i]
+                current_raw_state['current_hand'] = [c for c in current_raw_state['current_hand'] if c not in drueck_list[game_mode][i]]
                 current_raw_state['actions'] = current_raw_state['current_hand']
                 current_raw_state['points'] = [get_points(current_raw_state['skat'][0]) + get_points(current_raw_state['skat'][1]), 0]
 
@@ -202,7 +249,7 @@ class Bidder:
         return best_discard, bid_value_table_skat
 
 
-    def update_value_estimates(self):
+    def update_value_estimates(self, accuracy=66):
         # Rohzustand vorbereiten mit Skatkarten in eigener Hand (danach 12 Karten) und Abzug von Gegnerhand (danach 20 Karten)
         raw_state_prep = copy.deepcopy(self.raw_state)
         current_skat_inds = self.skat_comb_inds[self.current_skat]
@@ -212,14 +259,16 @@ class Bidder:
         raw_state_prep['others_hand'] = [i for j, i in enumerate(raw_state_prep['others_hand']) if j not in current_skat_inds]
         raw_state_prep['blind_hand'] = False
 
-        best_discard, bid_value_table_skat = self.find_best_game_and_discard(raw_state_prep)
-        if self.bid_table is None:
-            self.bid_table = bid_value_table_skat
+        if skat[0] + skat[1] in self.drueck_prio_dict.keys():
+            drueck_prios = self.drueck_prio_dict[skat[0] + skat[1]]
         else:
-            # Implementierung hier als laufend aktualisierter Mittelwert
-            factor_old = (self.current_skat) / (self.current_skat+1)
-            factor_new = 1 - factor_old
-            self.bid_table = factor_old * self.bid_table + factor_new * bid_value_table_skat
+            drueck_prios = self.get_drueck_priority_list(raw_state_prep)
+            self.drueck_prio_dict[skat[0] + skat[1]] = drueck_prios
+        _, bid_value_table_skat = self.find_best_game_and_discard(raw_state_prep, drueck_prios, accuracy)
+        self.bid_value_table_list.append(bid_value_table_skat)
 
         self.current_skat += 1
+
+        self.bid_table = [float(sum(col))/len(col) for col in zip(*self.bid_value_table_list)]
+
         return self.estimates, dict(zip(self.simulated_data_bidder.bids, self.bid_table))

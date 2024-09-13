@@ -172,10 +172,10 @@ if __name__ == '__main__':
     #plt.show()
 
     if is_hand:
-        np.save(f'bidding/data/values_{gametype}H.npy', actual_values)
-        np.save(f'bidding/data/outcome_distributions_{gametype}H.npy', value_distributions)
+        np.save(f'bidding/data/new_values_{gametype}H.npy', actual_values)
+        np.save(f'bidding/data/new_outcome_distributions_{gametype}H.npy', value_distributions)
     else:
-        np.save(f'bidding/data/values_{gametype}.npy', actual_values)
-        np.save(f'bidding/data/outcome_distributions_{gametype}.npy', value_distributions)
+        np.save(f'bidding/data/new_values_{gametype}.npy', actual_values)
+        np.save(f'bidding/data/new_outcome_distributions_{gametype}.npy', value_distributions)
 
     print('Ende')

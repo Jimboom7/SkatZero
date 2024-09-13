@@ -1,6 +1,7 @@
 import copy
 import sys
 import os
+import time
 from bidding.bidder import Bidder
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.simulation import load_model
@@ -160,8 +161,11 @@ def bid(args, accuracy, bid_threshold):
 
     bidder = Bidder(env, raw_state, args[2], penalties)
     hand_estimates = bidder.get_blind_hand_values()
-    for _ in range(accuracy):
-        mean_estimates, bid_value_dict = bidder.update_value_estimates()
+    start_time = time.time()
+    for _ in range(231):
+        mean_estimates, bid_value_dict = bidder.update_value_estimates(accuracy)
+        if time.time() - start_time > 60: # Stop after 1 min max
+                break
     pickup_estimates = [sum(mean_estimates['C']) / len(mean_estimates['C']),
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
                         sum(mean_estimates['H']) / len(mean_estimates['H']),
@@ -382,8 +386,8 @@ def check_trick(trick, trump):
     return winner, points
 
 if __name__ == '__main__':
-    ACCURACY = 50 # Number of Iterations for Skat simulation
-    BID_THRESHOLD = -15 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
+    ACCURACY = 10 # Number of Iterations for Skat simulation
+    BID_THRESHOLD = -5 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
 
     arguments = sys.argv[1:]
 

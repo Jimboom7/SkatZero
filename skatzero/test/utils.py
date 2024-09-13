@@ -30,7 +30,7 @@ def run_testcase(testcase, raw_state, env, agents, log_to_file=False):
         print("\033[32mPassed!\033[0m Difference: " + str(correct_difference) + "\n")
     if correct_difference == 0:
         print("\033[31mFailed!\033[0m Difference: " + str(-wrong_difference) + "\n")
-    return -wrong_difference, correct_difference
+    return -wrong_difference, correct_difference, raw_state["self"]
 
 def construct_state_from_history(current_hand, card_history, skat, trump='D'):
     played_cards = [[],[],[]]

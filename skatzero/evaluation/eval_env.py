@@ -42,7 +42,7 @@ class EvalEnv(SkatEnv):
         self.current_player_id = player_id
 
         return self.extract_state(next_state, player_id), player_id
-    
+
     def get_state(self, player_id):
         self.current_player_id = player_id
         return self.extract_state(self.game.get_state(player_id), player_id)

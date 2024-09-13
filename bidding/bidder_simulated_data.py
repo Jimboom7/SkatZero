@@ -109,9 +109,11 @@ class SimulatedDataBidder:
 
         else:
             raise ValueError(f'game_mode ist {game_mode}, was scheinbar nicht unterstützt wird!')
-        
+
         if penalty:
             bid_values_gamemode[self.bids > 18] -= self.gegenreizung_penalties[game_mode]
+            if game_mode == 'G':
+                bid_values_gamemode[self.bids > 24] -= (self.gegenreizung_penalties[game_mode] / 2)
 
         return bid_values_gamemode
 

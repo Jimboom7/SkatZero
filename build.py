@@ -29,12 +29,13 @@ def convert_onnx(player_id, input_size, gametype, postfix):
     print('Model has been converted to ONNX')
 
 if __name__ == "__main__":
+    convert_onnx(0, 551, 'D', '15200')
+    convert_onnx(1, 573, 'D', '15410')
+    convert_onnx(2, 573, 'D', '15410')
 
-    for i, x in enumerate([551, 573, 573]):
-        convert_onnx(i, x, 'D', '14690')
-
-    for i, x in enumerate([551, 573, 573]):
-        convert_onnx(i, x, 'G', '11450')
+    convert_onnx(0, 551, 'G', '12560')
+    convert_onnx(1, 573, 'G', '13070')
+    convert_onnx(2, 573, 'G', '13070')
 
     for i, x in enumerate([310, 364, 364]):
-        convert_onnx(i, x, 'N', '4500')
+        convert_onnx(i, x, 'N', '4570')
