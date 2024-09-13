@@ -19,7 +19,7 @@ from skatzero.dmc.utils import (
     act,
     log,
 )
-from skatzero.evaluation.simulation import save_evaluation_duel
+#from skatzero.evaluation.simulation import save_evaluation_duel
 
 def compute_loss(logits, targets):
     loss = ((logits - targets)**2).mean()
@@ -348,7 +348,8 @@ class DMCTrainer:
                     model_weights_dir
                 )
             if self.eval:
-                save_evaluation_duel(self.xpid, savename, eval_num, 0.1, num_proc)
+                pass
+                #save_evaluation_duel(self.xpid, savename, eval_num, 0.1, num_proc)
 
         fps_log = []
         timer = timeit.default_timer

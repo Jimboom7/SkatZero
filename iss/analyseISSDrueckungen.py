@@ -2,7 +2,6 @@ import random
 import numpy as np
 
 from iss.SkatMatch import SkatMatch
-from skatzero.evaluation.utils import swap_colors
 from skatzero.game.player import Player
 from skatzero.game.dealer import Dealer
 
@@ -34,7 +33,9 @@ players[2] = Player(2)
 
 def print_info(match, hit, hit2, gesamt):
     gametype = 'N'
-    if((match.alleinspielerName == 'kermit' or match.alleinspielerName == 'kermit:2') and match.gameType == gametype):
+    if((match.alleinspielerName != 'kermit' and match.alleinspielerName != 'kermit:2' and
+        match.alleinspielerName != 'zoot' and match.alleinspielerName != 'zoot:2'
+        and match.alleinspielerName != 'theCount' and match.alleinspielerName != 'theCount:2') and match.gameType == gametype):
         # print(match.gameType)
         print(match.cards[match.alleinspielerName] + match.originalSkat)
         # print(', '.join([format_card(card) for card in match.cards[match.alleinspielerName] + match.originalSkat]))
@@ -63,6 +64,7 @@ def print_info(match, hit, hit2, gesamt):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'C:/Users/janvo/Desktop/log.txt'
+    # issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/logs/log_all.txt'
+    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_N.txt'
 
     analyze_drueckungen(issLogFilePath)

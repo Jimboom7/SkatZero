@@ -76,7 +76,7 @@ class Dealer:
 
     def determine_soloplayer(self, players, starting_player, gametype):
         # print("############################")
-        self.set_bids(players, gametype)
+        self.set_bids(players, gametype, starting_player)
         # print(self.bids)
         # print(self.bid_jacks)
 
@@ -143,18 +143,22 @@ class Dealer:
             return -1
 
         if gametype == 'D':
-            suit = self.check_game_to_play_after_skat(players, highest_bidder)
+            suit = self.check_game_to_play_after_skat(players, highest_bidder, starting_player)
             if suit == 'G':
                 return -1
             self.swap_suit_for_D_game(players, suit)
 
         if gametype == 'G':
             if not self.grand[highest_bidder]:
-                suit = self.check_game_to_play_after_skat(players, highest_bidder)
+                suit = self.check_game_to_play_after_skat(players, highest_bidder, starting_player)
                 if suit == 'G':
                     self.grand[highest_bidder] = True
                 else:
                     return -1
+
+        # For analyseOutcomes
+        # self.is_hand[highest_bidder] = False
+        # self.blind_hand = False
 
         if not self.is_hand[highest_bidder]:
             # print("Skat vorher: " + str(self.skat))
@@ -206,7 +210,7 @@ class Dealer:
             self.open_hand = True
 
 
-    def check_game_to_play_after_skat(self, players, highest_bidder):
+    def check_game_to_play_after_skat(self, players, highest_bidder, starting_player):
         try:
             suit = list(self.bids[0].keys())[list(self.bids[0].values()).index(1)]
         except ValueError:
@@ -215,8 +219,8 @@ class Dealer:
             full_hand = players[0].current_hand + self.skat
             # print("Full Hand: " + str(full_hand))
             values = evaluate_hand_strength(full_hand, np_random=self.np_random)
-            grand_value = evaluate_hand_strength(full_hand, gametype = 'G', np_random=self.np_random)['G']
-            if self.np_random.rand() < (grand_value / 2) - 2.3:
+            grand_value = evaluate_hand_strength(full_hand, gametype = 'G', is_FH = starting_player == 0, np_random=self.np_random)['G']
+            if self.np_random.rand() < (grand_value / 2) - 3.8:
                 # print("Grand nach Skat!")
                 # self.counter7 += 1
                 return 'G'
@@ -249,11 +253,11 @@ class Dealer:
         self.bids[2] = swap_bids(self.bids[2], 'D', suit)
         # print("NeuD: " + str(players[0].current_hand))
 
-    def set_bids(self, players, gametype):
+    def set_bids(self, players, gametype, starting_player):
         self.reset_bids()
         for player in players:
             values = evaluate_hand_strength(player.current_hand, np_random=self.np_random, more_random=player.player_id!=0)
-            grand_value = evaluate_hand_strength(player.current_hand, gametype = 'G', np_random=self.np_random, more_random=player.player_id!=0)['G']
+            grand_value = evaluate_hand_strength(player.current_hand, gametype = 'G', is_FH = starting_player == player.player_id, np_random=self.np_random, more_random=player.player_id!=0)['G']
             values_sorted = sorted(values.items(),key=(lambda i: i[1]))
             max_value = values_sorted[-1][0]
             with_without = calculate_bidding_value(player.current_hand) - 1
@@ -261,12 +265,12 @@ class Dealer:
                 # print("Stark: Handspiel")
                 with_without += 1
                 self.is_hand[player.player_id] = True
-            if self.np_random.rand() < (grand_value / 2) - 2:
+            if self.np_random.rand() < (grand_value / 2) - 3.3 or (player.player_id == 0 and self.np_random.rand() <= 0.03 and grand_value >= 3):
                 # print("Sehr stark: Grand - " + str(grand_value))
                 self.grand[player.player_id] = True
                 self.bid_jacks[player.player_id] = with_without
                 self.bids[player.player_id][max_value] = 1
-                if self.np_random.rand() < (grand_value / 2) - 2.55:
+                if self.np_random.rand() < (grand_value / 2) - 4.3:
                     # self.counter8 += 1
                     if not self.is_hand[player.player_id]:
                         self.is_hand[player.player_id] = True
@@ -283,23 +287,15 @@ class Dealer:
                     self.np_random.rand() < -1 + (values_sorted[-2][1] / 5) and (not self.is_hand[player.player_id] or self.np_random.rand() > 4.1 - (values_sorted[-2][1] / 3))):
                     # print("Zweitstärkste Farbe bieten, weil mehr Reizung möglich")
                     self.bids[player.player_id][values_sorted[-2][0]] = 1
-                    self.bid_jacks[player.player_id] = with_without
+                    self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < (values_sorted[-2][1] / 5) - 1 else 1
                     if with_without == 1 and 'D' == values_sorted[-2][0]: # Diamond with 1 -> mark same as "just 18"
                         self.bid_jacks[player.player_id] = 0
-                    if with_without > 1 and self.np_random.rand() > (values_sorted[-2][1] / 5) - 1: # Sometimes only bids with 1
-                        self.bid_jacks[player.player_id] = 1
-                        if 'D' == values_sorted[-2][0]:
-                            self.bid_jacks[player.player_id] = 0
                 else:
                     # print("Normale Reizung")
                     self.bids[player.player_id][max_value] = 1
-                    self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < 0.45 + (values[max_value] / 20) else 1 # Sometimes only bids with 1
+                    self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < (values[max_value] / 5) - 1.2 else 1 # Sometimes only bids with 1
                     if self.bid_jacks[player.player_id] == 1 and 'D' == max_value: # Diamond with 1 -> mark same as "just 18"
                         self.bid_jacks[player.player_id] = 0
-                    if with_without > 1 and self.np_random.rand() > (values[max_value] / 5) - 1: # Sometimes only bids with 1
-                        self.bid_jacks[player.player_id] = 1
-                        if 'D' == values_sorted[-1][0]:
-                            self.bid_jacks[player.player_id] = 0
             elif can_play_null(player.current_hand, gametype, self.np_random):
                 self.bids[player.player_id]['N'] = 1
                 if can_play_null_ouvert_hand(player.current_hand, gametype, self.np_random):
@@ -342,7 +338,7 @@ class Dealer:
                         value = evaluate_d_strength_for_druecken(cards, [c1, c2], self.np_random)
                     else:
                         value = evaluate_grand_strength_for_druecken(cards, [c1, c2], self.np_random)
-                    if value > best_drueck and self.np_random.rand() < 0.33:
+                    if value > best_drueck and self.np_random.rand() < 0.60:
                         drueck = [c1, c2]
                         best_drueck = value
 
@@ -389,9 +385,9 @@ class Dealer:
 # players[1] = Player(1)
 # players[2] = Player(2)
 
-# for i in range (0,10):
+# for i in range (0,1000):
 #     d.starting_player = -1
-#     d.deal_cards(players, 'G')
+#     d.deal_cards(players, 'D')
 #     print(players[0].current_hand)
 #     print(players[1].current_hand)
 #     print(players[2].current_hand)

@@ -1476,3 +1476,34 @@ def case2_hard_grand(raw_state):
 
     raw_state['trump'] = 'J'
     return raw_state, ('SK', 'SQ', 'S9') # Einspiel verhindern
+
+def case1_euroskat_grand(raw_state):
+    print("Grand Gegenspieler: Richtiges Endgame")
+    # https://dashboard.euroskat.com/listen/einsehen/8739888
+    raw_state['self'] = 2
+    raw_state['points'] = [56, 15]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CA', 'CT', 'ST']
+    raw_state['trace'] = [(1, 'D9'), (2, 'HQ'), (0, 'DA'),
+                          (0, 'CJ'), (1, 'DJ'), (2, 'C8'),
+                          (0, 'DT'), (1, 'D8'), (2, 'HK'),
+                          (0, 'DK'), (1, 'DQ'), (2, 'S8'),
+                          (0, 'D7'), (1, 'S9'), (2, 'CQ'),
+                          (0, 'HA'), (1, 'H7'), (2, 'SQ'),
+                          (0, 'S7'), (1, 'CK'), (2, 'SA')]
+
+    raw_state['skat'] = []
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('ST') # Gewinnt das Spiel, Kreuz verliert (Alleinspieler kann stechen, Mitspieler muss bedienen)

@@ -60,11 +60,11 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
                 playerEvalDict['avgSeegerFabianScoreOverall'] += seegerFabianScoreSolo
                 playerEvalDict['avgSeegerFabianScoreSolo'] += seegerFabianScoreSolo
                 if 'N' not in match.gameType:
-                    playerEvalDict['numberOfWinsSolo'] += match.stichPoints >= 61
-                    playerEvalDict['numberOfLossesSolo'] += match.stichPoints <= 60
-                    playerEvalDict['numberOfWinsSoloNormal'] += match.stichPoints >= 61 and match.stichPoints <= 89
-                    playerEvalDict['numberOfLossesSoloNormal'] += match.stichPoints <= 60 and match.stichPoints >= 31
-                    playerEvalDict['numberOfWinsSoloSchneider'] += match.stichPoints >= 90
+                    playerEvalDict['numberOfWinsSolo'] += match.stichPoints >= 61 and not match.overbid
+                    playerEvalDict['numberOfLossesSolo'] += match.stichPoints <= 60 or match.overbid
+                    playerEvalDict['numberOfWinsSoloNormal'] += match.stichPoints >= 61 and match.stichPoints <= 89 and not match.overbid
+                    playerEvalDict['numberOfLossesSoloNormal'] += (match.stichPoints <= 60 and match.stichPoints >= 31) or match.overbid
+                    playerEvalDict['numberOfWinsSoloSchneider'] += match.stichPoints >= 90 and not match.overbid
                     playerEvalDict['numberOfLossesSoloSchneider'] += match.stichPoints <= 30
                     playerEvalDict['averageAugenSolo'] += match.stichPoints
                     playerEvalDict['percentageFarbspielSolo'] += 'G' not in match.gameType
@@ -79,12 +79,12 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
                 playerEvalDict['avgSeegerFabianScoreOverall'] += seegerFabianScoreOpp
                 playerEvalDict['avgSeegerFabianScoreOpp'] += seegerFabianScoreOpp
                 if 'N' not in match.gameType:
-                    playerEvalDict['numberOfWinsOpp'] += match.stichPoints <= 60
-                    playerEvalDict['numberOfLossesOpp'] += match.stichPoints >= 61
-                    playerEvalDict['numberOfWinsOppNormal'] += match.stichPoints <= 60 and match.stichPoints >= 31
-                    playerEvalDict['numberOfLossesOppNormal'] += match.stichPoints >= 61 and match.stichPoints <= 89
+                    playerEvalDict['numberOfWinsOpp'] += match.stichPoints <= 60 or match.overbid
+                    playerEvalDict['numberOfLossesOpp'] += match.stichPoints >= 61 and not match.overbid
+                    playerEvalDict['numberOfWinsOppNormal'] += (match.stichPoints <= 60 and match.stichPoints >= 31) or match.overbid
+                    playerEvalDict['numberOfLossesOppNormal'] += match.stichPoints >= 61 and match.stichPoints <= 89 and not match.overbid
                     playerEvalDict['numberOfWinsOppSchneider'] += match.stichPoints <= 30
-                    playerEvalDict['numberOfLossesOppSchneider'] += match.stichPoints >= 90
+                    playerEvalDict['numberOfLossesOppSchneider'] += match.stichPoints >= 90 and not match.overbid
                     playerEvalDict['averageAugenOpp'] += (120 - match.stichPoints)
                     playerEvalDict['percentageFarbspielOpp'] += 'G' not in match.gameType
                     playerEvalDict['percentageGrandOpp'] += 'G' in match.gameType
@@ -152,11 +152,12 @@ def calculatePercentages(playerEvalDict):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'C:/Users/janvo/Desktop/log.txt'
+    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt'
     playersToEvaluate = ['Hubert47', 'kermit', 'kermit:2']
     # gameTypesToExclude = ['D', 'H', 'S', 'C', 'N', 'NO'] # Grand
     # gameTypesToExclude = ['G', 'N', 'NO'] # Farbspiel
-    gameTypesToExclude = ['D', 'H', 'S', 'C', 'G'] #Null
+    # gameTypesToExclude = ['D', 'H', 'S', 'C', 'G'] #Null
+    gameTypesToExclude = [] # All
 
     # Logfile parsen und in Liste mit Objekten der Klasse "SkatMatch" übersetzen
     matches = getMatchesFromLogFile(issLogFilePath)

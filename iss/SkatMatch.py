@@ -37,6 +37,10 @@ class SkatMatch:
         self.cards[self.playerNames[2]] = p2Cards.split(".")
         self.originalSkat = skatCards.split(".")
 
+        self.overbid = False
+        if 'overbid' in line:
+            self.overbid = True
+
         self.playerCards = np.stack([convertCardStringToMat(p0Cards, '.'), convertCardStringToMat(p1Cards, '.'), convertCardStringToMat(p2Cards, '.')])
         self.skatCards = convertCardStringToMat(skatCards, '.')
 
@@ -49,6 +53,7 @@ class SkatMatch:
         self.cardPlays = np.nan
         self.gameType = ''
         self.playedFullRounds = 0
+        self.history = []
 
         self.is_hand = False
 
@@ -122,6 +127,8 @@ class SkatMatch:
             self.baseValuePoints = int(auswertungSplit[2][2:])
             self.stichPoints = int(auswertungSplit[5][2:])
 
+            self.history = cardPlay.split(' ')
+
             if self.gameType not in ['C', 'S', 'H', 'D', 'CH', 'SH', 'HH', 'DH']:
                 return
 
@@ -132,6 +139,7 @@ class SkatMatch:
             self.gegenspielerAugen = np.zeros((11,), dtype=np.int8) - 1
             self.gegenspielerAugen[0] = 0
             cardPlaysSplit = cardPlay.split(' ')
+            
             cnt = 0
             ende = False
             for i in range(10):
