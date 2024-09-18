@@ -220,7 +220,7 @@ class Dealer:
             # print("Full Hand: " + str(full_hand))
             values = evaluate_hand_strength(full_hand, np_random=self.np_random)
             grand_value = evaluate_hand_strength(full_hand, gametype = 'G', is_FH = starting_player == 0, np_random=self.np_random)['G']
-            if self.np_random.rand() < (grand_value / 2) - 3.8:
+            if self.np_random.rand() < (grand_value / 2) - 3.65:
                 # print("Grand nach Skat!")
                 # self.counter7 += 1
                 return 'G'
@@ -265,12 +265,12 @@ class Dealer:
                 # print("Stark: Handspiel")
                 with_without += 1
                 self.is_hand[player.player_id] = True
-            if self.np_random.rand() < (grand_value / 2) - 3.3 or (player.player_id == 0 and self.np_random.rand() <= 0.03 and grand_value >= 3):
+            if self.np_random.rand() < (grand_value / 2) - 3.15 or (player.player_id == 0 and self.np_random.rand() <= 0.03 and grand_value >= 3):
                 # print("Sehr stark: Grand - " + str(grand_value))
                 self.grand[player.player_id] = True
                 self.bid_jacks[player.player_id] = with_without
                 self.bids[player.player_id][max_value] = 1
-                if self.np_random.rand() < (grand_value / 2) - 4.3:
+                if self.np_random.rand() < (grand_value / 2) - 4.0:
                     # self.counter8 += 1
                     if not self.is_hand[player.player_id]:
                         self.is_hand[player.player_id] = True

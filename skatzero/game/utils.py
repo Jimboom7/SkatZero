@@ -157,16 +157,16 @@ def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], is_FH = False
     if gametype == 'N':
         return {'N': evaluate_null_strength(cards, []) * np_random.uniform(rand_l, rand_u)}
     elif gametype == 'G':
-        rand = 0.5 if more_random else 0.2
+        rand = 0.4 if more_random else 0.2
         strength = 0
         for c in cards:
             strength += evaluate_grand_card(c)
             if c[1] == 'T' and c[0] + 'A' in cards:
                 strength += 0.5
         if sum(card[1] == 'J' for card in cards) < 4 and 'CJ' in cards:
-            strength += 1
+            strength += 0.2
         if sum(card[1] == 'J' for card in cards) == 2 and is_FH:
-            strength += 1
+            strength += 0.2
         if np_random is None:
             return {'G': strength}
         return {'G': strength * np_random.uniform(1 - rand, 1 + rand)}
