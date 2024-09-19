@@ -120,9 +120,6 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
         models_solo[2] = 'random'
         models_opponent[0] = 'random'
 
-    lstm_1 = 'lstm' in folder
-    lstm_2 = 'lstm' in folder2
-
     set_seed(seed)
 
     dealers = None
@@ -143,7 +140,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
         if len(dealers) < num_games:
             num_games = len(dealers)
 
-    env = EvalEnv(seed=seed, gametype=gametype, lstm=[lstm_1, lstm_2, lstm_2], dealers=dealers)
+    env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
 
     # Evaluation 1: Soloplayer
     agents = []
@@ -155,7 +152,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
         print(position, models_solo[position], reward)
 
     set_seed(seed)
-    env = EvalEnv(seed=seed, gametype=gametype, lstm=[lstm_2, lstm_1, lstm_1], dealers=dealers)
+    env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
 
     # Evaluation 2: Opponents
     agents = []

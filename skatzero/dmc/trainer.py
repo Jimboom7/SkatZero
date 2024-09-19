@@ -11,7 +11,7 @@ from torch import multiprocessing as mp
 from torch import nn
 
 from skatzero.dmc.file_writer import FileWriter
-from skatzero.dmc.model import DMCModel, DMCModelLSTM
+from skatzero.dmc.model import DMCModel
 from skatzero.dmc.utils import (
     get_batch,
     create_buffers,
@@ -19,7 +19,6 @@ from skatzero.dmc.utils import (
     act,
     log,
 )
-#from skatzero.evaluation.simulation import save_evaluation_duel
 
 def compute_loss(logits, targets):
     loss = ((logits - targets)**2).mean()
@@ -34,8 +33,7 @@ def learn(
     training_device,
     max_grad_norm,
     mean_episode_return_buf,
-    lock,
-    lstm
+    lock
 ):
     """Performs a learning (optimization) step."""
     device = "cuda:"+str(training_device) if training_device != "cpu" else "cpu"
@@ -47,10 +45,7 @@ def learn(
     mean_episode_return_buf[position].append(torch.mean(episode_returns).to(device))
 
     with lock:
-        if lstm:
-            values = agent.forward(state, history, action)
-        else:
-            values = agent.forward(state, action)
+        values = agent.forward(state, history, action)
         loss = compute_loss(values, target)
         stats = {
             'mean_episode_return_'+str(position): torch.mean(torch.stack([_r for _r in mean_episode_return_buf[position]])).item(),
@@ -114,9 +109,7 @@ class DMCTrainer:
         alpha=0.99,
         momentum=0,
         epsilon=0.00001,
-        actor_device='cpu',
-        eval=False,
-        lstm=True
+        actor_device='cpu'
     ):
         self.env = env
 
@@ -146,31 +139,20 @@ class DMCTrainer:
         self.alpha = alpha
         self.momentum = momentum
         self.epsilon = epsilon
-        self.eval = eval
         self.actor_device = actor_device
-        self.lstm = lstm
 
         self.num_players = self.env.num_players
         self.action_shape = self.env.action_shape
         if self.action_shape[0] is None:
             self.action_shape = [[self.env.num_actions] for _ in range(self.num_players)]
 
-        if lstm:
-            def model_func(device):
-                return DMCModelLSTM(
-                    self.env.state_shape,
-                    self.action_shape,
-                    exp_epsilon=self.exp_epsilon,
-                    device=str(device),
-                )
-        else:
-            def model_func(device):
-                return DMCModel(
-                    self.env.state_shape,
-                    self.action_shape,
-                    exp_epsilon=self.exp_epsilon,
-                    device=str(device),
-                )
+        def model_func(device):
+            return DMCModel(
+                self.env.state_shape,
+                self.action_shape,
+                exp_epsilon=self.exp_epsilon,
+                device=str(device),
+            )
 
         self.model_func = model_func
 
@@ -291,8 +273,7 @@ class DMCTrainer:
                     self.training_device,
                     self.max_grad_norm,
                     self.mean_episode_return_buf,
-                    position_lock,
-                    self.lstm
+                    position_lock
                 )
 
                 with lock:
@@ -328,7 +309,7 @@ class DMCTrainer:
                     thread.start()
                     threads.append(thread)
 
-        def checkpoint(frames, eval_num=2000, num_proc=1):
+        def checkpoint(frames):
             log.info('Saving checkpoint to %s', self.checkpointpath)
             _agents = learner_model.get_agents()
             torch.save({
@@ -347,9 +328,6 @@ class DMCTrainer:
                     learner_model.get_agent(position),
                     model_weights_dir
                 )
-            if self.eval:
-                pass
-                #save_evaluation_duel(self.xpid, savename, eval_num, 0.1, num_proc)
 
         fps_log = []
         timer = timeit.default_timer
@@ -388,5 +366,5 @@ class DMCTrainer:
                 thread.join()
             log.info('Learning finished after %d frames.', frames)
 
-        checkpoint(frames, 10000, num_proc=self.num_actors)
+        checkpoint(frames)
         self.plogger.close()

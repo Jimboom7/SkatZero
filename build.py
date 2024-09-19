@@ -1,11 +1,11 @@
 import torch.onnx
 
-from skatzero.dmc.neural_net import DMCNetLSTM
+from skatzero.dmc.neural_net import DMCNet
 
 def convert_onnx(player_id, input_size, gametype, postfix):
 
     path = 'models/checkpoints/skat_lstm_' + gametype + '/' + str(player_id) + '_' + postfix + '.pth'
-    model = DMCNetLSTM(input_size, 32)
+    model = DMCNet(input_size, 32)
     model.load_state_dict(torch.load(path).state_dict())
 
     model.eval()
