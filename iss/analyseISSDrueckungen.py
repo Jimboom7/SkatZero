@@ -47,7 +47,7 @@ def print_info(match, hit, hit2, gesamt):
         #match.gedrueckt_cards = swap_colors(match.gedrueckt_cards, 'D', 'C')
         x = 0
         for _ in range(1):
-            d.druecken(players, gametype)
+            d.pickup_skat(players)
             if match.gedrueckt_cards[0] in d.skat and match.gedrueckt_cards[1] in d.skat:
                 hit += 1
                 x += 1
