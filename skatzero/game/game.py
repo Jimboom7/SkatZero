@@ -52,12 +52,26 @@ class Game:
         self.state = state
 
         return state, next_id
+    
+    def druecken(self, action):
+        # Put down 2 cards from hand
+        self.players[0].current_hand.remove(action[0])
+        self.players[0].current_hand.remove(action[1])
+        self.round.dealer.skat.append(action[0])
+        self.round.dealer.skat.append(action[1])
+        self.round.solo_points = get_points(self.round.dealer.skat[0]) + get_points(self.round.dealer.skat[1])
+
+        # next state
+        state = self.get_state(self.round.dealer.starting_player)
+        self.state = state
+        
+        return state
 
     def get_state(self, player_id):
         player = self.players[player_id]
         others_hands = self.get_others_current_hand(player)
         solo_points = self.round.solo_points
-        if player_id != self.round.soloplayer_id or self.round.blind_hand:
+        if (player_id != self.round.soloplayer_id or self.round.blind_hand) and len(self.round.dealer.skat) == 2:
             solo_points -= (get_points(self.round.dealer.skat[0]) + get_points(self.round.dealer.skat[1]))
         points = [solo_points, self.round.opponent_points]
         if self.is_over():
@@ -65,7 +79,8 @@ class Game:
         else:
             actions = list(player.available_actions(self.round.current_suit, self.round.trump))
         state = player.get_state(self.round.public, others_hands, points, actions, self.round.current_trick, self.round.trump,
-                                 self.round.dealer.skat, self.round.dealer.bids, self.round.dealer.bid_jacks, self.round.blind_hand, self.round.open_hand)
+                                 self.round.dealer.skat, self.round.dealer.bids, self.round.dealer.bid_jacks, self.round.blind_hand,
+                                 self.round.open_hand, self.round.dealer.starting_player)
 
         return state
 

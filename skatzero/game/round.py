@@ -40,7 +40,8 @@ class Round:
                        'soloplayer_open_cards': players[0].current_hand}
         self.current_suit = None
         self.current_trick = []
-        self.solo_points = get_points(self.dealer.skat[0]) + get_points(self.dealer.skat[1])
+        if len(self.dealer.skat) == 2:
+            self.solo_points = get_points(self.dealer.skat[0]) + get_points(self.dealer.skat[1])
         self.opponent_points = 0
         self.winners = []
         self.trump = 'D'

@@ -8,7 +8,7 @@ class Player:
         self.role = ''
         self.played_cards = None
 
-    def get_state(self, public, others_hands, points, actions, trick, trump, skat, bids, bid_jacks, blind_hand, open_hand):
+    def get_state(self, public, others_hands, points, actions, trick, trump, skat, bids, bid_jacks, blind_hand, open_hand, starting_player):
         state = {}
         state['soloplayer'] = public['soloplayer']
         state['trace'] = public['trace']
@@ -24,6 +24,8 @@ class Player:
         state['skat'] = skat
         state['bids'] = bids
         state['bid_jacks'] = bid_jacks
+        state['pos'] = starting_player
+        state['drueck'] = len(self.current_hand) == 12
 
         state['open_hand'] = open_hand # Only relevant for Null
         state['soloplayer_open_cards'] = public['soloplayer_open_cards']
@@ -32,14 +34,22 @@ class Player:
 
     def available_actions(self, suit=None, trump='D'):
         playable_cards = []
-        if suit is not None:
-            for card in self.current_hand:
-                if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J') or (card[0] == suit and trump is None):
-                    playable_cards.append(card)
+        if len(self.current_hand) == 12:
 
-        if suit is None or not playable_cards:
-            for card in self.current_hand:
-                playable_cards.append(card)
+            for i, card in enumerate(self.current_hand):
+                for j, card2 in enumerate(self.current_hand):
+                    if i >= j:
+                        continue
+                    playable_cards.append([card, card2])
+        else:
+            if suit is not None:
+                for card in self.current_hand:
+                    if (card[0] == suit and card[1] != 'J') or (suit == trump and card[1] == 'J') or (card[0] == suit and trump is None):
+                        playable_cards.append(card)
+
+            if suit is None or not playable_cards:
+                for card in self.current_hand:
+                    playable_cards.append(card)
 
         return playable_cards
 

@@ -162,7 +162,7 @@ class Dealer:
 
         if not self.is_hand[highest_bidder]:
             # print("Skat vorher: " + str(self.skat))
-            self.druecken(players, gametype)
+            self.pickup_skat(players)
             # print("Hand 0: " + str(players[0].current_hand))
             # print("Skat: " + str(self.skat))
 
@@ -318,37 +318,10 @@ class Dealer:
                     self.bids[player.player_id][max_value] = 1
                     self.bid_jacks[player.player_id] = 1
 
-    def druecken(self, players, gametype):
+    def pickup_skat(self, players):
         players[0].current_hand.append(self.skat[0])
         players[0].current_hand.append(self.skat[1])
         self.skat = []
-        drueck = []
-
-        best_drueck = -10000
-        drueck = [players[0].current_hand[0], players[0].current_hand[11]]
-        if self.np_random.rand() < 0.99:
-            for c1 in players[0].current_hand:
-                for c2 in players[0].current_hand:
-                    if players[0].current_hand.index(c2) <= players[0].current_hand.index(c1):
-                        continue
-                    cards = [x for x in players[0].current_hand if x != c1 and x != c2]
-                    if gametype == 'N':
-                        value = evaluate_null_strength(cards, [c1, c2])
-                    elif gametype == 'D':
-                        value = evaluate_d_strength_for_druecken(cards, [c1, c2], self.np_random)
-                    else:
-                        value = evaluate_grand_strength_for_druecken(cards, [c1, c2], self.np_random)
-                    if value > best_drueck and self.np_random.rand() < 0.60:
-                        drueck = [c1, c2]
-                        best_drueck = value
-
-        #print(drueck)
-        #print(" ")
-
-        players[0].current_hand.remove(drueck[0])
-        players[0].current_hand.remove(drueck[1])
-        self.skat.append(drueck[0])
-        self.skat.append(drueck[1])
 
     def deal_cards(self, players, gametype):
         initial_starting_player = self.np_random.randint(0, 3)
