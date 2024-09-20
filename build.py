@@ -29,9 +29,9 @@ def convert_onnx(player_id, input_size, gametype, postfix):
     print('Model has been converted to ONNX')
 
 if __name__ == "__main__":
-    convert_onnx(0, 551, 'D', '16030')
-    convert_onnx(1, 573, 'D', '16410')
-    convert_onnx(2, 573, 'D', '16410')
+    convert_onnx(0, 551, 'D', '16970')
+    convert_onnx(1, 573, 'D', '16950')
+    convert_onnx(2, 573, 'D', '16950')
 
     convert_onnx(0, 551, 'G', '12560')
     convert_onnx(1, 573, 'G', '13070')

@@ -7,6 +7,7 @@ class EvalEnv(SkatEnv):
         super().__init__(seed, gametype)
         self.dealers = dealers
         self.dealer_id = 0
+        self.do_drueck = False
 
     def reset(self):
         if self.base_seed is not None:

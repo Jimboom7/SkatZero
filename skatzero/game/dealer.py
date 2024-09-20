@@ -220,13 +220,13 @@ class Dealer:
             # print("Full Hand: " + str(full_hand))
             values = evaluate_hand_strength(full_hand, np_random=self.np_random)
             grand_value = evaluate_hand_strength(full_hand, gametype = 'G', is_FH = starting_player == 0, np_random=self.np_random)['G']
-            if self.np_random.rand() < (grand_value / 2) - 3.65:
+            if self.np_random.rand() < grand_value - 7.5:
                 # print("Grand nach Skat!")
                 # self.counter7 += 1
                 return 'G'
             # print(values)
 
-            if self.np_random.rand() > 0.9:
+            if self.np_random.rand() < 0.01:
                 return suit
             values_sorted = sorted(values.items(),key=(lambda i: i[1]))
             with_without = calculate_bidding_value(full_hand) - 1
@@ -265,12 +265,12 @@ class Dealer:
                 # print("Stark: Handspiel")
                 with_without += 1
                 self.is_hand[player.player_id] = True
-            if self.np_random.rand() < (grand_value / 2) - 3.15 or (player.player_id == 0 and self.np_random.rand() <= 0.03 and grand_value >= 3):
+            if self.np_random.rand() < grand_value - 6.5 or (player.player_id == 0 and gametype=='G' and self.np_random.rand() <= 0.01 and grand_value >= 4):
                 # print("Sehr stark: Grand - " + str(grand_value))
                 self.grand[player.player_id] = True
                 self.bid_jacks[player.player_id] = with_without
                 self.bids[player.player_id][max_value] = 1
-                if self.np_random.rand() < (grand_value / 2) - 4.0:
+                if self.np_random.rand() < grand_value - 8.2:
                     # self.counter8 += 1
                     if not self.is_hand[player.player_id]:
                         self.is_hand[player.player_id] = True
@@ -280,12 +280,13 @@ class Dealer:
                     if self.is_hand[player.player_id]:
                         self.is_hand[player.player_id] = False
                         with_without -= 1
-            elif values[max_value] > 8.5 or (player.player_id == 0 and gametype=='D' and self.np_random.rand() <= 0.01):
+            elif values[max_value] > 8.5 or values_sorted[-2][1] > 7.8 or values_sorted[-3][1] > 7.5 or (player.player_id == 0 and gametype=='D' and self.np_random.rand() <= 0.01 and values[max_value] > 6):
                 suits = ['D', 'H', 'S', 'C']
-                if (values_sorted[-2][1] > 8.5  and # Bid second strongest suit
+                if ((values_sorted[-2][1] > 8.3 and # Bid second strongest suit. Case 1: Is strong and can bid more
                     (self.suit_values[suits.index(values_sorted[-2][0])] > self.suit_values[suits.index(values_sorted[-1][0])]) and
-                    self.np_random.rand() < -1 + (values_sorted[-2][1] / 5) and (not self.is_hand[player.player_id] or self.np_random.rand() > 4.1 - (values_sorted[-2][1] / 3))):
-                    # print("Zweitstärkste Farbe bieten, weil mehr Reizung möglich")
+                    self.np_random.rand() < -1 + (values_sorted[-2][1] / 5) and (not self.is_hand[player.player_id] or self.np_random.rand() > 4.1 - (values_sorted[-2][1] / 3))) or
+                    (values[max_value] < 8.5 and self.suit_values[suits.index(values_sorted[-2][0])] < self.suit_values[suits.index(values_sorted[-1][0])] and self.np_random.rand() < 0.5)): # Case 2: First suit is weak and second suit is lower bid
+                    # print("Zweitstärkste Farbe bieten, weil (a) mehr Reizung möglich oder (b) safer")
                     self.bids[player.player_id][values_sorted[-2][0]] = 1
                     self.bid_jacks[player.player_id] = with_without if self.np_random.rand() < (values_sorted[-2][1] / 5) - 1 else 1
                     if with_without == 1 and 'D' == values_sorted[-2][0]: # Diamond with 1 -> mark same as "just 18"
@@ -308,7 +309,7 @@ class Dealer:
                         self.is_hand[player.player_id] = True
                     else:
                         self.is_open[player.player_id] = True
-            elif values[max_value] > 7 and self.np_random.rand() < values[max_value] - 7: # "18" just looking chance between 7.5 and 8.5
+            elif self.np_random.rand() < values[max_value] - 7: # "18" just looking chance above 7
                 if self.np_random.rand() > values[max_value] - 7 or max_value == 'D':
                     # print("Schwach: 18 nur gucken")
                     self.bids[player.player_id]['D'] = 1
