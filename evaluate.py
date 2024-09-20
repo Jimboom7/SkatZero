@@ -8,9 +8,9 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     NUM_GAMES = 10000
-    GAMETYPE = 'D'
-    MODEL1 = "16030"
-    MODEL2 = "14500" # Breaking Point: G 12560: 81,74, D 15200: 25.57, N 4570: ?
+    GAMETYPE = 'G'
+    MODEL1 = "14190"
+    MODEL2 = "12560" # Breaking Point: G 12560: 81,74, D 15200: 25.57, N 4570: ?
     NUM_ACTORS = 12
     FOLDER = "skat_lstm_" + GAMETYPE
     FOLDER2 = "skat_lstm_" + GAMETYPE

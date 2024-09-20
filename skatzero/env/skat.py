@@ -23,6 +23,7 @@ class SkatEnv(object):
         self.set_state_shape(gametype)
 
         self.action_shape = [[32] for _ in range(self.num_players)]
+        self.do_drueck = True
 
     def set_state_shape(self, gametype):
         if gametype == 'N':
@@ -55,7 +56,7 @@ class SkatEnv(object):
         else:
             state = self.extract_state(state)
 
-        if not self.game.round.blind_hand:
+        if not self.game.round.blind_hand and self.do_drueck:
             state = self.game.get_state(0)
             self.game.state = state
             state = self.extract_state(state)

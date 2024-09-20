@@ -2,6 +2,7 @@ import copy
 import sys
 import os
 import time
+
 from bidding.bidder import Bidder
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.simulation import load_model
@@ -53,9 +54,9 @@ def prepare_env():
         for i in range(0, 3):
             agents.append(load_model(basedir + "/models/latest/" + gametype + "_" + str(i) + ".pth"))
     # for i in range(0, 3):
-    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_D/" + str(i) + "_11790.pth"))
+    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_D/" + str(i) + "_17000.pth"))
     # for i in range(0, 3):
-    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_G/" + str(i) + "_11450.pth"))
+    #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_G/" + str(i) + "_14140.pth"))
     # for i in range(0, 3):
     #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_N/" + str(i) + "_3800.pth"))
 
@@ -69,27 +70,29 @@ def prepare_env():
     raw_state['blind_hand'] = True
     raw_state['open_hand'] = False
     raw_state['points'] = [0, 0]
+    raw_state['drueck'] = False
 
     return agents, env, raw_state
 
 def prepare_state_for_cardplay(raw_state, env, args):
     raw_state['current_hand'] = [card for card in args[2].split(',')]
-    raw_state['self'] = int(args[10])
-    raw_state['points'] = [int(args[3]), int(args[4])]
+    raw_state['self'] = int(args[11])
+    raw_state['points'] = [int(args[4]), int(args[5])]
+    raw_state['pos'] = (3 - int(args[3])) % 3
 
     bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     bid_jacks = [0, 0, 0]
-    if args[10] != '1':
-        bids, bid_jacks = parse_bid(int(args[5]), 1, bids, bid_jacks)
-    if args[10] != '2':
-        bids, bid_jacks = parse_bid(int(args[6]), 2, bids, bid_jacks)
-    if args[7] != "??" and args[8] != "??":
-        raw_state['skat'] = [args[7], args[8]]
+    if args[11] != '1':
+        bids, bid_jacks = parse_bid(int(args[6]), 1, bids, bid_jacks)
+    if args[11] != '2':
+        bids, bid_jacks = parse_bid(int(args[7]), 2, bids, bid_jacks)
+    if args[8] != "??" and args[9] != "??":
+        raw_state['skat'] = [args[8], args[9]]
     else:
         raw_state['skat'] = []
-    raw_state['blind_hand'] = bool(int(args[9]))
+    raw_state['blind_hand'] = bool(int(args[10]))
 
     if args[1] in ['H', 'S', 'C']:
         raw_state['current_hand'] = swap_colors(raw_state['current_hand'], 'D', args[1])
@@ -112,13 +115,13 @@ def prepare_state_for_cardplay(raw_state, env, args):
 
     raw_state['soloplayer_open_cards'] = []
     raw_state['open_hand'] = False
-    if args[11] != '??':
-        raw_state['soloplayer_open_cards'] = args[11].split(',')
+    if args[12] != '??':
+        raw_state['soloplayer_open_cards'] = args[12].split(',')
         raw_state['open_hand'] = True
 
     raw_state['trace'] = []
-    if len(args) > 12 and args[12] is not None and args[12] != "":
-        raw_state['trace'] = parse_history(args[12], args[1])
+    if len(args) > 13 and args[13] is not None and args[13] != "":
+        raw_state['trace'] = parse_history(args[13], args[1])
 
     if args[1] == 'N':
         played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], trump = None)
@@ -144,6 +147,7 @@ def bid(args, accuracy, bid_threshold):
     raw_state['others_hand'] = others_cards
     raw_state['skat'] = []
     raw_state['actions'] = available_actions(raw_state['current_hand'])
+    raw_state['pos'] = (3 - int(args[2])) % 3
 
     hand_bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                     {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
@@ -254,10 +258,11 @@ def declare(args):
     raw_state['others_hand'] = others_cards
     raw_state['skat'] = []
     raw_state['actions'] = available_actions(raw_state['current_hand'])
+    raw_state['pos'] = (3 - int(args[2])) % 3
 
     bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+            {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+            {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
     bid_jacks = [0, 0, 0]
     bids, bid_jacks = parse_bid(int(args[3]), 1, bids, bid_jacks)
     bids, bid_jacks = parse_bid(int(args[4]), 2, bids, bid_jacks)
@@ -294,7 +299,6 @@ def declare(args):
         print(declaration)
     else:
         print(best_gametype + "." + skat[0] + "." + skat[1])
-
 
 def cardplay(args, recursed=False):
     agents, env, raw_state = prepare_env()
@@ -348,12 +352,12 @@ def cardplay(args, recursed=False):
                     card_values[card_swapped] = info['values'][card_swapped]
             else:
                 args_for_next_turn = args.copy()
-                args_for_next_turn[12] += ',' + str(raw_state["self"]) + card
+                args_for_next_turn[13] += ',' + str(raw_state["self"]) + card
                 args_for_next_turn[2] = args_for_next_turn[2].replace(card, '').replace(',,', ',').strip(',')
                 if raw_state["self"] == 0:
-                    args_for_next_turn[3] = int(args_for_next_turn[3]) + points
-                else:
                     args_for_next_turn[4] = int(args_for_next_turn[4]) + points
+                else:
+                    args_for_next_turn[5] = int(args_for_next_turn[5]) + points
                 card_values[card_swapped] = cardplay(args_for_next_turn, True)
         print("After recursion:")
         for k, v in card_values.items():
@@ -402,3 +406,6 @@ if __name__ == '__main__':
             cardplay(arguments)
         else:
             print("Wrong Gamemode")
+
+    #DEBUG
+    #declare(["DISCARD_AND_DECL", "CJ,DJ,DA,DK,DQ,D7,C9,HA,HT,HK,CT,ST", 0, 0, 0, 18])

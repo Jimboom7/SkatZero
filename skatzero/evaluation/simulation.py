@@ -141,6 +141,8 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
             num_games = len(dealers)
 
     env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
+    if not dealer_from_log:
+        env.do_drueck = True
 
     # Evaluation 1: Soloplayer
     agents = []
@@ -153,6 +155,8 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
 
     set_seed(seed)
     env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
+    if not dealer_from_log:
+        env.do_drueck = True
 
     # Evaluation 2: Opponents
     agents = []
