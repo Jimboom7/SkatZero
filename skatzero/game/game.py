@@ -52,7 +52,7 @@ class Game:
         self.state = state
 
         return state, next_id
-    
+
     def druecken(self, action):
         # Put down 2 cards from hand
         self.players[0].current_hand.remove(action[0])
@@ -64,7 +64,7 @@ class Game:
         # next state
         state = self.get_state(self.round.dealer.starting_player)
         self.state = state
-        
+
         return state
 
     def get_state(self, player_id):
