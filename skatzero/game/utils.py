@@ -152,12 +152,12 @@ def evaluate_grand_card(card):
 
 
 def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], is_FH = False, np_random=None, more_random=False):
-    rand_l = 0.85 if more_random else 0.9
-    rand_u = 1.15 if more_random else 1.1
+    rand_l = 0.9 if more_random else 0.9
+    rand_u = 1.1 if more_random else 1.1
     if gametype == 'N':
         return {'N': evaluate_null_strength(cards, []) * np_random.uniform(rand_l, rand_u)}
     elif gametype == 'G':
-        rand = 0.3 if more_random else 0.2
+        rand = 0.2 if more_random else 0.2
         strength = 0
         for c in cards:
             strength += evaluate_grand_card(c)
@@ -498,17 +498,17 @@ def evaluate_null_strength(cards, skat = []):
 
     return -strength
 
-def can_play_null(cards, gametype, np_random): # Bids more aggressive when the trained model is not a Null model. Otherwise there are not enough null bids.
-    if gametype != 'N':
-        return evaluate_null_strength(cards) >= -78
-    return evaluate_null_strength(cards) >= -30 - np_random.uniform(0, 10)
+def can_play_null(cards, gametype, np_random):
+    return evaluate_null_strength(cards) >= -55 - np_random.uniform(0, 10)
+
+def can_play_null_after_skat(cards, gametype, np_random):
+    return evaluate_null_strength(cards) >= -20 - np_random.uniform(0, 5)
 
 def can_play_null_ouvert(cards, gametype, np_random):
-    if gametype != 'N':
-        return evaluate_null_strength(cards) >= -45
-    return evaluate_null_strength(cards) >= -8 - np_random.uniform(0, 2.5)
+    return evaluate_null_strength(cards) >= -25 - np_random.uniform(0, 5)
 
 def can_play_null_ouvert_hand(cards, gametype, np_random):
-    if gametype != 'N':
-        return evaluate_null_strength(cards) >= -5
     return evaluate_null_strength(cards) >= -2 - np_random.uniform(0, 2.2)
+
+def can_play_null_ouvert_after_skat(cards, gametype, np_random):
+    return evaluate_null_strength(cards) >= -4 - np_random.uniform(0, 3)
