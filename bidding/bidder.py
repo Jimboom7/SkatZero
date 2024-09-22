@@ -175,6 +175,8 @@ class Bidder:
             agent_id = 0
             if raw_state_gamemode_prep['trump'] == 'J':
                 agent_id = 3
+            if raw_state_gamemode_prep['trump'] is None:
+                agent_id = 6
             _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
 
             best_val = max(vals_cards)
