@@ -233,7 +233,9 @@ def get_soloplayer_features(state):
                                 bid_jacks_left, # 5
                                 bid_jacks_right, # 5
                                 blind_hand, # 1
-                                open_hand)) # 1
+                                open_hand, # 1
+                                drueck, # 1
+                                pos )) # 3
 
     return obs, history
 

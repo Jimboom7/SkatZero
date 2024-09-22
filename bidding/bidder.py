@@ -22,35 +22,10 @@ class Bidder:
         self.skat_comb_inds = list(itertools.combinations(list(range(22)), 2))
         self.current_skat = 0
         random.shuffle(self.skat_comb_inds)
-        self.drueck_comb_inds = list(itertools.combinations(list(range(12)), 2)) # Skat wird vor die Handkarten gesetzt.
         self.bid_value_table_list = []
-        self.drueck_prio_dict = {}
 
     def get_hand_cards(self):
         return self.raw_state['current_hand']
-
-    def get_drueck_priority_list(self, raw_state_prep):
-        drueck_prio_dict = {}
-
-        game_mode = 'N'
-        raw_state_gamemode_prep = copy.deepcopy(raw_state_prep)
-        self.prepare_state(game_mode, raw_state_gamemode_prep)
-        drueck = []
-
-        gamemode_drueck_prio_dict = {}
-
-        for c1 in raw_state_gamemode_prep['current_hand']:
-            for c2 in raw_state_gamemode_prep['current_hand']:
-                if raw_state_gamemode_prep['current_hand'].index(c2) <= raw_state_gamemode_prep['current_hand'].index(c1):
-                    continue
-                cards = [x for x in raw_state_gamemode_prep['current_hand'] if x != c1 and x != c2]
-                value = evaluate_null_strength(cards, [c1, c2])
-                drueck = [c1, c2]
-                gamemode_drueck_prio_dict[drueck[0] + drueck[1]] = value
-        drueck_prio_dict[game_mode] = [[k[0:2], k[2:4]] for k, v in sorted(gamemode_drueck_prio_dict.items(), key=lambda item: item[1], reverse=True)]
-        drueck_prio_dict['NO'] = drueck_prio_dict['N']
-        return drueck_prio_dict
-
 
     def prepare_state(self, game_mode, raw_state):
         self.env.set_state_shape(game_mode)
@@ -174,7 +149,7 @@ class Bidder:
                 bid_table_dict_gamemodes[game_mode] = dict(zip(self.simulated_data_bidder.bids, bid_tables_all_gamemodes[game_mode_ind]))
             return bid_table_dict_gamemodes
 
-    def find_best_game_and_discard(self, raw_state_prep, drueck_list=None, accuracy=66):
+    def find_best_game_and_discard(self, raw_state_prep):
         best_discard = {'C': [], 'S': [], 'H': [], 'D': [], 'G': [], 'N': [], 'NO': []}
         bid_value_table_skat = np.full((self.simulated_data_bidder.bids.size,), -170)
         for game_mode in ['C', 'S', 'H', 'D', 'G', 'N', 'NO']:
@@ -191,63 +166,25 @@ class Bidder:
                 if game_mode == 'G' and raw_state_gamemode_prep['current_hand'][0][1] not in ['A', 'J'] and raw_state_gamemode_prep['current_hand'][1][1] not in ['A', 'J']:
                     continue
 
-            if game_mode in ['C', 'S', 'H', 'D', 'G']:
-                raw_state_gamemode_prep["drueck"] = True
-                raw_state_gamemode_prep["actions"] = available_actions(raw_state_gamemode_prep["current_hand"])
-                original_state = copy.deepcopy(self.env.game.state)
-                self.env.game.state = copy.deepcopy(raw_state_gamemode_prep)
-                state = extract_state(raw_state_gamemode_prep, self.env.get_legal_actions())
+            raw_state_gamemode_prep["drueck"] = True
+            raw_state_gamemode_prep["actions"] = available_actions(raw_state_gamemode_prep["current_hand"])
+            original_state = copy.deepcopy(self.env.game.state)
+            self.env.game.state = copy.deepcopy(raw_state_gamemode_prep)
+            state = extract_state(raw_state_gamemode_prep, self.env.get_legal_actions())
 
-                agent_id = 0
-                if raw_state_gamemode_prep['trump'] == 'J':
-                    agent_id = 3
-                _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
+            agent_id = 0
+            if raw_state_gamemode_prep['trump'] == 'J':
+                agent_id = 3
+            _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
 
-                best_val = max(vals_cards)
+            best_val = max(vals_cards)
 
-                if game_mode in ['C', 'S', 'H']:
-                    best_discard[game_mode] = swap_colors(raw_state_gamemode_prep["actions"][np.argmax(vals_cards)], game_mode, "D")
-                else:
-                    best_discard[game_mode] = raw_state_gamemode_prep["actions"][np.argmax(vals_cards)]
-
-                self.env.game.state = original_state
+            if game_mode in ['C', 'S', 'H']:
+                best_discard[game_mode] = swap_colors(raw_state_gamemode_prep["actions"][np.argmax(vals_cards)], game_mode, "D")
             else:
-                vals_drueckungen = []
-                best_state = None
+                best_discard[game_mode] = raw_state_gamemode_prep["actions"][np.argmax(vals_cards)]
 
-                if drueck_list is None or game_mode not in drueck_list.keys():
-                    drueck_list = {}
-                    drueck_list[game_mode] = []
-                    for drueck_inds in self.drueck_comb_inds:
-                        drueck_list[game_mode].append([raw_state_gamemode_prep['current_hand'][drueck_inds[0]], raw_state_gamemode_prep['current_hand'][drueck_inds[1]]])
-
-                original_state = copy.deepcopy(self.env.game.state)
-                for i in range(accuracy):
-                    current_raw_state = copy.deepcopy(raw_state_gamemode_prep)
-                    # drücken (Skat und Hand updaten)
-                    current_raw_state['skat'] = drueck_list[game_mode][i]
-                    current_raw_state['current_hand'] = [c for c in current_raw_state['current_hand'] if c not in drueck_list[game_mode][i]]
-                    current_raw_state['actions'] = current_raw_state['current_hand']
-                    current_raw_state['points'] = [get_points(current_raw_state['skat'][0]) + get_points(current_raw_state['skat'][1]), 0]
-                    current_raw_state['drueck'] = False
-
-                    self.env.game.state = copy.deepcopy(current_raw_state)
-                    state = extract_state(current_raw_state, self.env.get_legal_actions())
-                    agent_id = 0
-                    if current_raw_state['trump'] == 'J':
-                        agent_id = 3
-                    elif current_raw_state['trump'] is None:
-                        agent_id = 6
-                    _, vals_cards = self.env.agents[agent_id].predict(state, raw=True)
-                    if len(vals_drueckungen) == 0 or max(vals_cards) > max(vals_drueckungen):
-                        best_discard[game_mode] = current_raw_state["skat"]
-                        best_state = current_raw_state
-                    vals_drueckungen.append(max(vals_cards))
-                    #print(f'Gedrückt: {swap_colors(current_raw_state["skat"], game_mode, "D")}, Value: {max(vals_cards)}')
-
-                #print(f'{game_mode}: {max(vals_drueckungen)}')
-                self.env.game.state = original_state
-                best_val = self.simulate_player_discards(best_state)
+            self.env.game.state = original_state
 
             bid_value_table_game = self.simulated_data_bidder.get_bid_value_table(raw_state_gamemode_prep, game_mode, best_val, penalty=True)
             bid_value_table_skat = np.maximum(bid_value_table_skat, bid_value_table_game)
@@ -257,7 +194,7 @@ class Bidder:
         return best_discard, bid_value_table_skat
 
 
-    def update_value_estimates(self, accuracy=66):
+    def update_value_estimates(self):
         # Rohzustand vorbereiten mit Skatkarten in eigener Hand (danach 12 Karten) und Abzug von Gegnerhand (danach 20 Karten)
         raw_state_prep = copy.deepcopy(self.raw_state)
         current_skat_inds = self.skat_comb_inds[self.current_skat]
@@ -267,12 +204,7 @@ class Bidder:
         raw_state_prep['others_hand'] = [i for j, i in enumerate(raw_state_prep['others_hand']) if j not in current_skat_inds]
         raw_state_prep['blind_hand'] = False
 
-        if skat[0] + skat[1] in self.drueck_prio_dict.keys():
-            drueck_prios = self.drueck_prio_dict[skat[0] + skat[1]]
-        else:
-            drueck_prios = self.get_drueck_priority_list(raw_state_prep)
-            self.drueck_prio_dict[skat[0] + skat[1]] = drueck_prios
-        _, bid_value_table_skat = self.find_best_game_and_discard(raw_state_prep, drueck_prios, accuracy)
+        _, bid_value_table_skat = self.find_best_game_and_discard(raw_state_prep)
         self.bid_value_table_list.append(bid_value_table_skat)
 
         self.current_skat += 1
