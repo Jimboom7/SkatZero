@@ -174,7 +174,7 @@ def get_soloplayer_features(state):
     missing_cards_right = calculate_missing_cards(2, state['trace'], state['trump'], card_encoding)
 
     points_own = get_number_as_one_hot_vector(state['points'][0])
-    points_opp = get_number_as_one_hot_vector(state['points'][1], 116)
+    points_opp = get_number_as_one_hot_vector(state['points'][1])
 
     drueck = np.zeros([1,], dtype=np.int8)
     if state["drueck"]:
@@ -205,7 +205,7 @@ def get_soloplayer_features(state):
                             missing_cards_right,  # 32
                             opponent_right_played_cards,  # 32
                             points_own,  # 121
-                            points_opp, # 117
+                            points_opp, # 121
                             drueck, # 1
                             pos, # 3
                             bid_left, # 5

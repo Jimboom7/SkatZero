@@ -167,8 +167,8 @@ def bid(args, accuracy, bid_threshold):
     hand_estimates = bidder.get_blind_hand_values()
     start_time = time.time()
     for _ in range(231):
-        mean_estimates, bid_value_dict = bidder.update_value_estimates(accuracy)
-        if time.time() - start_time > 60: # Stop after 1 min max
+        mean_estimates, bid_value_dict = bidder.update_value_estimates()
+        if time.time() - start_time > 60 or bidder.current_skat > accuracy: # Stop after 1 min max or 100 iterations
                 break
     pickup_estimates = [sum(mean_estimates['C']) / len(mean_estimates['C']),
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
@@ -390,7 +390,7 @@ def check_trick(trick, trump):
     return winner, points
 
 if __name__ == '__main__':
-    ACCURACY = 10 # Number of Iterations for Skat simulation
+    ACCURACY = 231 # Number of Iterations for Skat simulation
     BID_THRESHOLD = -5 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
 
     arguments = sys.argv[1:]

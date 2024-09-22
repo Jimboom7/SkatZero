@@ -74,7 +74,7 @@ class Dealer:
             self.bids[pos]['N'] = 1
 
     def simulate_bidding(self, players, gametype):
-        self.set_bids(players, gametype)
+        self.set_bids(players)
 
         if sum(self.max_bids) == 0:
             # self.counter9 += 1
@@ -165,11 +165,11 @@ class Dealer:
             return 'G'
 
         if self.max_bids[0] in [23, 35, 46, 59]:
-            if (self.max_bids[1] > 46 or self.max_bids[2] > 46) or can_play_null_ouvert_hand(players[0].current_hand, gametype, self.np_random):
+            if (self.max_bids[1] > 46 or self.max_bids[2] > 46) or can_play_null_ouvert_hand(players[0].current_hand, self.np_random):
                 self.blind_hand = True
                 self.open_hand = True
                 return 'N'
-            if (self.max_bids[1] > 23 or self.max_bids[2] > 23) or can_play_null_ouvert(players[0].current_hand, gametype, self.np_random):
+            if (self.max_bids[1] > 23 or self.max_bids[2] > 23) or can_play_null_ouvert(players[0].current_hand, self.np_random):
                 if self.np_random.rand() < 0.15:
                     self.blind_hand = True
                     return 'N'
@@ -203,11 +203,11 @@ class Dealer:
 
         null_cards = self.druecken_null(players)
 
-        if bid_to_beat <= 46 and can_play_null_ouvert_after_skat(null_cards, gametype, self.np_random):
+        if bid_to_beat <= 46 and can_play_null_ouvert_after_skat(null_cards, self.np_random):
             self.open_hand = True
             return 'N'
 
-        if bid_to_beat <= 23 and can_play_null_after_skat(null_cards, gametype, self.np_random):
+        if bid_to_beat <= 23 and can_play_null_after_skat(null_cards, self.np_random):
             return 'N'
 
         values_sorted = sorted(values.items(), key=lambda i: i[1])
@@ -215,10 +215,10 @@ class Dealer:
 
         for hand_val in reversed(values_sorted):
             if factor * self.suit_values[self.suits.index(hand_val[0])] >= bid_to_beat:
-                if hand_val[1] > 5.5:
+                if hand_val[1] > 5.5 or self.np_random.rand() < 0.01:
                     return hand_val[0]
 
-        if grand_value > 6:
+        if grand_value > 5.5 or self.np_random.rand() < 0.01:
             return 'G'
         else:
             return ''
@@ -248,7 +248,7 @@ class Dealer:
                     best_drueck = value
         return hand
 
-    def set_bids(self, players, gametype):
+    def set_bids(self, players):
         self.reset_bids()
         for player in players:
             values = evaluate_hand_strength(player.current_hand, np_random=self.np_random, more_random=player.player_id!=0)
@@ -280,11 +280,11 @@ class Dealer:
                 else:
                     self.max_bids[player.player_id] = factor * self.suit_values[self.suits.index(values_sorted[-1][0])] if self.np_random.rand() < (values[best_suit] / 5) - 1.2 else 2 * self.suit_values[self.suits.index(values_sorted[-1][0])] # Sometimes only bids with 1
 
-            if can_play_null(player.current_hand, gametype, self.np_random):
+            if can_play_null(player.current_hand, self.np_random):
                 self.max_bids[player.player_id] = max(23, self.max_bids[player.player_id])
-                if can_play_null_ouvert_hand(player.current_hand, gametype, self.np_random):
+                if can_play_null_ouvert_hand(player.current_hand, self.np_random):
                     self.max_bids[player.player_id] = max(59, self.max_bids[player.player_id])
-                elif can_play_null_ouvert(player.current_hand, gametype, self.np_random):
+                elif can_play_null_ouvert(player.current_hand, self.np_random):
                     if self.np_random.rand() < 0.15:
                         self.max_bids[player.player_id] = max(35, self.max_bids[player.player_id])
                     else:
@@ -294,7 +294,7 @@ class Dealer:
                 if self.np_random.rand() > values[best_suit] - 7.25:
                     self.max_bids[player.player_id] = max(18, self.max_bids[player.player_id])
                 else:
-                    self.max_bids[player.player_id] = max(factor * self.suit_values[self.suits.index(best_suit)], self.max_bids[player.player_id])
+                    self.max_bids[player.player_id] = max(2 * self.suit_values[self.suits.index(best_suit)], self.max_bids[player.player_id])
 
     def pickup_skat(self, players):
         players[0].current_hand.append(self.skat[0])
@@ -339,9 +339,11 @@ class Dealer:
 
 # valuelist = []
 # count_gegenreizung = 0
-# for i in range (0,1000):
+# for i in range (0,10000):
 #     d.deal_cards(players, 'D')
-#     valuelist.append(evaluate_hand_strength(players[0].current_hand, 'G')['G'])
+#     valuelist.append(d.max_bids[1])
+#     valuelist.append(d.max_bids[2])
+#     valuelist.append(evaluate_hand_strength(players[0].current_hand, 'D')['D'])
 #     print(players[0].current_hand)
 #     print(players[1].current_hand)
 #     print(players[2].current_hand)
@@ -358,17 +360,52 @@ class Dealer:
 # print("Null Ouvert: " + str(d.counter3)) # 2,9% Volltreffer (set valid_game to True and Gametype != N, multiply by 3)
 # print("Null Ouvert Hand: " + str(d.counter4)) # 0,4% anstatt 0,3% (set valid_game to True and Gametype != N, multiply by 3)
 # print("Null Gesamt: " + str(d.counter5)) # 6,3% anstatt 6,7% (set valid_game to True and Gametype != N, multiply by 3)
-# print("Hand: " + str(d.counter6)) # D: 9,4% anstatt 14%, G: 7,3% anstatt 12% (valid_game nicht setzen, für D und G testen. Handspiele noch zu Farb/Grand dazu addieren) TODO: Bisschen mehr Hand
-# print("Farbspiel: " + str(d.counter7)) # 60% anstatt 63% (set valid_game to True, multiply by 3) => TODO: Je nach Gametype weniger/mehr Grand reizen
+# print("Hand: " + str(d.counter6)) # D: 9,4% anstatt 14%, G: 7,3% anstatt 12% (valid_game nicht setzen, für D und G testen. Handspiele noch zu Farb/Grand dazu addieren)
+# print("Farbspiel: " + str(d.counter7)) # 60% anstatt 63% (set valid_game to True, multiply by 3)
 # print("Grand: " + str(d.counter8)) # 30% Volltreffer (set valid_game to True, multiply by 3)
 # print("Eingepasst: " + str(d.counter9)) # 1,8% anstatt 1,9% (set valid_game to True)
 # # Null gereizt (von irgendwem): 13% der Spiele
 
-# for line in list(open('C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_N.txt', encoding='utf-8')):
+# from iss.SkatMatch import SkatMatch
+# from skatzero.evaluation.utils import parse_bid
+
+# def set_dealer_data(match, gametype):
+#     dealer = Dealer(None)
+#     dealer.starting_player = (3 - match.alleinspielerInd) % 3
+
+#     dealer.deck = match.cards[match.playerNames[match.alleinspielerInd]]
+#     dealer.deck += match.originalSkat
+#     dealer.deck = [a for a in dealer.deck if a not in match.gedrueckt_cards]
+#     dealer.deck += match.cards[match.playerNames[(match.alleinspielerInd + 1) % 3]]
+#     dealer.deck += match.cards[match.playerNames[(match.alleinspielerInd + 2) % 3]]
+#     dealer.deck += match.gedrueckt_cards
+
+#     dealer.bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+#                 {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+#                 {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+#     dealer.bid_jacks = [0, 0, 0]
+#     dealer.bids, dealer.bid_jacks = parse_bid(match.maxReizungen[(match.alleinspielerInd + 1) % 3], 1, dealer.bids, dealer.bid_jacks)
+#     dealer.bids, dealer.bid_jacks = parse_bid(match.maxReizungen[(match.alleinspielerInd + 2) % 3], 2, dealer.bids, dealer.bid_jacks)
+
+#     if gametype == 'D' and match.gameType[0] != 'D':
+#         dealer.deck = swap_colors(dealer.deck, 'D', match.gameType[0])
+#         dealer.bids[0] = swap_bids(dealer.bids[0], 'D', match.gameType[0])
+#         dealer.bids[1] = swap_bids(dealer.bids[1], 'D', match.gameType[0])
+#         dealer.bids[2] = swap_bids(dealer.bids[2], 'D', match.gameType[0])
+
+#     dealer.blind_hand = match.is_hand
+#     dealer.open_hand = False
+
+#     return dealer
+
+# valuelist = []
+# for line in list(open('C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_G.txt', encoding='utf-8')):
 #     match = SkatMatch(line)
 #     if not match.eingepasst:
 #         dealer = set_dealer_data(match, 'G')
-#         valuelist.append(evaluate_null_strength(dealer.deck[:10]))
+#         # valuelist.append(evaluate_null_strength(dealer.deck[:10]))
+#         valuelist.append(match.maxReizungen[(match.alleinspielerInd + 1) % 3])
+#         valuelist.append(match.maxReizungen[(match.alleinspielerInd + 2) % 3])
 
 # import statistics
 # print(statistics.mean(valuelist))
@@ -377,7 +414,7 @@ class Dealer:
 # import matplotlib.pyplot as plt
 # import numpy as np
 
-# plt.hist(valuelist, density=True, bins=30)
+# plt.hist(valuelist, density=True, bins=50)
 # plt.ylabel('Probability')
 # plt.xlabel('Value')
 # plt.show()

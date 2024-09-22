@@ -498,17 +498,17 @@ def evaluate_null_strength(cards, skat = []):
 
     return -strength
 
-def can_play_null(cards, gametype, np_random):
+def can_play_null(cards, np_random):
     return evaluate_null_strength(cards) >= -55 - np_random.uniform(0, 10)
 
-def can_play_null_after_skat(cards, gametype, np_random):
+def can_play_null_after_skat(cards, np_random):
     return evaluate_null_strength(cards) >= -20 - np_random.uniform(0, 5)
 
-def can_play_null_ouvert(cards, gametype, np_random):
+def can_play_null_ouvert(cards, np_random):
     return evaluate_null_strength(cards) >= -25 - np_random.uniform(0, 5)
 
-def can_play_null_ouvert_hand(cards, gametype, np_random):
+def can_play_null_ouvert_hand(cards, np_random):
     return evaluate_null_strength(cards) >= -2 - np_random.uniform(0, 2.2)
 
-def can_play_null_ouvert_after_skat(cards, gametype, np_random):
+def can_play_null_ouvert_after_skat(cards, np_random):
     return evaluate_null_strength(cards) >= -4 - np_random.uniform(0, 3)
