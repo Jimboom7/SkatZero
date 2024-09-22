@@ -30,10 +30,10 @@ if __name__ == '__main__':
 
     model_d = '14690'
     model_g = '11450'
-    # model_d = '15200'
-    # model_g = '12180'
-    # model_d = '15200'
-    # model_g = '12560'
+    model_d = '15200'
+    model_g = '12180'
+    model_d = '15200'
+    model_g = '12560'
 
     with open('C:/Users/janvo/Desktop/Skat/ISS-Bot/logs/log_' + model_d + '_' + model_g + '.txt', encoding='utf-8') as fRaw:
     # with open('C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt', encoding='utf-8') as fRaw:
@@ -64,12 +64,12 @@ if __name__ == '__main__':
             line = fRaw.readline()
         print("Anzahl Spiele: " + str(len(dealers)))
         print(points / len(dealers))
-    
+
     print(pos)
     print(pos2)
 
-    for i in range(16010, 16040, 10):
-        env = EvalEnv(seed=seed, gametype=gametype, lstm=[True, True, True], dealers=dealers)
+    for i in range(17030, 17050, 10):
+        env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
 
         if gametype == 'D':
             agent_0 = load_model('models/checkpoints/skat_lstm_D/0_' + model_d + '.pth')

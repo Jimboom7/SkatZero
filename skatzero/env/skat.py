@@ -27,7 +27,7 @@ class SkatEnv(object):
 
     def set_state_shape(self, gametype):
         if gametype == 'N':
-            self.state_shape = [[310], [364], [364]]
+            self.state_shape = [[314], [364], [364]]
         else:
             self.state_shape = [[551], [573], [573]]
 
