@@ -19,7 +19,7 @@ class SkatEnv(object):
 
         self.agents = None
 
-        self.state_shape = [[551], [573], [573]]
+        self.state_shape = [[555], [573], [573]]
         self.set_state_shape(gametype)
 
         self.action_shape = [[32] for _ in range(self.num_players)]
@@ -29,7 +29,7 @@ class SkatEnv(object):
         if gametype == 'N':
             self.state_shape = [[314], [364], [364]]
         else:
-            self.state_shape = [[551], [573], [573]]
+            self.state_shape = [[555], [573], [573]]
 
     def reset(self):
         if self.base_seed is not None:
