@@ -151,13 +151,13 @@ def evaluate_grand_card(card):
     return 0
 
 
-def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], is_FH = False, np_random=None, more_random=False):
-    rand_l = 0.9 if more_random else 0.9
-    rand_u = 1.1 if more_random else 1.1
+def evaluate_hand_strength(cards, gametype = ['D', 'H', 'S', 'C'], is_FH = False, np_random=None, opponent=False):
+    rand_l = 0.8 if opponent else 0.9
+    rand_u = 1.2 if opponent else 1.1
     if gametype == 'N':
         return {'N': evaluate_null_strength(cards, []) * np_random.uniform(rand_l, rand_u)}
     elif gametype == 'G':
-        rand = 0.2 if more_random else 0.2
+        rand = 0.3 if opponent else 0.2
         strength = 0
         for c in cards:
             strength += evaluate_grand_card(c)
@@ -498,14 +498,16 @@ def evaluate_null_strength(cards, skat = []):
 
     return -strength
 
-def can_play_null(cards, np_random):
-    return evaluate_null_strength(cards) >= -55 - np_random.uniform(0, 10)
+def can_play_null(cards, np_random, opponent=False):
+    rand = 30 if opponent else 10
+    return evaluate_null_strength(cards) >= -55 - np_random.uniform(0, rand)
 
 def can_play_null_after_skat(cards, np_random):
     return evaluate_null_strength(cards) >= -20 - np_random.uniform(0, 5)
 
-def can_play_null_ouvert(cards, np_random):
-    return evaluate_null_strength(cards) >= -25 - np_random.uniform(0, 5)
+def can_play_null_ouvert(cards, np_random, opponent=False):
+    rand = 15 if opponent else 5
+    return evaluate_null_strength(cards) >= -25 - np_random.uniform(0, rand)
 
 def can_play_null_ouvert_hand(cards, np_random):
     return evaluate_null_strength(cards) >= -2 - np_random.uniform(0, 2.2)

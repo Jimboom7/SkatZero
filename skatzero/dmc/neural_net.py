@@ -34,13 +34,3 @@ class DMCNet(nn.Module):
         x = torch.cat((obs, actions), dim=1)
         values = self.fc_layers(x).flatten()
         return values
-
-class DMCNetLSTM(DMCNet):
-    """ Compatibility for older models"""
-    def __init__(
-        self,
-        state_shape,
-        action_shape,
-        mlp_layers=[512,512,512,512,512]
-    ):
-        super().__init__(state_shape, action_shape, mlp_layers)
