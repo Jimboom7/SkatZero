@@ -68,7 +68,7 @@ if __name__ == '__main__':
     print(pos)
     print(pos2)
 
-    for i in range(17030, 17050, 10):
+    for i in range(17140, 17160, 10):
         env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
 
         if gametype == 'D':

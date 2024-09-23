@@ -177,10 +177,10 @@ def get_soloplayer_features(state):
     points_opp = get_number_as_one_hot_vector(state['points'][1])
 
     drueck = np.zeros([1,], dtype=np.int8)
+    pos = np.zeros([3,], dtype=np.int8)
     if state["drueck"]:
         drueck[0] = 1
-    pos = np.zeros([3,], dtype=np.int8)
-    pos[state["pos"]] = 1
+        pos[state["pos"]] = 1
 
     bid_left = get_bid(state['bids'][1], card_encoding)
     bid_right = get_bid(state['bids'][2], card_encoding)

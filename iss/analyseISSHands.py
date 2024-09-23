@@ -52,13 +52,13 @@ def analyseHand(cards, reiz=18):
     raw_state['bid_jacks'] = bid_jacks
 
     bidder = Bidder(env, raw_state, 0, penalties)
-    
+
     hand_estimates = bidder.get_blind_hand_values()
     return max(hand_estimates), 0
     # for _ in range(10):
     #     mean_estimates, bid_value_dict = bidder.update_value_estimates(5)
     # return bid_value_dict[18], bid_value_dict[reiz]
-    
+
 
 if __name__ == '__main__':
     # Parameter

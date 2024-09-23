@@ -1,5 +1,3 @@
-import numpy as np
-
 from skatzero.game.utils import calculate_bidding_value, can_play_null, can_play_null_after_skat, can_play_null_ouvert, can_play_null_ouvert_after_skat, can_play_null_ouvert_hand, evaluate_null_strength, init_32_deck, evaluate_hand_strength
 from skatzero.evaluation.utils import swap_colors, swap_bids
 
@@ -160,7 +158,7 @@ class Dealer:
         best_suit = values_sorted[-1][0]
         factor = calculate_bidding_value(players[0].current_hand)
 
-        if self.np_random.rand() < grand_value - 8.1 or (factor == 2 and (self.max_bids[1] > 48 or self.max_bids[2] > 48)):
+        if self.np_random.rand() < grand_value - 8.0 or (factor == 2 and (self.max_bids[1] > 48 or self.max_bids[2] > 48)):
             self.blind_hand = True
             return 'G'
 
@@ -251,8 +249,8 @@ class Dealer:
     def set_bids(self, players):
         self.reset_bids()
         for player in players:
-            values = evaluate_hand_strength(player.current_hand, np_random=self.np_random, more_random=player.player_id!=0)
-            grand_value = evaluate_hand_strength(player.current_hand, gametype = 'G', is_FH = self.starting_player == player.player_id, np_random=self.np_random, more_random=player.player_id!=0)['G']
+            values = evaluate_hand_strength(player.current_hand, np_random=self.np_random, opponent=player.player_id!=0)
+            grand_value = evaluate_hand_strength(player.current_hand, gametype = 'G', is_FH = self.starting_player == player.player_id, np_random=self.np_random, opponent=player.player_id!=0)['G']
             values_sorted = sorted(values.items(), key=lambda i: i[1])
             best_suit = values_sorted[-1][0]
             factor = calculate_bidding_value(player.current_hand)
@@ -266,7 +264,7 @@ class Dealer:
                     self.max_bids[player.player_id] = factor * 24
                 continue
 
-            if factor <= 4 and self.np_random.rand() > 4.1 - (values[best_suit] / 3): # Handgame: Good chance with strong hand
+            if factor <= 4 and self.np_random.rand() > 4.0 - (values[best_suit] / 3): # Handgame: Good chance with strong hand
                 factor += 1
                 self.is_hand[player.player_id] = True
 
@@ -280,11 +278,11 @@ class Dealer:
                 else:
                     self.max_bids[player.player_id] = factor * self.suit_values[self.suits.index(values_sorted[-1][0])] if self.np_random.rand() < (values[best_suit] / 5) - 1.2 else 2 * self.suit_values[self.suits.index(values_sorted[-1][0])] # Sometimes only bids with 1
 
-            if can_play_null(player.current_hand, self.np_random):
+            if can_play_null(player.current_hand, self.np_random, player.player_id!=0):
                 self.max_bids[player.player_id] = max(23, self.max_bids[player.player_id])
                 if can_play_null_ouvert_hand(player.current_hand, self.np_random):
                     self.max_bids[player.player_id] = max(59, self.max_bids[player.player_id])
-                elif can_play_null_ouvert(player.current_hand, self.np_random):
+                elif can_play_null_ouvert(player.current_hand, self.np_random, player.player_id!=0):
                     if self.np_random.rand() < 0.15:
                         self.max_bids[player.player_id] = max(35, self.max_bids[player.player_id])
                     else:
@@ -314,107 +312,3 @@ class Dealer:
         self.soloplayer = players[0]
 
         return self.soloplayer.player_id, self.starting_player, self.blind_hand, self.open_hand
-
-# from skatzero.game.player import Player
-# d = Dealer(np.random.RandomState())
-# players = [{}]
-# players[0] = Player(0)
-# players[0].current_hand = ['CJ', 'SJ', 'S7', 'HT', 'S9', 'CT', 'CK', 'D7', 'D8', 'D9']
-# d.skat = ['DK', 'DA']
-# print(players[0].current_hand)
-# miss = 0
-# for i in range (0,1000):
-#    d.druecken(players, 'D')
-#    print(d.skat)
-#    if 'HT' not in d.skat or 'S9' not in d.skat:
-#        miss += 1
-# print(miss)
-
-# from skatzero.game.player import Player
-# d = Dealer(np.random.RandomState())
-# players = [{},{},{}]
-# players[0] = Player(0)
-# players[1] = Player(1)
-# players[2] = Player(2)
-
-# valuelist = []
-# count_gegenreizung = 0
-# for i in range (0,10000):
-#     d.deal_cards(players, 'D')
-#     valuelist.append(d.max_bids[1])
-#     valuelist.append(d.max_bids[2])
-#     valuelist.append(evaluate_hand_strength(players[0].current_hand, 'D')['D'])
-#     print(players[0].current_hand)
-#     print(players[1].current_hand)
-#     print(players[2].current_hand)
-#     print(d.max_bids)
-#     print(d.bids)
-#     print(d.bid_jacks)
-#     print(d.blind_hand)
-#     if d.max_bids[1] != 0 or d.max_bids[2] != 0:
-#         count_gegenreizung += 1
-#     print("#######")
-# print(count_gegenreizung)
-# print("Null Closed: " + str(d.counter1)) # 3,0% anstatt 3,2%(set valid_game to True and Gametype == N, multiply by 3)
-# print("Null Hand: " + str(d.counter2)) # 0,24% Volltreffer (set valid_game to True and Gametype != N, multiply by 3)
-# print("Null Ouvert: " + str(d.counter3)) # 2,9% Volltreffer (set valid_game to True and Gametype != N, multiply by 3)
-# print("Null Ouvert Hand: " + str(d.counter4)) # 0,4% anstatt 0,3% (set valid_game to True and Gametype != N, multiply by 3)
-# print("Null Gesamt: " + str(d.counter5)) # 6,3% anstatt 6,7% (set valid_game to True and Gametype != N, multiply by 3)
-# print("Hand: " + str(d.counter6)) # D: 9,4% anstatt 14%, G: 7,3% anstatt 12% (valid_game nicht setzen, für D und G testen. Handspiele noch zu Farb/Grand dazu addieren)
-# print("Farbspiel: " + str(d.counter7)) # 60% anstatt 63% (set valid_game to True, multiply by 3)
-# print("Grand: " + str(d.counter8)) # 30% Volltreffer (set valid_game to True, multiply by 3)
-# print("Eingepasst: " + str(d.counter9)) # 1,8% anstatt 1,9% (set valid_game to True)
-# # Null gereizt (von irgendwem): 13% der Spiele
-
-# from iss.SkatMatch import SkatMatch
-# from skatzero.evaluation.utils import parse_bid
-
-# def set_dealer_data(match, gametype):
-#     dealer = Dealer(None)
-#     dealer.starting_player = (3 - match.alleinspielerInd) % 3
-
-#     dealer.deck = match.cards[match.playerNames[match.alleinspielerInd]]
-#     dealer.deck += match.originalSkat
-#     dealer.deck = [a for a in dealer.deck if a not in match.gedrueckt_cards]
-#     dealer.deck += match.cards[match.playerNames[(match.alleinspielerInd + 1) % 3]]
-#     dealer.deck += match.cards[match.playerNames[(match.alleinspielerInd + 2) % 3]]
-#     dealer.deck += match.gedrueckt_cards
-
-#     dealer.bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-#                 {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
-#                 {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
-#     dealer.bid_jacks = [0, 0, 0]
-#     dealer.bids, dealer.bid_jacks = parse_bid(match.maxReizungen[(match.alleinspielerInd + 1) % 3], 1, dealer.bids, dealer.bid_jacks)
-#     dealer.bids, dealer.bid_jacks = parse_bid(match.maxReizungen[(match.alleinspielerInd + 2) % 3], 2, dealer.bids, dealer.bid_jacks)
-
-#     if gametype == 'D' and match.gameType[0] != 'D':
-#         dealer.deck = swap_colors(dealer.deck, 'D', match.gameType[0])
-#         dealer.bids[0] = swap_bids(dealer.bids[0], 'D', match.gameType[0])
-#         dealer.bids[1] = swap_bids(dealer.bids[1], 'D', match.gameType[0])
-#         dealer.bids[2] = swap_bids(dealer.bids[2], 'D', match.gameType[0])
-
-#     dealer.blind_hand = match.is_hand
-#     dealer.open_hand = False
-
-#     return dealer
-
-# valuelist = []
-# for line in list(open('C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_G.txt', encoding='utf-8')):
-#     match = SkatMatch(line)
-#     if not match.eingepasst:
-#         dealer = set_dealer_data(match, 'G')
-#         # valuelist.append(evaluate_null_strength(dealer.deck[:10]))
-#         valuelist.append(match.maxReizungen[(match.alleinspielerInd + 1) % 3])
-#         valuelist.append(match.maxReizungen[(match.alleinspielerInd + 2) % 3])
-
-# import statistics
-# print(statistics.mean(valuelist))
-# print(statistics.stdev(valuelist))
-
-# import matplotlib.pyplot as plt
-# import numpy as np
-
-# plt.hist(valuelist, density=True, bins=50)
-# plt.ylabel('Probability')
-# plt.xlabel('Value')
-# plt.show()

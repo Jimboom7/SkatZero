@@ -105,7 +105,7 @@ def case5_easy(raw_state):
     raw_state['others_hand'] = others_cards
     raw_state['actions'] = actions
     raw_state['trick'] = trick
-    return raw_state, ('S7')
+    return raw_state, ('S7', 'H7')
 
 def case6_easy(raw_state):
     print("Trumpfgabel vorbereiten IV")

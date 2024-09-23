@@ -48,7 +48,7 @@ def print_info(match, gametype):
     players = [{}]
     players[0] = Player(1)
     players[0].current_hand = match.cards['kermit']
-    dealer.set_bids(players, gametype)
+    dealer.set_bids(players)
 
     bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
                 {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
