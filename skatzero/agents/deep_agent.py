@@ -85,3 +85,15 @@ class DMCAgent:
 
     def set_device(self, device):
         self.device = device
+
+class DMCAgentLSTM(DMCAgent):
+    """ Compatibility for older models"""
+    def __init__(
+        self,
+        state_shape,
+        action_shape,
+        mlp_layers=[512,512,512,512,512],
+        exp_epsilon=0.01,
+        device="0",
+    ):
+        super().__init__(state_shape, action_shape, mlp_layers, exp_epsilon, device)

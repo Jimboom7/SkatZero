@@ -103,12 +103,10 @@ class Bidder:
                 values.append(max(vals_cards))
             self.env.game.state = original_state
             values.sort()
-            if raw_state['trump'] is None: # Null: Take average of 15 worst discards of opponent, both for MH and BH
-                return sum(values[:15]) / 15
             if self.pos == 1: # Middlehand: Take average of 10 worst discards of opponent
-                return sum(values[:10]) / 10
+                return sum(values[:5]) / 5
             else: # Backhand: Can't simulate 2 discards, so take an average that is usually close to that
-                return sum(values[-18:]) / 18
+                return sum(values[-10:]) / 10
 
     def get_blind_hand_values(self):
         values = []

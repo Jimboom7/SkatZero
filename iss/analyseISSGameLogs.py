@@ -69,6 +69,10 @@ def evaluateMatchesForPlayer(matches, evalPlayer, gameTypesToExclude):
                     playerEvalDict['averageAugenSolo'] += match.stichPoints
                     playerEvalDict['percentageFarbspielSolo'] += 'G' not in match.gameType
                     playerEvalDict['percentageGrandSolo'] += 'G' in match.gameType
+                    if match.is_hand:
+                        playerEvalDict['handGames'] += 1
+                        if match.stichPoints >= 61:
+                            playerEvalDict['handWins'] += 1
                 else:
                     playerEvalDict['percentageNullSolo'] += 1
                     playerEvalDict['numberOfWinsSolo'] += seegerFabianScoreSolo > 0
@@ -104,7 +108,9 @@ def initPlayerEvalDict():
 
     playerEvalDict['numberOfGamesSolo'] = 0
     playerEvalDict['numberOfWinsSolo'] = 0
+    playerEvalDict['handGames'] = 0
     playerEvalDict['numberOfWinsSoloNormal'] = 0
+    playerEvalDict['handWins'] = 0
     playerEvalDict['numberOfWinsSoloSchneider'] = 0
     playerEvalDict['numberOfLossesSolo'] = 0
     playerEvalDict['numberOfLossesSoloNormal'] = 0
@@ -125,6 +131,7 @@ def initPlayerEvalDict():
     playerEvalDict['percentageFarbspielOpp'] = 0
     playerEvalDict['percentageGrandOpp'] = 0
     playerEvalDict['percentageNullOpp'] = 0
+
     return playerEvalDict
 
 def calculatePercentages(playerEvalDict):

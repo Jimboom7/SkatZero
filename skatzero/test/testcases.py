@@ -1507,3 +1507,30 @@ def case1_euroskat_grand(raw_state):
 
     raw_state['trump'] = 'J'
     return raw_state, ('ST') # Gewinnt das Spiel, Kreuz verliert (Alleinspieler kann stechen, Mitspieler muss bedienen)
+
+def case2_iss_grand(raw_state):
+    print("Alleinspieler: Nicht throwen")
+    raw_state['self'] = 0
+    raw_state['points'] = [25, 42]
+    raw_state['blind_hand'] = False
+    raw_state['bids'] = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
+                    {'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0}]
+    raw_state['bid_jacks'] = [0, 0, 0]
+
+    raw_state['current_hand'] = ['CJ', 'HJ', 'DJ', 'HA', 'HT', 'H8']
+    raw_state['trace'] = [(1, 'CT'), (2, 'C8'), (0, 'C7'),
+                          (1, 'ST'), (2, 'S7'), (0, 'S9'),
+                          (1, 'SA'), (2, 'DA'), (0, 'S8'),
+                          (1, 'SQ'), (2, 'HK'), (0, 'SK')]
+
+    raw_state['skat'] = ['DT', 'CK']
+    played_cards, others_cards, trick, actions = construct_state_from_history(raw_state['current_hand'] , raw_state['trace'], raw_state['skat'], 'J')
+
+    raw_state['played_cards'] = played_cards
+    raw_state['others_hand'] = others_cards
+    raw_state['actions'] = actions
+    raw_state['trick'] = trick
+
+    raw_state['trump'] = 'J'
+    return raw_state, ('CJ') # Nur HJ wurde im richtigen Spiel geschmissen, was das Spiel mit 60 Augen verliert (SJ -> CA und später Stich auf H8)
