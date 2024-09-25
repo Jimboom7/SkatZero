@@ -166,10 +166,10 @@ def bid(args, accuracy, bid_threshold):
     bidder = Bidder(env, raw_state, args[2], penalties)
     hand_estimates = bidder.get_blind_hand_values()
     start_time = time.time()
-    for _ in range(231):
+    for _ in range(accuracy):
         mean_estimates, bid_value_dict = bidder.update_value_estimates()
-        if time.time() - start_time > 60 or bidder.current_skat > accuracy: # Stop after 1 min max or 100 iterations
-                break
+        if time.time() - start_time > 60: # Stop after 1 min max or 100 iterations
+            break
     pickup_estimates = [sum(mean_estimates['C']) / len(mean_estimates['C']),
                         sum(mean_estimates['S']) / len(mean_estimates['S']),
                         sum(mean_estimates['H']) / len(mean_estimates['H']),
