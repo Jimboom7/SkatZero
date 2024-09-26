@@ -22,15 +22,21 @@ def convert_card_to_action_id(action, card_encoding):
     else:
         return ((convert_card_to_action_id(action[0], card_encoding) + 1) * 100) + convert_card_to_action_id(action[1], card_encoding)
 
-def card2array(card, card_encoding):
+def card2array(card, card_encoding, flatten=True):
     matrix = np.zeros([4, 8], dtype=np.int8)
     if card is None or card == '':
-        return matrix.flatten()
+        if flatten:
+            return matrix.flatten()
+        else:
+            return matrix
     if card[1] == 'J':
         matrix[jack_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     else:
         matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
-    return matrix.flatten()
+    if flatten:
+        return matrix.flatten()
+    else:
+        return matrix
 
 def cards2array(cards, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
@@ -52,13 +58,17 @@ def get_number_as_one_hot_vector(number, max_points=120):
     return one_hot
 
 def action_seq2array(action_seq_list, card_encoding):
-    action_seq_array = np.zeros((len(action_seq_list), 35), np.int8)
+    action_seq_array = [None] * 30
+    action_seq_array_stacked = [None] * 10
     for row, action in enumerate(action_seq_list):
+        action_seq_array[row] = card2array(action[1], card_encoding, flatten=False)
+        player_id = np.zeros((4, 3), dtype=np.int8)
         if action[0] != -1:
-            action_seq_array[row, 0:3] = get_number_as_one_hot_vector(action[0], 2)
-        action_seq_array[row, 3:] = card2array(action[1], card_encoding)
-    action_seq_array = action_seq_array.flatten()
-    return action_seq_array
+            player_id[:, action[0]] = 1
+        action_seq_array[row] = np.hstack((action_seq_array[row], player_id))
+    for row in range (0, len(action_seq_list), 3):
+        action_seq_array_stacked[int(row / 3)] = np.hstack((action_seq_array[row], action_seq_array[row+1], action_seq_array[row+2]))
+    return action_seq_array_stacked
 
 def process_action_seq(sequence, player_id, length=30):
     #sequence = [action[1] for action in sequence[-length:]]
@@ -319,7 +329,7 @@ def extract_state(state, legal_actions):
     else:
         obs, history = get_opponent_features(state)
     extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
-    history = history.reshape(10, 105)
+    history = np.array(history)
     extracted_state['history'] = history
     extracted_state['raw_obs'] = state
     extracted_state['raw_legal_actions'] = [a for a in state['actions']]

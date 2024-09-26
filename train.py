@@ -9,14 +9,14 @@ if __name__ == '__main__':
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-    GAMETYPE = 'G' # 'G' or 'D' or 'N'
+    GAMETYPE = 'D' # 'G' or 'D' or 'N'
 
     env = SkatEnv(gametype=GAMETYPE)
 
     trainer = DMCTrainer(
         env,
         cuda="0", # Empty = everything on cpu, 0 = GPU enabled
-        xpid='skat_lstm_' +  GAMETYPE,
+        xpid='skat_resnet_' +  GAMETYPE,
         savedir='models/checkpoints',
         save_interval=10, # in million frames
         num_actors=16, # should be equal to number of physical cores, +- some
