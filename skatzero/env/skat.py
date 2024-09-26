@@ -63,7 +63,7 @@ class SkatEnv(object):
             if not is_training:
                 action, _ = self.agents[0].eval_step(state)
                 if verbose > 0:
-                    print_turn(state['raw_obs']['current_hand'], self.decode_action(action),
+                    print_turn(state['raw_obs']['current_hand'], self.decode_action(action), # TODO: Log not working currently, expects 1 card as action
                                 state['raw_obs']['self'], state['raw_obs']['trick'], state['raw_obs']['trump'], verbose)
             else:
                 action = self.agents[0].step(state)
