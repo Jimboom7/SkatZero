@@ -42,6 +42,8 @@ class Round:
         self.current_trick = []
         if len(self.dealer.skat) == 2:
             self.solo_points = get_points(self.dealer.skat[0]) + get_points(self.dealer.skat[1])
+        else:
+            self.solo_points = 0
         self.opponent_points = 0
         self.winners = []
         self.trump = 'D'

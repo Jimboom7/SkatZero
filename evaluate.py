@@ -9,8 +9,8 @@ if __name__ == '__main__':
 
     NUM_GAMES = 10000
     GAMETYPE = 'G'
-    MODEL1 = "14190"
-    MODEL2 = "12560" # Breaking Point: G 12560: 81,74, D 15200: 25.57, N 4570: ?
+    MODEL1 = "14730"
+    MODEL2 = "14630"
     NUM_ACTORS = 12
     FOLDER = "skat_lstm_" + GAMETYPE
     FOLDER2 = "skat_lstm_" + GAMETYPE

@@ -33,9 +33,9 @@ if __name__ == "__main__":
     convert_onnx(1, 573, 'D', '17200')
     convert_onnx(2, 573, 'D', '17200')
 
-    convert_onnx(0, 555, 'G', '14380')
-    convert_onnx(1, 573, 'G', '14380')
-    convert_onnx(2, 573, 'G', '14380')
+    convert_onnx(0, 555, 'G', '14630')
+    convert_onnx(1, 573, 'G', '14630')
+    convert_onnx(2, 573, 'G', '14630')
 
     for i, x in enumerate([314, 364, 364]):
         convert_onnx(i, x, 'N', '5130')

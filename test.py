@@ -97,13 +97,13 @@ if __name__ == '__main__':
     # MODEL = "skat_lstm_D"
     # FRAMES = 17170
     MODEL = "skat_lstm_G"
-    FRAMES = 14400
+    FRAMES = 14730
     # MODEL = "skat_lstm_N"
     # FRAMES = 5140
 
     # run_testsuite(MODEL, FRAMES)
 
-    for i in range(14350, FRAMES + 10, 10):
+    for i in range(14710, FRAMES + 10, 10):
         run_testsuite(MODEL, i)
 
 
