@@ -13,7 +13,7 @@ class DMCNet(nn.Module):
         super().__init__()
 
         self.conv_z_1 = torch.nn.Sequential(
-            nn.Conv3d(1, 64, kernel_size=(1, 1, 33)),  # B * 1 * 64 * 32
+            nn.Conv3d(1, 64, kernel_size=(1, 1, 42)),  # B * 1 * 64 * 32
             nn.ReLU(inplace=True),
             nn.BatchNorm3d(64),
         )

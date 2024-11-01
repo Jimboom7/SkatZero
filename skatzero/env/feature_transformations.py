@@ -22,21 +22,25 @@ def convert_card_to_action_id(action, card_encoding):
     else:
         return ((convert_card_to_action_id(action[0], card_encoding) + 1) * 100) + convert_card_to_action_id(action[1], card_encoding)
 
-def card2array(card, card_encoding, flatten=True):
+def card2array(card, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
     if card is None or card == '':
-        if flatten:
-            return matrix.flatten()
-        else:
-            return matrix
+        return matrix.flatten()
     if card[1] == 'J':
         matrix[jack_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     else:
         matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
-    if flatten:
-        return matrix.flatten()
-    else:
+    return matrix.flatten()
+
+def card2array_for_sequence(card, card_encoding):
+    matrix = np.zeros([4, 11], dtype=np.int8)
+    if card is None or card == '':
         return matrix
+    if card[1] == 'J':
+        matrix[0, -1 - jack_encoding[card[0]]] = 1
+    else:
+        matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
+    return matrix
 
 def cards2array(cards, card_encoding):
     matrix = np.zeros([4, 8], dtype=np.int8)
@@ -61,7 +65,7 @@ def action_seq2array(action_seq_list, card_encoding):
     action_seq_array = [None] * 30
     action_seq_array_stacked = [None] * 10
     for row, action in enumerate(action_seq_list):
-        action_seq_array[row] = card2array(action[1], card_encoding, flatten=False)
+        action_seq_array[row] = card2array_for_sequence(action[1], card_encoding)
         player_id = np.zeros((4, 3), dtype=np.int8)
         if action[0] != -1:
             player_id[:, action[0]] = 1
