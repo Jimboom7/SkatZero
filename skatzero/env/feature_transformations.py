@@ -33,13 +33,15 @@ def card2array(card, card_encoding):
     return matrix.flatten()
 
 def card2array_for_sequence(card, card_encoding):
-    matrix = np.zeros([4, 11], dtype=np.int8)
+    matrix = np.zeros([15,], dtype=np.int8) # Suit [4] + Card [11]
     if card is None or card == '':
         return matrix
     if card[1] == 'J':
-        matrix[0, -1 - jack_encoding[card[0]]] = 1
+        matrix[0] = 1 # Diamond
+        matrix[-1 - jack_encoding[card[0]]] = 1
     else:
-        matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
+        matrix[card_encoding[card[0]]] = 1
+        matrix[4 + card_rank_as_number[card[1]]] = 1
     return matrix
 
 def cards2array(cards, card_encoding):
@@ -63,16 +65,13 @@ def get_number_as_one_hot_vector(number, max_points=120):
 
 def action_seq2array(action_seq_list, card_encoding):
     action_seq_array = [None] * 30
-    action_seq_array_stacked = [None] * 10
     for row, action in enumerate(action_seq_list):
-        action_seq_array[row] = card2array_for_sequence(action[1], card_encoding)
-        player_id = np.zeros((4, 3), dtype=np.int8)
+        action_seq_array[row] = card2array_for_sequence(action[1], card_encoding) # [15]
+        player_id = np.zeros((3,), dtype=np.int8) # [3]
         if action[0] != -1:
-            player_id[:, action[0]] = 1
-        action_seq_array[row] = np.hstack((action_seq_array[row], player_id))
-    for row in range (0, len(action_seq_list), 3):
-        action_seq_array_stacked[int(row / 3)] = np.hstack((action_seq_array[row], action_seq_array[row+1], action_seq_array[row+2]))
-    return action_seq_array_stacked
+            player_id[action[0]] = 1
+        action_seq_array[row] = np.concatenate((action_seq_array[row], player_id), axis=0) # [18]
+    return action_seq_array
 
 def process_action_seq(sequence, player_id, length=30):
     #sequence = [action[1] for action in sequence[-length:]]

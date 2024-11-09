@@ -17,7 +17,7 @@ class DMCNet(nn.Module):
         self.conv_z_1 = torch.nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=(1, 18)),  # 64 x 30 x 1
             nn.ReLU(inplace=True),
-            nn.BatchNorm3d(64),
+            nn.BatchNorm2d(64),
         )
         self.conv_z_2 = torch.nn.Sequential(
             nn.Conv1d(64, 128, kernel_size=3, stride=3),  # 128 x 10
@@ -34,11 +34,11 @@ class DMCNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(512),
         )
-        self.conv_z_5 = torch.nn.Sequential(
-            nn.Conv1d(512, 1024, kernel_size=2), # 1024 x 1
-            nn.ReLU(inplace=True),
-            nn.BatchNorm1d(1024),
-        )
+        #self.conv_z_5 = torch.nn.Sequential(
+        #    nn.Conv1d(512, 1024, kernel_size=2), # 1024 x 1
+        #    nn.ReLU(inplace=True),
+        #    nn.BatchNorm1d(1024),
+        #)
 
         input_dim = np.prod(state_shape) + np.prod(action_shape) + 1024
         layer_dims = [input_dim] + mlp_layers
@@ -64,7 +64,7 @@ class DMCNet(nn.Module):
             values = self.fc_layers(x).flatten()
             return values
         is_fake_batch = False
-        if history.dim() == 4:
+        if history.dim() == 3:
             history = history.unsqueeze(1)
         else: # Fake Batch
             is_fake_batch = True
@@ -77,7 +77,7 @@ class DMCNet(nn.Module):
         history = torch.max_pool1d(history, 2) # 256 x 4
         history = self.conv_z_4(history)
         history = torch.max_pool1d(history, 2) # 512 x 2
-        history = self.conv_z_5(history)
+        ###history = self.conv_z_5(history)
         #history = torch.max_pool1d(history, 2) # 1024 x 1
         history = history.flatten(1,2) # 1024
         if is_fake_batch: # Fake Batch
