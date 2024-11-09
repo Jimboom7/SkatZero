@@ -4,7 +4,7 @@ import os
 import time
 
 from bidding.bidder import Bidder
-from skatzero.env.skat import SkatEnv
+from skatzero.evaluation.eval_env import EvalEnv
 from skatzero.evaluation.simulation import load_model
 from skatzero.evaluation.utils import swap_bids, swap_colors
 from skatzero.game.utils import compare_cards, get_points, init_32_deck
@@ -60,7 +60,7 @@ def prepare_env():
     # for i in range(0, 3):
     #     agents.append(load_model(basedir + "/models/checkpoints/skat_lstm_N/" + str(i) + "_3800.pth"))
 
-    env = SkatEnv()
+    env = EvalEnv(lstm = 'auto')
 
     env.set_agents(agents)
 

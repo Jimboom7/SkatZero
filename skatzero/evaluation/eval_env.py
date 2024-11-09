@@ -3,11 +3,12 @@ from skatzero.env.skat import SkatEnv
 
 
 class EvalEnv(SkatEnv):
-    def __init__(self, seed=None, gametype='D', dealers=None):
+    def __init__(self, seed=None, gametype='D', dealers=None, lstm=[False, False, False]):
         super().__init__(seed, gametype)
         self.dealers = dealers
         self.dealer_id = 0
         self.do_drueck = False
+        self.lstm=lstm
 
     def reset(self):
         if self.base_seed is not None:
@@ -22,7 +23,7 @@ class EvalEnv(SkatEnv):
             state = self.game.get_state(player_id)
             self.game.state = state
 
-        return self.extract_state(state), player_id
+        return self.extract_state(state, player_id), player_id
 
     def step(self, action):
         action = self.decode_action(action)
@@ -30,8 +31,15 @@ class EvalEnv(SkatEnv):
         next_state, player_id = self.game.step(action)
         self.current_player_id = player_id
 
-        return self.extract_state(next_state), player_id
+        return self.extract_state(next_state, player_id), player_id
 
     def get_state(self, player_id):
         self.current_player_id = player_id
-        return self.extract_state(self.game.get_state(player_id))
+        return self.extract_state(self.game.get_state(player_id), player_id)
+
+    def extract_state(self, state, player_id=None):
+        if self.lstm == 'auto':
+            extracted_state = extract_state(state, self.get_legal_actions(), self.game.gametype != 'D')
+        else:
+            extracted_state = extract_state(state, self.get_legal_actions(), self.lstm[player_id])
+        return extracted_state

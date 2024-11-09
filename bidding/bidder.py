@@ -67,7 +67,7 @@ class Bidder:
             original_state = copy.deepcopy(self.env.game.state)
             self.env.game.state = copy.deepcopy(raw_state)
 
-            state = extract_state(raw_state, self.env.get_legal_actions())
+            state = extract_state(raw_state, self.env.get_legal_actions(), lstm=raw_state['trump'] not in ['D', 'H', 'S', 'C'])
             agent_id = 0
             self.env.game.state = original_state
             if raw_state['trump'] == 'J':
@@ -92,7 +92,7 @@ class Bidder:
                 current_raw_state['trick'] = trick
 
                 self.env.game.state = copy.deepcopy(current_raw_state)
-                state = extract_state(current_raw_state, self.env.get_legal_actions())
+                state = extract_state(current_raw_state, self.env.get_legal_actions(), lstm=current_raw_state['trump'] not in ['D', 'H', 'S', 'C'])
 
                 agent_id = 0
                 if current_raw_state['trump'] == 'J':
@@ -168,7 +168,7 @@ class Bidder:
             raw_state_gamemode_prep["actions"] = available_actions(raw_state_gamemode_prep["current_hand"])
             original_state = copy.deepcopy(self.env.game.state)
             self.env.game.state = copy.deepcopy(raw_state_gamemode_prep)
-            state = extract_state(raw_state_gamemode_prep, self.env.get_legal_actions())
+            state = extract_state(raw_state_gamemode_prep, self.env.get_legal_actions(), lstm=raw_state_gamemode_prep['trump'] not in ['D', 'H', 'S', 'C'])
 
             agent_id = 0
             if raw_state_gamemode_prep['trump'] == 'J':

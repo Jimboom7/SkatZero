@@ -157,12 +157,15 @@ def get_card_encoding(state):
 
     return encoding
 
-def get_common_features(state):
+def get_common_features(state, lstm=False):
     card_encoding = get_card_encoding(state)
     current_hand = cards2array(state['current_hand'], card_encoding)
     others_hand = cards2array(state['others_hand'], card_encoding)
 
-    all_actions = action_seq2array(process_action_seq(state['trace'], state['self']), card_encoding)
+    if lstm:
+        all_actions = action_seq2array_lstm(process_action_seq(state['trace'], state['self']), card_encoding)
+    else:
+        all_actions = action_seq2array(process_action_seq(state['trace'], state['self']), card_encoding)
 
     trick1 = card2array(None, card_encoding)
     trick2 = card2array(None, card_encoding)
@@ -178,8 +181,8 @@ def get_common_features(state):
 
     return current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding
 
-def get_soloplayer_features(state):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
+def get_soloplayer_features(state, lstm=False):
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state, lstm)
 
     opponent_left_played_cards = cards2array(state['played_cards'][1], card_encoding)
     opponent_right_played_cards = cards2array(state['played_cards'][2], card_encoding)
@@ -253,8 +256,8 @@ def get_soloplayer_features(state):
 
     return obs, history
 
-def get_opponent_features(state):
-    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state)
+def get_opponent_features(state, lstm=False):
+    current_hand, others_hand, all_actions, trick1, trick2, blind_hand, card_encoding = get_common_features(state, lstm)
     soloplayer_played_cards = cards2array(state['played_cards'][0], card_encoding)
 
     last_soloplayer_action = None
@@ -327,15 +330,27 @@ def get_opponent_features(state):
 
     return obs, history
 
-def extract_state(state, legal_actions):
+def extract_state(state, legal_actions, lstm=False):
     if state['self'] == state['soloplayer']:
-        obs, history = get_soloplayer_features(state)
+        obs, history = get_soloplayer_features(state, lstm)
     else:
-        obs, history = get_opponent_features(state)
+        obs, history = get_opponent_features(state, lstm)
     extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
-    history = np.array(history)
+    if lstm:
+        history = history.reshape(10, 105)
+    else:
+        history = np.array(history)
     extracted_state['history'] = history
     extracted_state['raw_obs'] = state
     extracted_state['raw_legal_actions'] = [a for a in state['actions']]
     # print(extracted_state)
     return extracted_state
+
+def action_seq2array_lstm(action_seq_list, card_encoding):
+    action_seq_array = np.zeros((len(action_seq_list), 35), np.int8)
+    for row, action in enumerate(action_seq_list):
+        if action[0] != -1:
+            action_seq_array[row, 0:3] = get_number_as_one_hot_vector(action[0], 2)
+        action_seq_array[row, 3:] = card2array(action[1], card_encoding)
+    action_seq_array = action_seq_array.flatten()
+    return action_seq_array

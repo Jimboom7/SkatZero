@@ -43,6 +43,19 @@ class DMCNet(nn.Module):
         self.fc_layers = nn.Sequential(*fc)
 
     def forward(self, obs, history, actions):
+        if history.shape[1] == 105:
+            lstm_out, (_, _) = self.lstm(history)
+            if history.dim() == 2:
+                lstm_out = lstm_out[-1:,:] # transforms lstm output to shape (batch_size, hidden_dim)
+                lstm_out = torch.repeat_interleave(lstm_out, obs.shape[0], dim=0)
+            else:
+                lstm_out = lstm_out[:,-1,:] # transforms lstm output to shape (batch_size, hidden_dim)
+            obs = torch.cat([lstm_out, obs], dim=-1)
+            #obs = torch.flatten(obs, 1)
+            #actions = torch.flatten(actions, 1)
+            x = torch.cat((obs, actions), dim=1)
+            values = self.fc_layers(x).flatten()
+            return values
         is_fake_batch = False
         if history.dim() == 4:
             history = history.unsqueeze(1)

@@ -27,17 +27,17 @@ def run_testsuite(model, version):
     raw_state, _ = env.game.init_game()
     raw_state['drueck'] = False
 
-    if model == 'skat_lstm_D':
+    if 'D' in model:
         # testcases = [case1_bonus]
         testcases = [case1_easy, case2_easy, case3_easy, case4_easy, case5_easy, case6_easy, case7_easy, case8_easy, case9_easy, case10_easy,
                    case2_medium, case3_medium, case4_medium, case5_medium, case6_medium, case7_medium, case8_medium, case9_medium, case10_medium,
                    case11_medium, case12_medium, case13_medium, case14_medium, case15_medium, case16_medium, case17_medium, case18_medium, case19_medium, case20_medium,
                    case21_medium, case22_medium, case23_medium, case24_medium, case25_medium, case26_medium, case27_medium, case28_medium, case29_medium, case30_medium, case31_medium,
                    case1_hard, case2_hard, case3_hard, case4_hard, case5_hard, case6_hard, case7_hard, case8_hard, case9_hard, case10_hard]
-    elif model == 'skat_lstm_G':
+    elif 'G' in model:
         testcases = [case1_easy_grand, case2_easy_grand, case3_easy_grand, case1_medium_grand, case2_medium_grand, case3_medium_grand, case1_hard_grand, case2_hard_grand,
                      case1_euroskat_grand, case2_iss_grand]
-    elif model == 'skat_lstm_N':
+    elif 'N' in model:
         testcases = [case1_null]
 
     w_score = 0
@@ -94,16 +94,16 @@ def get_averages(model, version):
             logfile.write(res)
 
 if __name__ == '__main__':
-    # MODEL = "skat_lstm_D"
-    # FRAMES = 17170
-    MODEL = "skat_lstm_G"
-    FRAMES = 14730
+    MODEL = "skat_resnet_D"
+    FRAMES = 1860
+    # MODEL = "skat_lstm_G"
+    # FRAMES = 14730
     # MODEL = "skat_lstm_N"
     # FRAMES = 5140
 
     # run_testsuite(MODEL, FRAMES)
 
-    for i in range(14710, FRAMES + 10, 10):
+    for i in range(1850, FRAMES + 10, 10):
         run_testsuite(MODEL, i)
 
 

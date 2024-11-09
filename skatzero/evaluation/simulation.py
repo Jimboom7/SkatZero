@@ -140,7 +140,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
         if len(dealers) < num_games:
             num_games = len(dealers)
 
-    env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
+    env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers, lstm=[False, True, True])
     if not dealer_from_log:
         env.do_drueck = True
 
@@ -154,7 +154,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
         print(position, models_solo[position], reward)
 
     set_seed(seed)
-    env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers)
+    env = EvalEnv(seed=seed, gametype=gametype, dealers=dealers, lstm=[True, False, False])
     if not dealer_from_log:
         env.do_drueck = True
 
