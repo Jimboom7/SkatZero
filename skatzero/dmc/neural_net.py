@@ -12,28 +12,35 @@ class DMCNet(nn.Module):
     ):
         super().__init__()
 
+        # Input: 30 x 18
+
         self.conv_z_1 = torch.nn.Sequential(
-            nn.Conv3d(1, 64, kernel_size=(1, 1, 42)),  # B * 1 * 64 * 32
+            nn.Conv2d(1, 64, kernel_size=(1, 18)),  # 64 x 30 x 1
             nn.ReLU(inplace=True),
             nn.BatchNorm3d(64),
         )
         self.conv_z_2 = torch.nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=(1, 4)),  # 128 * 16
+            nn.Conv1d(64, 128, kernel_size=3, stride=3),  # 128 x 10
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(128),
+            nn.BatchNorm1d(128),
         )
         self.conv_z_3 = torch.nn.Sequential(
-            nn.Conv1d(128, 256, kernel_size=(3,), padding=1), # 256 * 8
+            nn.Conv1d(128, 256, kernel_size=3),  # 256 x 8
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(256),
         )
         self.conv_z_4 = torch.nn.Sequential(
-            nn.Conv1d(256, 512, kernel_size=(3,), padding=1), # 512 * 4
+            nn.Conv1d(256, 512, kernel_size=3, padding=1), # 512 x 4
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(512),
         )
+        self.conv_z_5 = torch.nn.Sequential(
+            nn.Conv1d(512, 1024, kernel_size=2), # 1024 x 1
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(1024),
+        )
 
-        input_dim = np.prod(state_shape) + np.prod(action_shape) + 512
+        input_dim = np.prod(state_shape) + np.prod(action_shape) + 1024
         layer_dims = [input_dim] + mlp_layers
         fc = []
         for i in range(len(layer_dims)-1):
@@ -63,15 +70,16 @@ class DMCNet(nn.Module):
             is_fake_batch = True
             history = history.unsqueeze(0).unsqueeze(0)
         history = self.conv_z_1(history)
-        history = history.squeeze(-1)
+        history = history.squeeze(-1) # 64 x 30
         history = self.conv_z_2(history)
-        history = history.squeeze(-1)
-        history = torch.max_pool1d(history, 2)
         history = self.conv_z_3(history)
-        history = torch.max_pool1d(history, 2)
+        #history = history.squeeze(-1).squeeze(-1)
+        history = torch.max_pool1d(history, 2) # 256 x 4
         history = self.conv_z_4(history)
-        history = torch.max_pool1d(history, 2)
-        history = history.flatten(1,2)
+        history = torch.max_pool1d(history, 2) # 512 x 2
+        history = self.conv_z_5(history)
+        #history = torch.max_pool1d(history, 2) # 1024 x 1
+        history = history.flatten(1,2) # 1024
         if is_fake_batch: # Fake Batch
             history = torch.repeat_interleave(history, obs.shape[0], dim=0)
         obs = torch.cat([history, obs], dim=-1)
