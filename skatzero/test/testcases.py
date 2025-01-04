@@ -1,7 +1,7 @@
 from skatzero.test.utils import construct_state_from_history
 
 def case1_easy(raw_state):
-    print("Trumpf ziehen")
+    print("Alleinspieler: Trumpf ziehen")
     # https://www.youtube.com/watch?v=rc0C9xftSfs
     raw_state['self'] = 0
     raw_state['points'] = [0, 0]
@@ -24,7 +24,7 @@ def case1_easy(raw_state):
     return raw_state, ('SJ', 'HJ', 'DJ')
 
 def case2_easy(raw_state):
-    print("Schmieren als Letzter")
+    print("Gegenspieler: Schmieren als Letzter")
     raw_state['self'] = 2
     raw_state['points'] = [3, 0]
     raw_state['blind_hand'] = False
@@ -45,7 +45,7 @@ def case2_easy(raw_state):
     return raw_state, ('ST', 'SA', 'CA', 'HA')
 
 def case3_easy(raw_state):
-    print("Schmieren als Zweiter I")
+    print("Gegenspieler: Schmieren als Zweiter I")
     raw_state['self'] = 1
     raw_state['points'] = [3, 0]
     raw_state['blind_hand'] = False
@@ -66,7 +66,7 @@ def case3_easy(raw_state):
     return raw_state, ('ST', 'SA', 'CA', 'HA')
 
 def case4_easy(raw_state):
-    print("Tauchen für 10 als Letzter")
+    print("Alleinspieler: Tauchen für 10 als Letzter")
     raw_state['self'] = 0
     raw_state['points'] = [27, 12]
     raw_state['blind_hand'] = False
@@ -87,7 +87,7 @@ def case4_easy(raw_state):
     return raw_state, ('H7')
 
 def case5_easy(raw_state):
-    print("Abwerfen")
+    print("Alleinspieler: Abwerfen")
     raw_state['self'] = 0
     raw_state['points'] = [20, 12]
     raw_state['blind_hand'] = False
@@ -108,7 +108,7 @@ def case5_easy(raw_state):
     return raw_state, ('S7', 'H7')
 
 def case6_easy(raw_state):
-    print("Trumpfgabel vorbereiten IV")
+    print("Alleinspieler: Trumpfgabel vorbereiten IV")
     # https://www.youtube.com/watch?v=F4GpL5C0S04
     raw_state['self'] = 0
     raw_state['points'] = [22, 39]
@@ -132,7 +132,7 @@ def case6_easy(raw_state):
     return raw_state, ('HQ')
 
 def case7_easy(raw_state):
-    print("Trumpfgabel ausführen")
+    print("Alleinspieler: Trumpfgabel ausführen")
     # https://www.youtube.com/watch?v=F4GpL5C0S04
     raw_state['self'] = 0
     raw_state['points'] = [22, 56]
@@ -228,8 +228,8 @@ def case10_easy(raw_state):
     return raw_state, ('S7')
 
 def case1_medium(raw_state):
-    print("Letzten Trumpf korrekt ziehen")
-    # Sollte nicht D8 priorisieren, da Gegner nurnoch D9 Trumpf haben
+    print("Alleinspieler: Letzten Trumpf korrekt ziehen")
+    # Sollte nicht D8 priorisieren, da Gegner nurnoch D9 Trumpf haben. Alternativ ist S8 evtl. für Schneider gut
     raw_state['self'] = 0
     raw_state['points'] = [50, 11]
     raw_state['blind_hand'] = False
@@ -248,10 +248,10 @@ def case1_medium(raw_state):
     raw_state['actions'] = actions
     raw_state['trick'] = trick
 
-    return raw_state, ('CJ', 'DA')
+    return raw_state, ('CJ', 'DA', 'S8')
 
 def case2_medium(raw_state):
-    print("Schmieren als Zweiter II")
+    print("Gegenspieler: Schmieren als Zweiter II")
     raw_state['self'] = 1
     raw_state['points'] = [3, 0]
     raw_state['blind_hand'] = False
@@ -272,7 +272,7 @@ def case2_medium(raw_state):
     return raw_state, ('ST', 'SA', 'CA', 'HA')
 
 def case3_medium(raw_state):
-    print("Niedrig stechen")
+    print("Alleinspieler: Niedrig stechen")
     # https://www.youtube.com/watch?v=F4GpL5C0S04
     raw_state['self'] = 0
     raw_state['points'] = [3, 10]
@@ -294,7 +294,7 @@ def case3_medium(raw_state):
     return raw_state, ('D8', 'DQ') # DT eventuell, aber laut Daniel nicht
 
 def case4_medium(raw_state):
-    print("Trumpfgabel vorbereiten II")
+    print("Alleinspieler: Trumpfgabel vorbereiten II")
     # https://www.youtube.com/watch?v=F4GpL5C0S04
     raw_state['self'] = 0
     raw_state['points'] = [11, 25]
@@ -317,7 +317,7 @@ def case4_medium(raw_state):
     return raw_state, ('HA')
 
 def case5_medium(raw_state):
-    print("Trumpfgabel vorbereiten III")
+    print("Alleinspieler: Trumpfgabel vorbereiten III")
     # https://www.youtube.com/watch?v=F4GpL5C0S04
     raw_state['self'] = 0
     raw_state['points'] = [22, 25]
@@ -340,7 +340,7 @@ def case5_medium(raw_state):
     return raw_state, ('H7', 'HQ')
 
 def case6_medium(raw_state):
-    print("Abwerfen trotz Vollem")
+    print("Alleinspieler: Abwerfen trotz Vollem")
     # https://www.youtube.com/watch?v=XPA0vd3ybik
     raw_state['self'] = 0
     raw_state['points'] = [7, 13]
@@ -364,7 +364,7 @@ def case6_medium(raw_state):
     return raw_state, ('C8', 'C9') # Idee: Verlustrechnung, man sollte Kreuz abwerfen
 
 def case7_medium(raw_state):
-    print("Farbe vor Trumpf")
+    print("Alleinspieler: Farbe vor Trumpf")
     # https://www.youtube.com/watch?v=XPA0vd3ybik
     raw_state['self'] = 0
     raw_state['points'] = [28, 13]
@@ -388,7 +388,7 @@ def case7_medium(raw_state):
     return raw_state, ('C8', 'C9') # Idee: Trumpf spielen gibt einem Gegner die Chance abzuwerfen
 
 def case8_medium(raw_state):
-    print("Alleinspieler: Korrekten Trumpf spielen")
+    print("Alleinspieler: Alleinspieler: Korrekten Trumpf spielen")
     # https://www.youtube.com/watch?v=fOu3rGDIKc4
     raw_state['self'] = 0
     raw_state['points'] = [22, 21]
@@ -500,7 +500,7 @@ def case12_medium(raw_state):
     return raw_state, ('SQ', 'S7')
 
 def case13_medium(raw_state):
-    print("GameDuell Skat Masters: 10 (hoch) zurückbehalten")
+    print("Alleinspieler: GameDuell Skat Masters: 10 (hoch) zurückbehalten")
     # https://www.youtube.com/watch?v=TXCF53VsLdM 2:30 Minuten
     raw_state['self'] = 0
     raw_state['points'] = [28, 22]
@@ -525,7 +525,7 @@ def case13_medium(raw_state):
     return raw_state, ('SQ') # [Mittel] Eindeutig richtiger Zug, 10 oder 7 wäre int
 
 def case14_medium(raw_state):
-    print("GameDuell Skat Masters: Farbe weiterspielen")
+    print("Gegenspieler: GameDuell Skat Masters: Farbe weiterspielen")
     # https://youtu.be/TXCF53VsLdM?feature=shared&t=473
     raw_state['self'] = 2
     raw_state['points'] = [0, 14]
@@ -547,7 +547,7 @@ def case14_medium(raw_state):
     return raw_state, ('SK', 'S9', 'S7') # [Mittel] Idee: Teammate soll 10 stechen
 
 def case15_medium(raw_state):
-    print("GameDuell Skat Masters: 'Pik Ass rein, 60!'")
+    print("Gegenspieler: GameDuell Skat Masters: 'Pik Ass rein, 60!'")
     # https://youtu.be/TXCF53VsLdM?feature=shared&t=1145
     raw_state['self'] = 1
     raw_state['points'] = [18, 45]
@@ -576,7 +576,7 @@ def case15_medium(raw_state):
     return raw_state, ('SA') # [Mittel] Nur Pik Ass gewinnt das Spiel!
 
 def case16_medium(raw_state):
-    print("Mit Ass stechen")
+    print("Alleinspieler: Mit Ass stechen")
     # https://youtu.be/Szf4DtWNgZ8?si=W0Poyk0OhxhJ42j6&t=203
     raw_state['self'] = 0
     raw_state['points'] = [17, 4]
@@ -600,7 +600,7 @@ def case16_medium(raw_state):
     return raw_state, ('DA', 'DT') # Mit Ass oder Zehn stechen
 
 def case17_medium(raw_state):
-    print("Tauchen um später überzustechen")
+    print("Gegenspieler: Tauchen um später überzustechen")
     # https://youtu.be/Szf4DtWNgZ8?si=vIUSVzTxvZjTuNS1&t=420
     raw_state['self'] = 1
     raw_state['points'] = [23, 11]
@@ -933,7 +933,7 @@ def case30_medium(raw_state):
     return raw_state, ('D7', 'D8', 'D9', 'DQ', 'DK', 'DT', 'DA', 'HJ') # Herz Dame Abwurf verliert das Spiel eventuell!
 
 def case31_medium(raw_state):
-    print("Beispiel von ISS")
+    print("Alleinspieler: Beispiel von ISS")
     raw_state['self'] = 0
     raw_state['points'] = [64, 36]
     raw_state['blind_hand'] = False
@@ -962,7 +962,7 @@ def case31_medium(raw_state):
     return raw_state, ('H8', 'S9') # Ist eh sicher ein "normaler" Win, aber Herz König kann noch Stich machen und ein paar "nutzlose" Augen mehr
 
 def case1_hard(raw_state):
-    print("Schweres Youtube Rätsel")
+    print("Alleinspieler: Schweres Youtube Rätsel")
     # Schweres Rätsel: https://www.youtube.com/watch?v=7VCsp3BiJvQ - Nur Herz Ass führt zum Sieg
     raw_state['self'] = 0
     raw_state['points'] = [13, 0]
@@ -984,7 +984,7 @@ def case1_hard(raw_state):
     return raw_state, ('HA')
 
 def case2_hard(raw_state):
-    print("Trumpfgabel vorbereiten I")
+    print("Alleinspieler: Trumpfgabel vorbereiten I")
     # https://www.youtube.com/watch?v=F4GpL5C0S04
     raw_state['self'] = 0
     raw_state['points'] = [11, 25]
@@ -1007,7 +1007,7 @@ def case2_hard(raw_state):
     return raw_state, ('D8') # Nicht abwerfen, Trumpfgleichstand erreichen
 
 def case3_hard(raw_state):
-    print("Schneider machen")
+    print("Alleinspieler: Schneider machen")
     # https://www.youtube.com/watch?v=gwtw25mHM-U
     raw_state['self'] = 0
     raw_state['points'] = [35, 22]
@@ -1054,7 +1054,7 @@ def case4_hard(raw_state):
     return raw_state, ('CJ') # Idee: Man will später nicht mehr am Stich sein, damit Partner stärker ist
 
 def case5_hard(raw_state):
-    print("GameDuell Skat Masters: Abwerfen statt stechen")
+    print("Alleinspieler: GameDuell Skat Masters: Abwerfen statt stechen")
     # https://youtu.be/TXCF53VsLdM?feature=shared&t=1095
     raw_state['self'] = 0
     raw_state['points'] = [14, 28]
@@ -1078,7 +1078,7 @@ def case5_hard(raw_state):
     return raw_state, ('CK') # [?] Laut Kommentator ist abwerfen besser als stechen
 
 def case6_hard(raw_state):
-    print("Zehn abwerfen")
+    print("Gegenspieler: Zehn abwerfen")
     # https://youtu.be/Szf4DtWNgZ8?si=eDtBhDkaIVl7PP8Y&t=1177
     raw_state['self'] = 2
     raw_state['points'] = [50, 36]
@@ -1107,7 +1107,7 @@ def case6_hard(raw_state):
     return raw_state, ('ST') # Kommt dann mit den anderen beiden Stichen genau auf 60 Augen
 
 def case7_hard(raw_state):
-    print("Abwerfen trotz 2 Voller")
+    print("Alleinspieler: Abwerfen trotz 2 Voller")
     # https://www.youtube.com/watch?v=X5yenRmK1iw
     raw_state['self'] = 0
     raw_state['points'] = [20, 25]
@@ -1216,7 +1216,7 @@ def case10_hard(raw_state):
     return raw_state, ('C7') # Damit man die 2 Farben fürs Endspiel hat (Nächster Zug mit König an Stich, dann mit Karo höchste Karte haben)
 
 def case1_bonus(raw_state):
-    print("Endspiel: Schmierung behalten")
+    print("Gegenspieler: Endspiel: Schmierung behalten")
     raw_state['self'] = 1
     raw_state['points'] = [17, 42]
     raw_state['blind_hand'] = False
@@ -1509,7 +1509,7 @@ def case1_euroskat_grand(raw_state):
     return raw_state, ('ST') # Gewinnt das Spiel, Kreuz verliert (Alleinspieler kann stechen, Mitspieler muss bedienen)
 
 def case2_iss_grand(raw_state):
-    print("Alleinspieler: Nicht throwen")
+    print("Grand Alleinspieler: Nicht throwen")
     raw_state['self'] = 0
     raw_state['points'] = [25, 42]
     raw_state['blind_hand'] = False

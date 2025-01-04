@@ -32,22 +32,14 @@ def card2array(card, card_encoding):
         matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     return matrix.flatten()
 
-def card2array_for_sequence(card, card_encoding, trump):
+def card2array_for_sequence(card, card_encoding):
+    matrix = np.zeros([4, 11], dtype=np.int8)
     if card is None or card == '':
-        return np.zeros([37,], dtype=np.int8)
-    matrix = np.zeros([5,], dtype=np.int8) # Suit [5]
+        return matrix
     if card[1] == 'J':
-        if trump == 'J':
-            matrix[4] = 1 # Grand: Jack
-        else:
-            matrix[0] = 1 # Diamond
+        matrix[0, -1 - jack_encoding[card[0]]] = 1
     else:
-        if card[1] == 'J':
-            matrix[jack_encoding[card[0]]] = 1
-        else:
-            matrix[card_encoding[card[0]]] = 1
-    matrix_card = card2array(card, card_encoding)
-    matrix = np.concatenate((matrix, matrix_card), axis=0)
+        matrix[card_encoding[card[0]], card_rank_as_number[card[1]]] = 1
     return matrix
 
 def cards2array(cards, card_encoding):
@@ -69,15 +61,19 @@ def get_number_as_one_hot_vector(number, max_points=120):
         one_hot[-1] = 1
     return one_hot
 
-def action_seq2array(action_seq_list, card_encoding, trump='D'):
+def action_seq2array(action_seq_list, card_encoding):
     action_seq_array = [None] * 30
+    action_seq_array_stacked = [None] * 10
     for row, action in enumerate(action_seq_list):
-        action_seq_array[row] = card2array_for_sequence(action[1], card_encoding, trump) # [37]
-        player_id = np.zeros((3,), dtype=np.int8) # [3]
+        action_seq_array[row] = card2array_for_sequence(action[1], card_encoding)
+        player_id = np.zeros((4, 3), dtype=np.int8)
         if action[0] != -1:
-            player_id[action[0]] = 1
-        action_seq_array[row] = np.concatenate((action_seq_array[row], player_id), axis=0) # [40]
-    return action_seq_array
+            player_id[:, action[0]] = 1
+        action_seq_array[row] = np.hstack((action_seq_array[row], player_id))
+    for row in range (0, len(action_seq_list), 3):
+        action_seq_array_stacked[int(row / 3)] = np.hstack((action_seq_array[row], action_seq_array[row+1], action_seq_array[row+2]))
+    return action_seq_array_stacked
+
 
 def process_action_seq(sequence, player_id, length=30):
     #sequence = [action[1] for action in sequence[-length:]]

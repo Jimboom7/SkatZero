@@ -46,7 +46,7 @@ def create_buffers(
                 episode_return=dict(size=(T,), dtype=torch.float32),
                 target=dict(size=(T,), dtype=torch.float32),
                 state=dict(size=(T,)+tuple(state_shape[player_id]), dtype=torch.int8),
-                history=dict(size=(T, 30, 40), dtype=torch.int8),
+                history=dict(size=(T, 10, 4, 42), dtype=torch.int8),
                 action=dict(size=(T,)+tuple(action_shape[player_id]), dtype=torch.int8),
             )
             _buffers = {key: [] for key in specs}
