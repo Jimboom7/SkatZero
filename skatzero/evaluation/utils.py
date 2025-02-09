@@ -39,6 +39,8 @@ def format_card(card):
         output += "\033[34m"
     elif card[0] == "C":
         output += "\033[32m"
+    else:
+        return format_card(card[0]) + format_card(card[1]) # Druecken
 
     if card[1] == "T":
         output += "10" + suits[card[0]] + "\033[0m"

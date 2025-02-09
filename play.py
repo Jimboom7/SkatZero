@@ -11,7 +11,7 @@ if __name__ == '__main__':
     env = SkatEnv(seed=seed, gametype='D')
 
     #agent_0 = load_model('models/latest/' + env.game.gametype + '_0.pth')
-    agent_0 = HumanAgent(env.num_actions, 0)
+    agent_0 = HumanAgent(env.num_actions)
     #agent_2 = RuleBasedAgent(env.num_actions)
     agent_1 = load_model('models/latest/' + env.game.gametype + '_1.pth')
     agent_2 = load_model('models/latest/' + env.game.gametype + '_2.pth')
