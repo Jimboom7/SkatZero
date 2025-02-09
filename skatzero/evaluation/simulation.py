@@ -1,4 +1,3 @@
-import copy
 import time
 import os
 import subprocess
@@ -126,7 +125,7 @@ def save_evaluation_duel(folder, folder2, model1, model2, num_games, num_actors=
     if dealer_from_log:
         print("Reading log file...")
         dealers = []
-        for line in list(open('C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_' + gametype +'.txt', encoding='utf-8')):
+        for line in list(open(os.path.join(os.getenv('SKAT_PATH'), 'skatgame-games-07-2024/high_elo_' + gametype +'.txt'), encoding='utf-8')):
             try:
                 match = SkatMatch(line)
                 if not match.eingepasst and (gametype == match.gameType[0] or (gametype == 'D' and match.gameType[0] in ['H', 'S', 'C'])):

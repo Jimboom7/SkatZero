@@ -1,3 +1,4 @@
+import os
 import random
 import numpy as np
 
@@ -100,6 +101,6 @@ def analyze_reizungen(logFilePath):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/skatgame-games-07-2024.sgf'
+    issLogFilePath = os.path.join(os.getenv('SKAT_PATH'), 'skatgame-games-07-2024/skatgame-games-07-2024.sgf')
 
     analyze_reizungen(issLogFilePath)

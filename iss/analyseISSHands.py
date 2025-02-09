@@ -1,3 +1,4 @@
+import os
 from bidding.bidder import Bidder
 from iss.SkatMatch import SkatMatch
 from iss_api import prepare_env
@@ -62,7 +63,7 @@ def analyseHand(cards, reiz=18):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt'
+    issLogFilePath = os.path.join(os.getenv('SKAT_PATH'), 'ISS-Bot/log.txt')
 
     cards, reiz, outcomes = getHandsFromLogFile(issLogFilePath)
 

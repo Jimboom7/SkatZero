@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from iss.SkatMatch import SkatMatch
 import pickle
@@ -159,7 +160,7 @@ def calculatePercentages(playerEvalDict):
 
 if __name__ == '__main__':
     # Parameter
-    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt'
+    issLogFilePath = os.path.join(os.getenv('SKAT_PATH'), 'ISS-Bot/log.txt')
     playersToEvaluate = ['Hubert47', 'kermit', 'kermit:2']
     # gameTypesToExclude = ['D', 'H', 'S', 'C', 'N', 'NO'] # Grand
     # gameTypesToExclude = ['G', 'N', 'NO'] # Farbspiel

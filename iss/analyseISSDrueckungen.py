@@ -4,6 +4,7 @@ import numpy as np
 from iss.SkatMatch import SkatMatch
 from skatzero.game.player import Player
 from skatzero.game.dealer import Dealer
+import os
 
 
 def analyze_drueckungen(logFilePath):
@@ -64,7 +65,6 @@ def print_info(match, hit, hit2, gesamt):
 
 if __name__ == '__main__':
     # Parameter
-    # issLogFilePath = 'C:/Users/janvo/Desktop/Skat/ISS-Bot/logs/log_all.txt'
-    issLogFilePath = 'C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_N.txt'
+    issLogFilePath = os.path.join(os.getenv('SKAT_PATH'), 'skatgame-games-07-2024/high_elo_N.txt')
 
     analyze_drueckungen(issLogFilePath)

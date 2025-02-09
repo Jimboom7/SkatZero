@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from skatzero.game.dealer import Dealer
 from skatzero.game.player import Player
@@ -43,7 +44,7 @@ for i in range (0,10000):
 # from skatzero.evaluation.simulation import set_dealer_data
 
 # valuelist = []
-# for line in list(open('C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/high_elo_D.txt', encoding='utf-8')):
+# for line in list(open(os.path.join(os.getenv('SKAT_PATH'), 'skatgame-games-07-2024/high_elo_D.txt'), encoding='utf-8')):
 #     match = SkatMatch(line)
 #     if not match.eingepasst:
 #         dealer = set_dealer_data(match, 'D')

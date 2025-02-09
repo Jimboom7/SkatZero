@@ -2,6 +2,7 @@
 Read a iss.log file.
 Deals the exact same cards and lets AI agents play them.
 """
+import os
 from iss.SkatMatch import SkatMatch
 from skatzero.evaluation.simulation import load_model, set_dealer_data, set_seed
 from skatzero.evaluation.eval_env import EvalEnv
@@ -35,8 +36,7 @@ if __name__ == '__main__':
     model_d = '15200'
     model_g = '12560'
 
-    with open('C:/Users/janvo/Desktop/Skat/ISS-Bot/logs/log_' + model_d + '_' + model_g + '.txt', encoding='utf-8') as fRaw:
-    # with open('C:/Users/janvo/Desktop/Skat/ISS-Bot/log.txt', encoding='utf-8') as fRaw:
+    with open(os.path.join(os.getenv('SKAT_PATH'), 'ISS-Bot/logs/log_' + model_d + '_' + model_g + '.txt'), encoding='utf-8') as fRaw:
 
         line = fRaw.readline()
 

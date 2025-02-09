@@ -1,3 +1,4 @@
+import os
 from iss.SkatMatch import SkatMatch
 from skatzero.env.feature_transformations import cards2array, extract_state, card2array, get_card_encoding, convert_action_id_to_card, convert_card_to_action_id
 from skatzero.env.skat import SkatEnv
@@ -13,7 +14,7 @@ class SupervisedEnv(SkatEnv):
         self.current_match = 0
         print("Reading File...")
         i = 0
-        with open('C:/Users/janvo/Desktop/Skat/skatgame-games-07-2024/skatgame-games-07-2024.sgf', encoding='utf-8') as fRaw: # TODO: Change to other file
+        with open(os.path.join(os.getenv('SKAT_PATH'), 'skatgame-games-07-2024/skatgame-games-07-2024.sgf'), encoding='utf-8') as fRaw: # TODO: Change to other file
             line = fRaw.readline()
             while line:
                 try:
