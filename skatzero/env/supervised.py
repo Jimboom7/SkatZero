@@ -1,3 +1,6 @@
+"""
+Untested class for supervised learning via a iss log file.
+"""
 import os
 from iss.SkatMatch import SkatMatch
 from skatzero.env.feature_transformations import cards2array, extract_state, card2array, get_card_encoding, convert_action_id_to_card, convert_card_to_action_id

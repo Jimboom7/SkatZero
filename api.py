@@ -1,3 +1,19 @@
+"""
+This script provides an interface to interact with SkatZero by simple inputs.
+It allows the AI to bid, declare, and play cards based on the game state.
+
+Arguments:
+    BID hand, pos
+    SKAT_OR_HAND_DECL, hand, pos, bid1, bid2, bid_that_won
+    DISCARD_AND_DECL, hand, pos, bid1, bid2, bid_that_won
+    CARDPLAY, gametype(D,G,N +H or +O), hand, pos, points_self, points_other, bid1, bid2, skat1, skat2, soloplayer_open_cards(only for NO), played_cards
+
+Example calls:
+    BID CJ,DJ,DA,DK,DQ,D7,C9,HA,HT,HK 0
+    SKAT_OR_HAND_DECL CJ,DJ,DA,DK,DQ,D7,C9,HA,HT,HK,CT,ST 0 0 0 18
+    DISCARD_AND_DECL CJ,DJ,DA,DK,DQ,D7,C9,HA,HT,HK,CT,ST 0 0 0 18
+    CARDPLAY D CJ,DJ,DA,DT,DQ,D8,C7,SA,S9 0 25 0 0 30 DK D7 0 0 1HT,2HA,0D8
+"""
 import copy
 import sys
 import os
@@ -391,7 +407,7 @@ def check_trick(trick, trump):
 
 if __name__ == '__main__':
     ACCURACY = 231 # Number of Iterations for Skat simulation
-    BID_THRESHOLD = -5 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games
+    BID_THRESHOLD = -5 # How aggressive should the AI bid? 0 is average best return if the opponents never play themselves, -20 is average considering opponent solo games (default: -5)
 
     arguments = sys.argv[1:]
 
@@ -406,6 +422,3 @@ if __name__ == '__main__':
             cardplay(arguments)
         else:
             print("Wrong Gamemode")
-
-    #DEBUG
-    #declare(["DISCARD_AND_DECL", "CJ,DJ,DA,DK,DQ,D7,C9,HA,HT,HK,CT,ST", 0, 0, 0, 18])

@@ -17,10 +17,10 @@ dist/
 .coverage*
 docs/rst
 docs/sphinx
+
 models/checkpoints
-dist/
 Notizen
 *eval_data*.pkl
-not_done
 testresults/*
-Kartenverteilung.png
+misc/*
+bidding/test_dists.py

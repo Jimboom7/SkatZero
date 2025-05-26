@@ -18,15 +18,6 @@ class Dealer:
         self.suit_values = [9, 10, 11, 12]
         self.is_hand = [False, False, False]
         self.starting_player = -1
-        # self.counter1 = 0
-        # self.counter2 = 0
-        # self.counter3 = 0
-        # self.counter4 = 0
-        # self.counter5 = 0
-        # self.counter6 = 0
-        # self.counter7 = 0
-        # self.counter8 = 0
-        # self.counter9 = 0
 
     def reset_bids(self):
         self.bids = [{'D': 0, 'H': 0, 'S': 0, 'C': 0, 'N': 0},
@@ -75,7 +66,6 @@ class Dealer:
         self.set_bids(players)
 
         if sum(self.max_bids) == 0:
-            # self.counter9 += 1
             return False # No Bids
 
         max_bid = 0
@@ -104,17 +94,6 @@ class Dealer:
 
         suit = self.decide_skat_or_hand(players, gametype, highest_bidder)
 
-        # if gametype == 'N' and suit == 'N':
-        #     if not self.open_hand and self.blind_hand:
-        #         self.counter2 += 1
-        #         self.counter5 += 1
-        #     if self.open_hand and self.blind_hand:
-        #         self.counter4 += 1
-        #         self.counter5 += 1
-
-        # For analyseOutcomes
-        # self.blind_hand = False
-
         if self.blind_hand:
             if ((gametype == 'D' and suit not in ['D', 'H', 'S', 'C']) or
                 (gametype == 'G' and suit != 'G') or
@@ -123,7 +102,6 @@ class Dealer:
             else:
                 if gametype in ['D', 'H', 'S', 'C']:
                     self.swap_suit_for_D_game(players, suit)
-                # self.counter6 += 1
                 return True
 
         self.pickup_skat(players)
@@ -137,17 +115,6 @@ class Dealer:
 
         if gametype == 'D':
             self.swap_suit_for_D_game(players, suit)
-            # self.counter7 += 1
-
-        # if gametype == 'G':
-        #     self.counter8 += 1
-
-        # if gametype == 'N':
-        #     self.counter5 += 1
-        #     if not self.open_hand:
-        #         self.counter1 += 1
-        #     if self.open_hand:
-        #         self.counter3 += 1
 
         return True
 
