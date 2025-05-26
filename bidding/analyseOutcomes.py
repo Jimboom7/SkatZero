@@ -2,9 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import copy
-import random
-import sys
-sys.path.append('D:\Git\skatzero')
 from skatzero.env.skat import SkatEnv
 from skatzero.evaluation.simulation import load_model
 from bidding.bidder import Bidder
@@ -107,48 +104,8 @@ if __name__ == '__main__':
             results['Gewonnen'].append(((rewards[0] == possible_rewards[3])))
             results['Schneider'].append(((rewards[0] == possible_rewards[4])))
             results['Schwarz'].append(((rewards[0] == possible_rewards[5])))
-
-            """
-            num_distributions = 2 #10
-            distribution_count = 0
-            is_stuck = False
-            while distribution_count < num_distributions:
-                env = copy.deepcopy(env_cpy)
-                other_cards = env.game.players[1].current_hand + env.game.players[2].current_hand
-                random.shuffle(other_cards)
-                env.game.players[1].current_hand = other_cards[:10]
-                env.game.players[2].current_hand = other_cards[10:]
-                env.game.round.dealer.reset_bids()
-                env.game.round.dealer.set_bids(env.game.players)
-
-                if env.game.round.dealer.bids != bids_cpy or env.game.round.dealer.bid_jacks != bid_jacks_cpy: #bleibt manchmal hängen
-                    num_fails += 1
-                    if num_fails == 300:
-                        is_stuck = True
-                        break
-                    continue
-
-                distribution_count += 1
-
-                trajectories, rewards = env.run(state=raw_state, player_id=player_id)
-
-                results['Eigenschwarz'].append(((rewards[0] == -170) + results['Eigenschwarz'][-1]*(distribution_count-1))/distribution_count)
-                results['Eigenschneider'].append(((rewards[0] == -150) + results['Eigenschneider'][-1]*(distribution_count-1))/distribution_count)
-                results['Verloren'].append(((rewards[0] == -130) + results['Verloren'][-1]*(distribution_count-1))/distribution_count)
-                results['Gewonnen'].append(((rewards[0] == 70) + results['Gewonnen'][-1]*(distribution_count-1))/distribution_count)
-                results['Schneider'].append(((rewards[0] == 80) + results['Schneider'][-1]*(distribution_count-1))/distribution_count)
-                results['Schwarz'].append(((rewards[0] == 90) + results['Schwarz'][-1]*(distribution_count-1))/distribution_count)
-
-            if is_stuck:
-                #print('This hand was stuck...')
-                continue
-            """
-
-            # true mean value müsste gemittelt werden
-            #true_mean_value = results['Eigenschwarz'][-1] * (possible_rewards[0]) + results['Eigenschneider'][-1] * (possible_rewards[1]) + results['Verloren'][-1] * (possible_rewards[2]) + results['Gewonnen'][-1] * (possible_rewards[3]) + results['Schneider'][-1] * (possible_rewards[4]) + results['Schwarz'][-1] * (possible_rewards[5])
-            
+          
             actual_values_list.append(hand_estimate)
-
 
             value_distributions[min_est_ind, hand_ind, 0] = results['Eigenschwarz'][-1]
             value_distributions[min_est_ind, hand_ind, 1] = results['Eigenschneider'][-1]
@@ -157,13 +114,10 @@ if __name__ == '__main__':
             value_distributions[min_est_ind, hand_ind, 4] = results['Schneider'][-1]
             value_distributions[min_est_ind, hand_ind, 5] = results['Schwarz'][-1]
 
-
-
             hand_ind += 1
 
         actual_values.append(np.mean(actual_values_list))
 
-        
         #print(rewards)
 
     #plt.figure()

@@ -101,10 +101,4 @@ if __name__ == '__main__':
     # MODEL = "skat_lstm_N"
     # FRAMES = 5140
 
-    # run_testsuite(MODEL, FRAMES)
-
-    for i in range(17150, FRAMES + 10, 10):
-        run_testsuite(MODEL, i)
-
-
-    #get_averages(MODEL, FRAMES)
+    run_testsuite(MODEL, FRAMES)
