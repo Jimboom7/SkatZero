@@ -14,7 +14,7 @@ SkatZero was evaluated against the state of the art AI Kermit and the simple AI 
 
 "SZvsX" was an instance of SkatZero that played only against the weak XSkat AI. Due to the nature of the rating system on the ISS this led to more rating points and a convenient first place after 1000 games. SkatZero was able to play 51% of the hands as solo player and won 91% of those. The average Fabian Seeger score per hand was 42.5 compared to 18.5 of XSkat.  
 
-"SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the previous state of the art AI. It reached an average Fabian Seeger score of 27.1, compared 25.1 of Kermit. Here are the detailed statistics:
+"SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the previous state of the art AI. It reached an average Fabian Seeger score of 27.1, compared to 25.1 of Kermit. Here are the detailed statistics:
 
 ![Statistic vs. Kermit](img/vskermit.png)  
 
@@ -32,22 +32,22 @@ The architecture of the project is based on [DouZero](https://github.com/kwai/Do
 #### Features
 The features differ for the solo and opposing players, as well as game type. Everything is encoded as a one hot matrix.  
 In general the features are the following:  
-**Action**:
-`Card`
-**Game State**:
-`Current Hand`
-`Opponent Hand`
-`Card 1 in trick`
-`Card 2 in trick`
-`Cards in skat`
-`Missing Cards of other players`
-`Cards Played by other players`
-`Solo Player Points`
-`Opponent Points`
-`Information about bidding`
-`Is Blind Hand Game`
-**Game History**:
-`All cards and the player who played them in chronological order`
+**Action**:  
+`Card`  
+**Game State**:  
+`Current Hand`  
+`Opponent Hand`  
+`Card 1 in trick`  
+`Card 2 in trick`  
+`Cards in skat`  
+`Missing Cards of other players`  
+`Cards Played by other players`  
+`Solo Player Points`  
+`Opponent Points`  
+`Information about bidding`  
+`Is Blind Hand Game`  
+**Game History**:  
+`All cards and the player who played them in chronological order`  
 
 ### Bidding Architecture
 
@@ -66,6 +66,16 @@ Training was done on a regular PC with one RTX 4070 Ti and an Intel Core i7-1270
 
 ## Usage
 
+### API
+
+The API is probably the most useful way to interact with SkatZero.  
+To get the AI move for a specific gamestate, run the following command:
+```sh
+python api.py ARGUMENTS
+```
+
+Arguments are described in the `api.py` file.
+
 ### Training
 
 To train the models, run the following command:
@@ -80,7 +90,8 @@ To evaluate the trained models, run the following command:
 ```sh
 python evaluate.py
 ```
-This will let a specific version of a model play multiple games against another model, to check how much the performance increased.
+This will let a specific version of a model play multiple games against another model, to check how much the performance increased.  
+Modify the `evaluate.py` file to specify which models to evaluate against.
 
 ### Play
 
@@ -88,6 +99,7 @@ To play against the model locally (without bidding) in a simple text-based inter
 ```sh
 python play.py
 ```
+You can modify the `play.py` file to change the position of the human player (solo player by default).
 
 ### Tests
 
@@ -96,15 +108,6 @@ To start the tests, run the following command:
 python test.py
 ```
 There are testcases for each game mode ranging from simple to challenging puzzles.
-
-### API
-
-To get the AI move for a specific gamestate, run the following command:
-```sh
-python api.py ARGUMENTS
-```
-
-Arguments are described in the `api.py` file.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.

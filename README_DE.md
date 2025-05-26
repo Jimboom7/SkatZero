@@ -35,24 +35,24 @@ Es gibt 3 Modelle pro Spieltyp (Farbspiel, Grand, Null), also müssen insgesamt 
 Die Features unterscheiden sich je nach Spielerrolle (Alleinspieler oder Gegenspieler) sowie Spieltyp. Alle Daten werden als One-Hot-Matrix kodiert.  
 Im Allgemeinen sind die Features wie folgt:
 
-**Aktion**:
-- `Karte`
+**Aktion**:  
+- `Karte`  
 
-**Spielzustand**:
-- `Aktuelle Hand`
-- `Hand des Gegners`
-- `Karte 1 im Stich`
-- `Karte 2 im Stich`
-- `Karten im Skat`
-- `Fehlende Karten der anderen Spieler`
-- `Gespielte Karten der anderen Spieler`
-- `Punkte des Alleinspielers`
-- `Punkte der Gegner`
-- `Informationen zur Reizung`
-- `Handspiel?`
+**Spielzustand**:  
+- `Aktuelle Hand`  
+- `Hand des Gegners`  
+- `Karte 1 im Stich`  
+- `Karte 2 im Stich`  
+- `Karten im Skat`  
+- `Fehlende Karten der anderen Spieler`  
+- `Gespielte Karten der anderen Spieler`  
+- `Punkte des Alleinspielers`  
+- `Punkte der Gegner`  
+- `Informationen zur Reizung`  
+- `Handspiel?`  
 
-**Spielverlauf**:
-- `Alle gespielten Karten mit zugehörigem Spieler in chronologischer Reihenfolge`
+**Spielverlauf**:  
+- `Alle gespielten Karten mit zugehörigem Spieler in chronologischer Reihenfolge`  
 
 ### Reizarchitektur
 
@@ -75,6 +75,16 @@ Das Nullspiel-Modell benötigte aufgrund des einfacheren Spielverlaufs weniger Z
 
 ## Nutzung
 
+### API
+
+Die API ist der beste Weg, um mit der KI zu interagieren.
+Mit dem folgenden Befehl kann man die Aktion der KI für einen spezifischen Spielstatus erhalten:
+```sh
+python api.py ARGUMENTS
+```
+
+Die Argumente sind in der Datei `api.py` beschrieben.
+
 ### Training
 
 Mit folgendem Befehl können die Modelle trainiert werden:  
@@ -94,6 +104,7 @@ python evaluate.py
 ```
 
 Dabei lässt man eine bestimmte Modellversion mehrere Spiele gegen ein anderes Modell spielen, um die Performance zu überprüfen.
+Um die Modelle festzulegen, die evauliert werden muss die `evaluate.py` Datei bearbeitet werden.
 
 ### Spielen
 
@@ -102,6 +113,7 @@ Mit folgendem Befehl kann lokal gegen das Modell gespielt werden (ohne Reizen), 
 ```sh
 python play.py
 ```
+In der `play.py` Datei kann man festlegen, an welcher Position der menschliche Spieler spielt (Standard: Alleinspieler).  
 
 ### Tests
 
@@ -112,15 +124,6 @@ python test.py
 ```
 
 Es gibt Testfälle für jeden Spielmodus, von einfachen bis zu komplexen Rätseln.
-
-### API
-
-Mit dem folgenden Befehl kann man die Aktion der KI für einen spezifischen Spielstatus erhalten:
-```sh
-python api.py ARGUMENTS
-```
-
-Die Argumente sind in der Datei `api.py` beschrieben.
 
 ## Lizenz
 
