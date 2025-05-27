@@ -12,13 +12,13 @@ SkatZero was evaluated against the state of the art AI Kermit and the simple AI 
 
 ![Rating](img/rating.png)  
 
-"SZvsX" was an instance of SkatZero that played only against the weak XSkat AI. Due to the nature of the rating system on the ISS this led to more rating points and a convenient first place after 1000 games. SkatZero was able to play 51% of the hands as solo player and won 91% of those. The average Fabian Seeger score per hand was 42.5 compared to 18.5 of XSkat.  
+"SZvsX" was an instance of SkatZero that played only against the weak XSkat AI. In the rating system on the ISS this led a convenient first place after 1000 games. SkatZero was able to play 51% of the hands as solo player and won 91% of those. The average Seeger-Fabian score per hand was 42.5 compared to 18.5 of XSkat.  
 
-"SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the previous state of the art AI. It reached an average Fabian Seeger score of 27.1, compared to 25.1 of Kermit. Here are the detailed statistics:
+"SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the previous state of the art AI. It reached an average Seeger-Fabian score of 27.1, compared to 25.1 of Kermit. Here are the detailed statistics:
 
 ![Statistic vs. Kermit](img/vskermit.png)  
 
-SkatZero was also evaluated against human players on the Euroskat server. 124 series were played (9 to 36 games each) and the average Fabian Seeger score per hand was 27.52 compared to the average of 22.93 of the human players in that format.  
+SkatZero was also evaluated against human players on the Euroskat server. 124 series were played (9 to 36 games each) and the average Seeger-Fabian score per hand was 27.52 compared to the average of 22.93 of the human players in that format.  
 It is important to note that the AI was only used on tables in the "free area" (without betting money). The level of play there is lower than on tables with real money on the line, against professional players SkatZero would perform not as great as this statistic suggests.
 
 ![Statistic](img/statistic.png)  
