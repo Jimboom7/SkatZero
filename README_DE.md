@@ -12,7 +12,7 @@ SkatZero wurde gegen die aktuell führende KI Kermit sowie gegen die einfache KI
 
 ![Rangliste](img/rating.png)
 
-„SZvsX“ war eine Instanz von SkatZero, die ausschließlich gegen die schwache XSkat-KI spielte. Aufgrund der Natur des Ranglistensystems auf dem ISS führte dies zu mehr ELO-Punkten und einem ersten Platz nach 1000 Spielen mit solidem Abstand. SkatZero bestritt 51 % der Spiele als Alleinspieler und gewann 91 % davon. Die durchschnittliche Seeger-Fabian-Punktzahl pro Spiel betrug 42,5 im Vergleich zu 18,5 bei XSkat.  
+„SZvsX“ war eine Instanz von SkatZero, die ausschließlich gegen die schwache XSkat-KI spielte. Im Ranglistensystem auf dem ISS führte dies zu einem ersten Platz mit solidem Abstand nach 1000 Spielen. SkatZero bestritt 51 % der Spiele als Alleinspieler und gewann 91 % davon. Die durchschnittliche Seeger-Fabian-Punktzahl pro Spiel betrug 42,5 im Vergleich zu 18,5 bei XSkat.  
 
 „SkatZero“ war eine Instanz, die 10.000 Spiele gegen Kermit spielte, die bisher führende KI. Die durchschnittliche Seeger-Fabian-Punktzahl lag bei 27,1 gegenüber 25,1 bei Kermit. Hier sind die detaillierten Statistiken:
 

@@ -12,7 +12,7 @@ SkatZero was evaluated against the state of the art AI Kermit and the simple AI 
 
 ![Rating](img/rating.png)  
 
-"SZvsX" was an instance of SkatZero that played only against the weak XSkat AI. In the rating system on the ISS this led a convenient first place after 1000 games. SkatZero was able to play 51% of the hands as solo player and won 91% of those. The average Seeger-Fabian score per hand was 42.5 compared to 18.5 of XSkat.  
+"SZvsX" was an instance of SkatZero that played only against the weak XSkat AI. In the rating system on the ISS this led to a convenient first place after 1000 games. SkatZero was able to play 51% of the hands as solo player and won 91% of those. The average Seeger-Fabian score per hand was 42.5 compared to 18.5 of XSkat.  
 
 "SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the previous state of the art AI. It reached an average Seeger-Fabian score of 27.1, compared to 25.1 of Kermit. Here are the detailed statistics:
 
