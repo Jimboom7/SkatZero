@@ -4,7 +4,7 @@
 
 SkatZero is a reinforcement learning AI for the German card game [Skat](https://www.skatinsel.academy/en/how-to-skat/rules). In this 3-player card game, one of the players is up against two cooperating opponents, which makes this incomplete information game extremely challenging for AIs. Conventional AI algorithms exist (e.g., Kermit and variants), but are not on the level of expert players yet.  
 
-This project uses Deep Monte Carlo reinforcement learning without prior knowledge of the game rules. That means it plays millions of games against itself, first with random moves and over time with more strategic gameplay. The results are promising. SkatZero is able to beat all conventional AIs and reach first place on the leaderboard of the International Skat Server (ISS). The time required to make a move is also extremely low (just a few milliseconds) due to the nature of neural networks.  
+This project uses Deep Monte Carlo reinforcement learning without prior knowledge of the game rules. That means it plays millions of games against itself, first with random moves and over time with more strategic gameplay. The results are promising. SkatZero is able to beat the conventional AIs on the International Skat Server (ISS) and reach first place on the leaderboard. The time required to make a move is also extremely low (just a few milliseconds) due to the nature of neural networks.  
 
 ## Statistics and Benchmark
 
@@ -14,7 +14,7 @@ SkatZero was evaluated against the state of the art AI Kermit and the simple AI 
 
 "SZvsX" was an instance of SkatZero that played only against the weak XSkat AI. In the rating system on the ISS this led to a convenient first place after 1000 games. SkatZero was able to play 51% of the hands as solo player and won 91% of those. The average Seeger-Fabian score per hand was 42.5 compared to 18.5 of XSkat.  
 
-"SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the previous state of the art AI. It reached an average Seeger-Fabian score of 27.1, compared to 25.1 of Kermit. Here are the detailed statistics:
+"SkatZero" was an instance of SkatZero that played 10000 games against Kermit, the strongest AI on the ISS. It reached an average Seeger-Fabian score of 27.1, compared to 25.1 of Kermit. Here are the detailed statistics:
 
 ![Statistic vs. Kermit](img/vskermit.png)  
 
@@ -108,6 +108,11 @@ To start the tests, run the following command:
 python test.py
 ```
 There are testcases for each game mode ranging from simple to challenging puzzles.
+
+## Future Works
+
+There are several ways to improve SkatZero. One approach is to integrate the bidding algorithm into the trained AI model. This could not only enhance the bidding process itself but also improve overall training, as simulated games would use more realistic bidding behavior. Alternatively, bidding could be trained as a standalone model, similar to the approach taken in [DouRN: Improving DouZero by Residual Neural Networks](https://arxiv.org/pdf/2403.14102).  
+Another promising direction would be to modify the model architecture. Experiments have already been conducted using a CNN architecture, as card features can be represented in a suitable format (similar to images which the CNN excels in; with suit on one axis and rank on the other). Although these initial attempts did not result in improved playing strength, the results were not significantly worse either, suggesting that further experimentation is warranted. Another model worth exploring in more detail is Transformer.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.

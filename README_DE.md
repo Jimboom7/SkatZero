@@ -4,7 +4,7 @@
 
 SkatZero ist eine Reinforcement-Learning-KI für das deutsche Kartenspiel [Skat](https://de.wikipedia.org/wiki/Skat). In diesem Kartenspiel mit drei Spielern spielt ein Spieler gegen zwei kooperierende Gegner, was es zu einem unvollständigen Informationsspiel macht und somit besonders herausfordernd für KIs. Es existieren zwar herkömmliche KI-Algorithmen (z.B. Kermit und Varianten), jedoch erreichen diese noch nicht das Niveau von menschlichen Experten.  
 
-Dieses Projekt verwendet Deep Monte Carlo Reinforcement Learning ohne Vorwissen über die Spielregeln. Das bedeutet, dass es Millionen von Spielen gegen sich selbst spielt – zunächst mit zufälligen Zügen und im Verlauf mit immer strategischerem Spielverhalten. Die Ergebnisse sind vielversprechend: SkatZero ist in der Lage, alle herkömmlichen KIs zu schlagen und den ersten Platz in der Rangliste des International Skat Server (ISS) zu erreichen. Auch die Zeit zur Ausführung eines Spielzugs ist extrem gering (nur wenige Millisekunden), dank der Nutzung neuronaler Netze.
+Dieses Projekt verwendet Deep Monte Carlo Reinforcement Learning ohne Vorwissen über die Spielregeln. Das bedeutet, dass es Millionen von Spielen gegen sich selbst spielt – zunächst mit zufälligen Zügen und im Verlauf mit immer strategischerem Spielverhalten. Die Ergebnisse sind vielversprechend: SkatZero ist in der Lage, die herkömmlichen KIs auf dem International Skat Server (ISS) zu schlagen und dort den ersten Platz in der Rangliste zu erreichen. Auch die Zeit zur Ausführung eines Spielzugs ist extrem gering (nur wenige Millisekunden), dank der Nutzung neuronaler Netze.
 
 ## Statistiken und Benchmark
 
@@ -14,7 +14,7 @@ SkatZero wurde gegen die aktuell führende KI Kermit sowie gegen die einfache KI
 
 „SZvsX“ war eine Instanz von SkatZero, die ausschließlich gegen die schwache XSkat-KI spielte. Im Ranglistensystem auf dem ISS führte dies zu einem ersten Platz mit solidem Abstand nach 1000 Spielen. SkatZero bestritt 51 % der Spiele als Alleinspieler und gewann 91 % davon. Die durchschnittliche Seeger-Fabian-Punktzahl pro Spiel betrug 42,5 im Vergleich zu 18,5 bei XSkat.  
 
-„SkatZero“ war eine Instanz, die 10.000 Spiele gegen Kermit spielte, die bisher führende KI. Die durchschnittliche Seeger-Fabian-Punktzahl lag bei 27,1 gegenüber 25,1 bei Kermit. Hier sind die detaillierten Statistiken:
+„SkatZero“ war eine Instanz, die 10.000 Spiele gegen Kermit spielte, die stärkste KI auf dem ISS. Die durchschnittliche Seeger-Fabian-Punktzahl lag bei 27,1 gegenüber 25,1 bei Kermit. Hier sind die detaillierten Statistiken:
 
 ![Statistik vs. Kermit](img/vskermit.png)
 
@@ -124,6 +124,11 @@ python test.py
 ```
 
 Es gibt Testfälle für jeden Spielmodus, von einfachen bis zu komplexen Rätseln.
+
+## Weiterführende Ideen
+
+Es gibt unterschiedliche Wege, um SkatZero zu verbessern. Zum einen kann probiert werden, den Reizalgorithmus mit in die zu trainierende KI aufzunehmen. Dies könnte nicht nur das Reizen selbst verbessern, sondern auch das gesamte Training, da bei der Simulierung von Spielen ein realistischeres Reizverhalten genutzt wird. Alternativ könnte das Reizen als eigenständiges Modell trainiert werden, so wie es in [DouRN: Improving DouZero by Residual Neural Networks](https://arxiv.org/pdf/2403.14102) getan wurde.  
+Darüber hinaus wäre ein vielversprechender Ansatz, die Architektur des Modells zu ändern. Es wurden bereits Versuche mit einer CNN Architektur angestellt, da sich die Karten-Features gut in einem dazu passenden Format darstellen lassen (Quasi wie Bilder in deren Verarbeitung CNNs stark sind; mit der Kartenfarbe auf einer Achse und dem Wert auf der anderen). Dies brachte nach kurzen Versuchen keine Verbesserung der Spielstärke, allerdings waren die Ergebnisse auch nicht nennenswert schlechter, sodass weitere Versuche nötig wären. Ein weiteres Modell dass näher untersucht werden könnte wäre ein Transformer.
 
 ## Lizenz
 

@@ -132,8 +132,8 @@ class Game:
         if not self.black_soloplayer:
             payoffs[soloplayer_id] = (base_value * -2) - 50 - 40
 
-        payoffs[(soloplayer_id + 1) % 3] = -payoffs[soloplayer_id] / 4
-        payoffs[(soloplayer_id + 2) % 3] = -payoffs[soloplayer_id] / 4
+        payoffs[(soloplayer_id + 1) % 3] = -payoffs[soloplayer_id]
+        payoffs[(soloplayer_id + 2) % 3] = -payoffs[soloplayer_id]
 
         return payoffs
 
